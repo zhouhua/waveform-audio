@@ -1,0 +1,172 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --wa-base-background: 0 0% 100%;
+    --wa-base-foreground: 0 0% 3.9%;
+    --wa-base-muted: 0 0% 96.1%;
+    --wa-base-muted-foreground: 0 0% 45.1%;
+    --wa-base-border: 0 0% 89.8%;
+    --wa-base-input: 0 0% 89.8%;
+    --wa-base-primary: 0 0% 9%;
+    --wa-base-primary-foreground: 0 0% 98%;
+    --wa-base-secondary: 0 0% 96.1%;
+    --wa-base-secondary-foreground: 0 0% 9%;
+    --wa-base-accent: 0 0% 96.1%;
+    --wa-base-accent-foreground: 0 0% 9%;
+    --wa-base-card: 0 0% 100%;
+    --wa-base-card-foreground: 0 0% 3.9%;
+    --wa-base-popover: 0 0% 100%;
+    --wa-base-popover-foreground: 0 0% 3.9%;
+    --wa-base-destructive: 0 84.2% 60.2%;
+    --wa-base-destructive-foreground: 0 0% 98%;
+    --wa-base-ring: 0 0% 3.9%;
+    --wa-base-chart-1: 12 76% 61%;
+    --wa-base-chart-2: 173 58% 39%;
+    --wa-base-chart-3: 197 37% 24%;
+    --wa-base-chart-4: 43 74% 66%;
+    --wa-base-chart-5: 27 87% 67%;
+    --wa-base-radius: 0.5rem;
+  }
+
+  .dark {
+    --wa-base-background: 0 0% 3.9%;
+    --wa-base-foreground: 0 0% 98%;
+    --wa-base-muted: 0 0% 14.9%;
+    --wa-base-muted-foreground: 0 0% 63.9%;
+    --wa-base-border: 0 0% 14.9%;
+    --wa-base-input: 0 0% 14.9%;
+    --wa-base-primary: 0 0% 98%;
+    --wa-base-primary-foreground: 0 0% 9%;
+    --wa-base-secondary: 0 0% 14.9%;
+    --wa-base-secondary-foreground: 0 0% 98%;
+    --wa-base-accent: 0 0% 14.9%;
+    --wa-base-accent-foreground: 0 0% 98%;
+    --wa-base-card: 0 0% 3.9%;
+    --wa-base-card-foreground: 0 0% 98%;
+    --wa-base-popover: 0 0% 3.9%;
+    --wa-base-popover-foreground: 0 0% 98%;
+    --wa-base-destructive: 0 62.8% 30.6%;
+    --wa-base-destructive-foreground: 0 0% 98%;
+    --wa-base-ring: 0 0% 83.1%;
+    --wa-base-chart-1: 220 70% 50%;
+    --wa-base-chart-2: 160 60% 45%;
+    --wa-base-chart-3: 30 80% 55%;
+    --wa-base-chart-4: 280 65% 60%;
+    --wa-base-chart-5: 340 75% 55%;
+  }
+}
+
+@layer base {
+  :root {
+    /* 波形播放器颜色配置 */
+    --wa-background: rgba(255, 255, 255, 0.5);
+    --wa-border-color: #cbd5e1;
+    --wa-text-color: #000;
+    --wa-text-secondary-color: #64748b;
+    --waveform-color: #cbd5e1;
+    --waveform-progress-color: #2563eb;
+    --waveform-gradient-from: #64748b;
+    --waveform-gradient-to: #334155;
+    --waveform-progress-gradient-from: #3b82f6;
+    --waveform-progress-gradient-to: #1d4ed8;
+    --timeline-color: #64748b;
+    --progress-indicator-color: #2563eb;
+  }
+
+  .dark {
+    /* 波形播放器颜色配置 */
+    --wa-background: rgba(0, 0, 0, 0.7);
+    --wa-border-color: #475569;
+    --wa-text-color: #ffffff;
+    --wa-text-secondary-color: #cbd5e1;
+    --waveform-color: #64748b;
+    --waveform-progress-color: #bfdbfe;
+    --waveform-gradient-from: #e3fdf5;
+    --waveform-gradient-to: #ffe6fa;
+    --waveform-progress-gradient-from: #93c5fd;
+    --waveform-progress-gradient-to: #3b82f6;
+    --timeline-color: #64748b;
+    --progress-indicator-color: #60a5fa;
+  }
+}
+
+/* @layer base {
+  * {
+    @apply wa-border-border;
+  }
+  body {
+    @apply wa-font-sans wa-antialiased wa-bg-background wa-text-foreground;
+  }
+} */
+
+/* 自定义样式 */
+.wa-player {
+  position: relative;
+  background-color: var(--wa-background);
+  border-color: var(--wa-border-color);
+}
+
+.wa-timeline {
+  opacity: 0;
+  transition-property: opacity;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+.wa-player:hover .wa-timeline {
+  opacity: 1;
+}
+
+.wa-volume-slider {
+  width: 6rem;
+  height: 0.5rem;
+  background-color: rgb(75, 85, 99);
+  border-radius: 9999px;
+  appearance: none;
+  cursor: pointer;
+}
+
+.wa-volume-slider::-webkit-slider-thumb {
+  width: 1rem;
+  height: 1rem;
+  background-color: rgb(59, 130, 246);
+  border-radius: 9999px;
+  appearance: none;
+}
+
+.wa-volume-slider::-webkit-slider-thumb:hover {
+  background-color: rgb(37, 99, 235);
+  transition-property: background-color;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+.wa-playback-select {
+  background-color: rgb(75, 85, 99);
+  color: rgb(229, 231, 235);
+  border-radius: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  outline: none;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.wa-playback-select:hover {
+  background-color: rgb(107, 114, 128);
+  transition-property: background-color;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+.wa-progress-indicator-line {
+  background-image: linear-gradient(
+    to bottom,
+    transparent,
+    var(--progress-indicator-color),
+    var(--progress-indicator-color),
+    transparent
+  );
+}
