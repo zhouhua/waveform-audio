@@ -1,6 +1,54 @@
-export * from './controls';
-export * from './metadata';
-export * from './progress-indicator';
-export * from './root';
-export * from './timeline';
-export * from './waveform';
+import type { RootComponent } from './root';
+import {
+  CurrentTimeDisplay,
+  DownloadTrigger,
+  DurationDisplay,
+  PlaybackRateControl,
+  PlayTrigger,
+  StopTrigger,
+  VolumeControl,
+} from './controls';
+import { Metadata } from './metadata';
+import { ProgressIndicator } from './progress-indicator';
+import { RootProvider, usePlayer, usePlayerControls, usePlayerState, usePlayerWaveform } from './root';
+import { Timeline } from './timeline';
+import { Waveform } from './waveform';
+
+// 创建复合组件
+export const PlayerRoot = Object.assign(RootProvider, {
+  PlayButton: PlayTrigger,
+  Progress: ProgressIndicator,
+  Time: Timeline,
+  Waveform,
+}) as RootComponent;
+
+// 导出组件
+export {
+  CurrentTimeDisplay,
+  DownloadTrigger,
+  DurationDisplay,
+  Metadata,
+  PlaybackRateControl,
+  PlayTrigger,
+  ProgressIndicator,
+  RootProvider,
+  StopTrigger,
+  Timeline,
+  usePlayer,
+  usePlayerControls,
+  usePlayerState,
+  usePlayerWaveform,
+  VolumeControl,
+  Waveform,
+};
+
+// 导出类型
+export type { PlayButtonProps, VolumeControlProps } from './controls';
+export type { ProgressIndicatorProps, ProgressProps } from './progress-indicator';
+export type {
+  AudioState,
+  RootContextValue,
+  RootProviderProps,
+} from './root';
+export type { TimeProps } from './timeline';
+export type { WaveformProps } from './waveform';

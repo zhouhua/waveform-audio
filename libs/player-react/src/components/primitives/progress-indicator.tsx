@@ -1,6 +1,9 @@
 import type { CSSProperties, MouseEvent } from 'react';
-import { useCallback, useRef, useState } from 'react';
-import { usePlayer } from './root';
+import type { AudioPlayerContextValue } from '../../hooks/audio-player-context';
+import type { RootContextValue } from './root';
+import { useCallback, useContext, useRef, useState } from 'react';
+import { AudioPlayerContext } from '../../hooks/audio-player-context';
+import { RootContext } from './root';
 
 export interface ProgressIndicatorProps {
   className?: string;
@@ -10,20 +13,42 @@ export interface ProgressIndicatorProps {
   height?: number | string;
   width?: number;
   color?: string;
+  onClick?: (time: number) => void;
+  currentTime?: number;
+  duration?: number;
+  onSeek?: (time: number) => void;
+}
+
+export interface ProgressProps {
+  className?: string;
+  style?: CSSProperties;
+  color?: string;
+  backgroundColor?: string;
+  height?: number;
+  onClick?: (time: number) => void;
 }
 
 export function ProgressIndicator({
   className = '',
   color,
+  currentTime: propCurrentTime,
+  duration: propDuration,
   height = '100%',
   interactive = true,
+  onSeek: propOnSeek,
   overlay = true,
   style = {},
   width = 2,
 }: ProgressIndicatorProps) {
-  const { audioState, play, seek } = usePlayer();
+  const audioPlayerContext = useContext(AudioPlayerContext);
+  const playerContext = useContext(RootContext);
+  const context = (audioPlayerContext || playerContext) as (AudioPlayerContextValue | null | RootContextValue);
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const currentTime = context?.audioState?.currentTime ?? propCurrentTime ?? 0;
+  const duration = context?.audioState?.duration ?? propDuration ?? 0;
+  const seek = context?.seek ?? propOnSeek;
 
   const calculateProgress = useCallback((clientX: number) => {
     if (!containerRef.current) {
@@ -43,8 +68,8 @@ export function ProgressIndicator({
 
     // 立即定位
     const progress = calculateProgress(e.clientX);
-    seek(progress * audioState.duration);
-  }, [interactive, calculateProgress, audioState.duration, seek]);
+    seek?.(progress * duration);
+  }, [interactive, calculateProgress, duration, seek]);
 
   const handleMouseMove = useCallback((e: MouseEvent<HTMLDivElement>) => {
     if (!interactive || !isDragging) {
@@ -54,8 +79,8 @@ export function ProgressIndicator({
 
     // 实时更新位置
     const progress = calculateProgress(e.clientX);
-    seek(progress * audioState.duration);
-  }, [interactive, isDragging, calculateProgress, audioState.duration, seek]);
+    seek?.(progress * duration);
+  }, [interactive, isDragging, calculateProgress, duration, seek]);
 
   const handleMouseUp = useCallback((e: MouseEvent<HTMLDivElement>) => {
     if (!interactive || !isDragging) {
@@ -63,8 +88,10 @@ export function ProgressIndicator({
     }
     e.preventDefault(); // 阻止默认选择行为
     setIsDragging(false);
-    play();
-  }, [interactive, isDragging]);
+    if (context) {
+      context.play();
+    }
+  }, [interactive, isDragging, context]);
 
   const handleMouseLeave = useCallback(() => {
     if (!interactive) {
@@ -74,9 +101,7 @@ export function ProgressIndicator({
   }, [interactive]);
 
   // 确定当前进度
-  const progress = audioState.duration > 0
-    ? audioState.currentTime / audioState.duration
-    : 0;
+  const progress = duration > 0 ? currentTime / duration : 0;
 
   const containerStyle: CSSProperties = {
     cursor: interactive ? 'pointer' : 'default',
@@ -100,7 +125,7 @@ export function ProgressIndicator({
     width: `${width}px`,
   };
 
-  if (audioState.isStoped) {
+  if (context?.audioState.isStoped) {
     return null;
   }
 

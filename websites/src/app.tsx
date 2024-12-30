@@ -2,6 +2,7 @@ import { Route, Routes, useLocation } from 'react-router-dom';
 import PlayerDocsPage from './pages/player/docs';
 import PlayerExamplesPage from './pages/player/examples';
 import PlayerHomePage from './pages/player/home';
+import ExamplesPage from './pages/examples';
 import HomePage from './pages/home';
 import Footer from './components/footer';
 import Header from './components/header';
@@ -36,6 +37,7 @@ export default function App() {
       <Layout>
         <Routes>
           <Route path="/" element={<HomePage />} />
+          <Route path="/examples" element={<ExamplesPage />} />
           <Route path="/player" element={<PlayerHomePage />} />
           <Route path="/player/docs/*" element={<PlayerDocsPage />} />
           <Route path="/player/examples" element={<PlayerExamplesPage />} />

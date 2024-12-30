@@ -1,6 +1,9 @@
+import type { AudioPlayerContextValue } from '../../hooks/audio-player-context';
+import type { RootContextValue } from './root';
 import type { WaveformType } from './waveform-renderers';
-import { useEffect, useRef } from 'react';
-import { usePlayer } from './root';
+import { useContext, useEffect, useRef } from 'react';
+import { AudioPlayerContext } from '../../hooks/audio-player-context';
+import { RootContext } from './root';
 import { renderers } from './waveform-renderers';
 
 export interface WaveformProps {
@@ -22,6 +25,11 @@ export interface WaveformProps {
     from: string;
     to: string;
   };
+  onClick?: (time: number) => void;
+  currentTime?: number;
+  duration?: number;
+  onSeek?: (time: number) => void;
+  peaks?: number[];
 }
 
 export function Waveform({
@@ -30,19 +38,30 @@ export function Waveform({
   barWidth = 2,
   className = '',
   color,
+  currentTime: propCurrentTime,
+  duration: propDuration,
   gradient,
   height = 100,
+  onSeek: propOnSeek,
+  peaks: propPeaks,
   progressColor,
   progressGradient,
   style,
   type = 'bars',
 }: WaveformProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { audioState, seek, waveformData } = usePlayer();
+  const audioPlayerContext = useContext(AudioPlayerContext);
+  const playerContext = useContext(RootContext);
+  const context = (audioPlayerContext || playerContext) as (AudioPlayerContextValue | null | RootContextValue);
+
+  const currentTime = context?.audioState?.currentTime ?? propCurrentTime ?? 0;
+  const duration = context?.audioState?.duration ?? propDuration ?? 0;
+  const seek = context?.seek ?? propOnSeek;
+  const peaks = context?.waveformData?.peaks ?? propPeaks;
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas || !waveformData) {
+    if (!canvas || !peaks) {
       return;
     }
 
@@ -59,27 +78,23 @@ export function Waveform({
 
     ctx.clearRect(0, 0, width, height);
 
-    const progress = audioState.duration > 0
-      ? audioState.currentTime / audioState.duration
-      : 0;
+    const progress = duration > 0 ? currentTime / duration : 0;
 
     const computedStyle = getComputedStyle(canvas);
-    const color = computedStyle.getPropertyValue('--waveform-color').trim();
-    const progressColor = computedStyle.getPropertyValue('--waveform-progress-color').trim();
+    const waveformColor = color || computedStyle.getPropertyValue('--waveform-color').trim() || 'currentColor';
+    const waveformProgressColor = progressColor || computedStyle.getPropertyValue('--waveform-progress-color').trim() || 'currentColor';
     const gradientFrom = computedStyle.getPropertyValue('--waveform-gradient-from').trim();
     const gradientTo = computedStyle.getPropertyValue('--waveform-gradient-to').trim();
     const progressGradientFrom = computedStyle.getPropertyValue('--waveform-progress-gradient-from').trim();
     const progressGradientTo = computedStyle.getPropertyValue('--waveform-progress-gradient-to').trim();
 
-    const gradient = {
-      from: gradientFrom,
-      to: gradientTo,
-    };
+    const waveformGradient = gradient || (gradientFrom && gradientTo
+      ? { from: gradientFrom, to: gradientTo }
+      : undefined);
 
-    const progressGradient = {
-      from: progressGradientFrom,
-      to: progressGradientTo,
-    };
+    const waveformProgressGradient = progressGradient || (progressGradientFrom && progressGradientTo
+      ? { from: progressGradientFrom, to: progressGradientTo }
+      : undefined);
 
     const renderer = renderers[type];
     if (renderer) {
@@ -87,38 +102,42 @@ export function Waveform({
         barGap,
         barRadius,
         barWidth,
-        color,
+        color: waveformColor,
         ctx,
-        gradient,
+        gradient: waveformGradient,
         height,
-        peaks: waveformData.peaks,
+        peaks,
         progress,
-        progressColor,
-        progressGradient,
+        progressColor: waveformProgressColor,
+        progressGradient: waveformProgressGradient,
         width,
       });
     }
   }, [
-    waveformData,
+    peaks,
     height,
-    audioState.currentTime,
-    audioState.duration,
+    currentTime,
+    duration,
     type,
     barWidth,
     barGap,
     barRadius,
+    color,
+    progressColor,
+    gradient,
+    progressGradient,
   ]);
 
   const handleSeek = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
-    if (!canvas) {
+    if (!canvas || !seek) {
       return;
     }
 
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const progress = x / rect.width;
-    const time = progress * audioState.duration;
+    const time = progress * duration;
     seek(time);
   };
 

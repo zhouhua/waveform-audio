@@ -1,10 +1,27 @@
-import { useEffect, useRef } from 'react';
-import { usePlayer } from './root';
+import type { CSSProperties } from 'react';
+import type { AudioPlayerContextValue } from '../../hooks/audio-player-context';
+import type { RootContextValue } from './root';
+import { useCallback, useContext, useEffect, useRef } from 'react';
+import { AudioPlayerContext } from '../../hooks/audio-player-context';
+import { RootContext } from './root';
 
 export interface TimelineProps {
+  className?: string;
+  style?: CSSProperties;
   height?: number;
   color?: string;
+  format?: 'current' | 'duration' | 'remaining';
+  currentTime?: number;
+  duration?: number;
+  onSeek?: (time: number) => void;
+}
+
+export interface TimeProps {
   className?: string;
+  style?: CSSProperties;
+  format?: 'current' | 'duration' | 'remaining';
+  currentTime?: number;
+  duration?: number;
 }
 
 // 计算合适的刻度间隔
@@ -49,13 +66,22 @@ function calculateTickIntervals(width: number, duration: number) {
 export function Timeline({
   className = '',
   color,
+  currentTime: propCurrentTime,
+  duration: propDuration,
   height = 24,
+  onSeek: propOnSeek,
 }: TimelineProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { audioState, seek } = usePlayer();
+  const audioPlayerContext = useContext(AudioPlayerContext);
+  const playerContext = useContext(RootContext);
+  const context = (audioPlayerContext || playerContext) as (AudioPlayerContextValue | null | RootContextValue);
   const observerRef = useRef<null | ResizeObserver>(null);
 
-  const drawTimeline = () => {
+  const currentTime = context?.audioState?.currentTime ?? propCurrentTime ?? 0;
+  const duration = context?.audioState?.duration ?? propDuration ?? 0;
+  const seek = context?.seek ?? propOnSeek;
+
+  const drawTimeline = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) {
       return;
@@ -72,69 +98,32 @@ export function Timeline({
     canvas.height = height * dpr;
     ctx.scale(dpr, dpr);
 
-    // 清空画布
     ctx.clearRect(0, 0, width, height);
 
-    const duration = audioState.duration;
-    if (!duration) {
-      return;
-    }
+    const computedStyle = getComputedStyle(canvas);
+    const timelineColor = color || computedStyle.getPropertyValue('--timeline-color').trim() || 'currentColor';
 
+    // 计算刻度间隔
     const { mainInterval, subInterval } = calculateTickIntervals(width, duration);
 
-    // 计算刻度
-    const pixelsPerSecond = width / duration;
-    const mainTickHeight = height * 0.5;
-    const subTickHeight = height * 0.3;
-
-    // 获取CSS变量颜色
-    const computedStyle = getComputedStyle(canvas);
-    const timelineColor = computedStyle.getPropertyValue('--timeline-color').trim();
-
-    // 绘制刻度和时间标签
-    ctx.beginPath();
-    ctx.strokeStyle = timelineColor;
-    ctx.fillStyle = timelineColor;
-    ctx.font = '10px system-ui';
-    ctx.textAlign = 'center';
-
-    // 绘制次刻度
-    for (let time = 0; time <= duration; time += subInterval) {
-      const x = time * pixelsPerSecond;
-      // 只在可见区域内绘制刻度
-      if (x >= 0 && x <= width) {
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, subTickHeight);
-      }
-    }
-
-    // 绘制主刻度和时间标签
-    for (let time = 0; time <= duration; time += mainInterval) {
-      const x = time * pixelsPerSecond;
-      // 只在可见区域内绘制刻度和标签
-      if (x >= 0 && x <= width) {
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, mainTickHeight);
-
-        // 格式化时间标签
-        const minutes = Math.floor(time / 60);
-        const seconds = Math.floor(time % 60);
-        const timeLabel = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-
-        // 处理边缘情况的标签位置
-        const labelWidth = ctx.measureText(timeLabel).width;
-        const textX = Math.max(labelWidth / 2, Math.min(x, width - labelWidth / 2));
-        ctx.fillText(timeLabel, textX, height - 2);
-      }
-    }
-
-    ctx.stroke();
-  };
+    // 绘制时间线
+    drawTimelineCanvas(ctx, {
+      duration,
+      height,
+      mainInterval,
+      subInterval,
+      timelineColor,
+      width,
+    });
+  }, [color, duration, height]);
 
   useEffect(() => {
     if (canvasRef.current) {
+      drawTimeline();
       observerRef.current = new ResizeObserver(() => {
-        drawTimeline();
+        requestAnimationFrame(() => {
+          drawTimeline();
+        });
       });
       observerRef.current.observe(canvasRef.current);
     }
@@ -144,22 +133,22 @@ export function Timeline({
         observerRef.current.disconnect();
       }
     };
-  }, []);
+  }, [drawTimeline]);
 
   useEffect(() => {
     drawTimeline();
-  }, [audioState.currentTime, audioState.duration, height]);
+  }, [currentTime, duration, height, drawTimeline]);
 
   const handleSeek = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
-    if (!canvas) {
+    if (!canvas || !seek) {
       return;
     }
 
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const progress = x / rect.width;
-    const time = Math.max(0, Math.min(progress * audioState.duration, audioState.duration));
+    const time = Math.max(0, Math.min(progress * duration, duration));
     seek(time);
   };
 
@@ -174,4 +163,107 @@ export function Timeline({
       onClick={handleSeek}
     />
   );
+}
+
+// 绘制时间线的具体实现
+function drawTimelineCanvas(ctx: CanvasRenderingContext2D, {
+  duration,
+  height,
+  mainInterval,
+  subInterval,
+  timelineColor,
+  width,
+}: {
+  width: number;
+  height: number;
+  duration: number;
+  timelineColor: string;
+  mainInterval: number;
+  subInterval: number;
+}) {
+  ctx.beginPath();
+  ctx.strokeStyle = timelineColor;
+  ctx.lineWidth = 1;
+
+  // 绘制主轴线
+  ctx.moveTo(0, height * 0.2);
+  ctx.lineTo(width, height * 0.2);
+
+  // 先计算结束时间标签的宽度
+  const endMinutes = Math.floor(duration / 60);
+  const endSeconds = Math.floor(duration % 60);
+  const endTimeLabel = `${endMinutes}:${endSeconds.toString().padStart(2, '0')}`;
+  ctx.font = '10px sans-serif';
+  const endTimeLabelWidth = ctx.measureText(endTimeLabel).width;
+
+  // 绘制主刻度和子刻度
+  let lastMainTickX = 0;
+  for (let time = 0; time <= duration; time += subInterval) {
+    const x = (time / duration) * width;
+    const isMainTick = time % mainInterval === 0;
+
+    if (isMainTick) {
+      // 主刻度线
+      ctx.moveTo(x, height * 0.2);
+      ctx.lineTo(x, height * 0.4);
+      lastMainTickX = x;
+
+      // 添加时间标签
+      const minutes = Math.floor(time / 60);
+      const seconds = Math.floor(time % 60);
+      const timeLabel = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+      ctx.save();
+      ctx.font = '10px sans-serif';
+      const textWidth = ctx.measureText(timeLabel).width;
+
+      // 智能调整文本对齐方式和位置
+      ctx.textBaseline = 'top';
+      ctx.fillStyle = timelineColor;
+
+      if (x < textWidth / 2) {
+        // 最左侧标签，完全左对齐
+        ctx.textAlign = 'left';
+        ctx.fillText(timeLabel, 0, height * 0.45);
+      }
+      else if (x > width - textWidth / 2) {
+        // 最右侧标签，完全右对齐
+        ctx.textAlign = 'right';
+        ctx.fillText(timeLabel, width, height * 0.45);
+      }
+      else {
+        // 中间区域，居中对齐
+        ctx.textAlign = 'center';
+        ctx.fillText(timeLabel, x, height * 0.45);
+      }
+      ctx.restore();
+    }
+    else {
+      // 子刻度线
+      ctx.moveTo(x, height * 0.2);
+      ctx.lineTo(x, height * 0.3);
+    }
+  }
+
+  // 判断是否有足够空间显示结束时间
+  // 增加一些额外的空间要求，确保不会太挤
+  const hasSpaceForEndTime = width - lastMainTickX > endTimeLabelWidth * 1.5;
+
+  // 如果最后一个主刻度和结束位置之间有足够空间，显示结束时间
+  if (hasSpaceForEndTime) {
+    // 绘制最后的主刻度线
+    ctx.moveTo(width, height * 0.2);
+    ctx.lineTo(width, height * 0.4);
+
+    // 绘制结束时间标签
+    ctx.save();
+    ctx.font = '10px sans-serif';
+    ctx.textBaseline = 'top';
+    ctx.fillStyle = timelineColor;
+    ctx.textAlign = 'right';
+    ctx.fillText(endTimeLabel, width, height * 0.45);
+    ctx.restore();
+  }
+
+  ctx.stroke();
 }

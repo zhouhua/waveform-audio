@@ -1,111 +1,30 @@
-import type { PlayTrigger } from './controls';
-import type { ProgressIndicator } from './progress-indicator';
-import type { Timeline } from './timeline';
-import type { Waveform } from './waveform';
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { analyzeAudio } from '../../utils/audio-analyzer';
-import { cn } from '../../utils/cn';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { PlayTrigger, VolumeControl } from '../components/primitives/controls';
+import { ProgressIndicator } from '../components/primitives/progress-indicator';
+import { Timeline } from '../components/primitives/timeline';
+import { Waveform } from '../components/primitives/waveform';
+import { analyzeAudio } from '../utils/audio-analyzer';
+import { AudioPlayerProvider } from './audio-player-context';
 
-export interface AudioState {
-  currentTime: number;
-  duration: number;
-  volume: number;
-  playbackRate: number;
-  isPlaying: boolean;
-  isStoped: boolean;
-}
-
-export interface RootContextValue {
-  audioState: AudioState;
-  audioRef: React.RefObject<HTMLAudioElement>;
-  waveformData?: {
-    peaks: number[];
-  };
+export interface UseAudioPlayerProps {
   src: string;
-  play: () => void;
-  pause: () => void;
-  stop: () => void;
-  seek: (time: number) => void;
-  setVolume: (volume: number) => void;
-  setPlaybackRate: (rate: number) => void;
-  setWaveformData: (data: { peaks: number[] }) => void;
-}
-
-export const RootContext = createContext<RootContextValue | undefined>(undefined);
-
-export interface RootProviderProps {
-  children: React.ReactNode;
-  src?: string;
   samplePoints?: number;
-  className?: string;
-  style?: React.CSSProperties;
   onPlay?: () => void;
   onPause?: () => void;
   onTimeUpdate?: (time: number) => void;
   onEnded?: () => void;
 }
 
-export interface RootComponent extends React.FC<RootProviderProps> {
-  PlayButton: typeof PlayTrigger;
-  Progress: typeof ProgressIndicator;
-  Time: typeof Timeline;
-  Waveform: typeof Waveform;
-}
-
-// 自定义 hooks
-export function usePlayerState() {
-  const context = useContext(RootContext);
-  if (!context) {
-    throw new Error('usePlayerState must be used within a RootProvider');
-  }
-  return context.audioState;
-}
-
-export function usePlayerControls() {
-  const context = useContext(RootContext);
-  if (!context) {
-    throw new Error('usePlayerControls must be used within a RootProvider');
-  }
-  return {
-    pause: context.pause,
-    play: context.play,
-    seek: context.seek,
-    setPlaybackRate: context.setPlaybackRate,
-    setVolume: context.setVolume,
-    stop: context.stop,
-  };
-}
-
-export function usePlayerWaveform() {
-  const context = useContext(RootContext);
-  if (!context) {
-    throw new Error('usePlayerWaveform must be used within a RootProvider');
-  }
-  return context.waveformData;
-}
-
-export function usePlayer() {
-  const context = useContext(RootContext);
-  if (!context) {
-    throw new Error('usePlayer must be used within a RootProvider');
-  }
-  return context;
-}
-
-// 主组件
-export function RootProvider({
-  children,
-  className,
+export function useAudioPlayer({
   onEnded,
   onPause,
   onPlay,
   onTimeUpdate,
   samplePoints = 200,
   src,
-  style,
-}: RootProviderProps) {
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const [audioState, setAudioState] = useState<AudioState>({
+}: UseAudioPlayerProps) {
+  const audioRef = useRef<HTMLAudioElement>(null) as React.RefObject<HTMLAudioElement>;
+  const [audioState, setAudioState] = useState({
     currentTime: 0,
     duration: 0,
     isPlaying: false,
@@ -115,7 +34,7 @@ export function RootProvider({
   });
   const [waveformData, setWaveformData] = useState<{ peaks: number[] }>();
 
-  // 添加音频分析逻辑
+  // 音频分析
   useEffect(() => {
     let mounted = true;
 
@@ -143,6 +62,7 @@ export function RootProvider({
     };
   }, [src, samplePoints]);
 
+  // 音频事件监听
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) {
@@ -194,7 +114,7 @@ export function RootProvider({
 
   const play = useCallback(() => {
     if (audioRef.current) {
-      audioRef.current.play();
+      void audioRef.current.play();
     }
   }, [audioRef]);
 
@@ -233,26 +153,48 @@ export function RootProvider({
     }
   }, [audioRef]);
 
-  const contextValue: RootContextValue = useMemo(() => ({
-    audioRef: audioRef as React.RefObject<HTMLAudioElement>,
+  const contextValue = useMemo(() => ({
+    audioRef,
     audioState,
     pause,
     play,
     seek,
     setPlaybackRate,
     setVolume,
-    setWaveformData,
-    src: src || '',
+    src,
     stop,
     waveformData,
-  }), [audioState, audioRef, pause, play, seek, setPlaybackRate, setVolume, setWaveformData, stop, waveformData, src]);
+  }), [audioRef, audioState, pause, play, seek, setPlaybackRate, setVolume, src, stop, waveformData]);
 
-  return (
-    <RootContext.Provider value={contextValue}>
-      <div className={cn('wa-player wa-flex wa-border-2 wa-border-gray-700 wa-rounded-xl wa-bg-gray-900/50 wa-backdrop-blur wa-overflow-hidden', className)} style={style}>
-        {children}
-        {src && <audio ref={audioRef} src={src} />}
-      </div>
-    </RootContext.Provider>
-  );
+  const Audio = useCallback(() => <audio ref={audioRef} src={src} />, [src]);
+
+  const withProvider = useCallback((Component: React.ComponentType<any>) => {
+    return (props: any) => (
+      <AudioPlayerProvider value={contextValue}>
+        <Component {...props} />
+      </AudioPlayerProvider>
+    );
+  }, [contextValue]);
+
+  return {
+    audioRef,
+    audioState,
+    components: {
+      Audio,
+      PlayButton: withProvider(PlayTrigger),
+      Progress: withProvider(ProgressIndicator),
+      Time: withProvider(Timeline),
+      VolumeControl: withProvider(VolumeControl),
+      Waveform: withProvider(Waveform),
+    },
+    controls: {
+      pause,
+      play,
+      seek,
+      setPlaybackRate,
+      setVolume,
+      stop,
+    },
+    waveformData,
+  };
 }

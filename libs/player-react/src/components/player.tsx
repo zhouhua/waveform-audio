@@ -4,7 +4,20 @@ import type { WaveformType } from './primitives/waveform-renderers';
 import { useEffect, useState } from 'react';
 import { extractAudioMetadata } from '../utils/audio-metadata';
 import { cn } from '../utils/cn';
-import { CurrentTimeDisplay, DownloadTrigger, DurationDisplay, Metadata, PlaybackRateControl, PlayTrigger, ProgressIndicator, Root, RootProvider, StopTrigger, Timeline, VolumeControl, Waveform } from './primitives';
+import {
+  CurrentTimeDisplay,
+  DownloadTrigger,
+  DurationDisplay,
+  Metadata,
+  PlaybackRateControl,
+  PlayerRoot,
+  PlayTrigger,
+  ProgressIndicator,
+  StopTrigger,
+  Timeline,
+  VolumeControl,
+  Waveform,
+} from './primitives';
 
 export interface PlayerProps {
   src: string;
@@ -75,7 +88,7 @@ export interface PlayerProps {
   title?: string;
 }
 
-const PlayerContent: FC<PlayerProps> = ({
+const Player: FC<PlayerProps> = ({
   classes = {},
   className = '',
   onEnded,
@@ -128,7 +141,7 @@ const PlayerContent: FC<PlayerProps> = ({
   }, [src, fileName]);
 
   return (
-    <Root
+    <PlayerRoot
       src={src}
       className={cn(
         'wa-player wa-flex wa-flex-col wa-border wa-rounded-lg wa-backdrop-blur wa-overflow-hidden',
@@ -235,29 +248,19 @@ const PlayerContent: FC<PlayerProps> = ({
           </div>
         </div>
       </div>
-    </Root>
+    </PlayerRoot>
   );
 };
-
-function Player(props: PlayerProps) {
-  return (
-    <RootProvider src={props.src}>
-      <PlayerContent {...props} />
-    </RootProvider>
-  );
-}
-
 export default Player;
-
 // Re-export primitives for custom implementations
 export const Primitives = {
   CurrentTimeDisplay,
   DurationDisplay,
   Metadata,
   PlaybackRateControl,
+  PlayerRoot,
   PlayTrigger,
   ProgressIndicator,
-  Root,
   StopTrigger,
   Timeline,
   VolumeControl,

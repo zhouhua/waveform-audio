@@ -1,15 +1,40 @@
 import type { ComponentPropsWithoutRef, CSSProperties, HTMLAttributes, MouseEvent, ReactElement, ReactNode } from 'react';
-import { Children, cloneElement } from 'react';
+import type { AudioPlayerContextValue } from '../../hooks/audio-player-context';
+import type { RootContextValue } from './root';
+import { Children, cloneElement, useContext } from 'react';
+import { AudioPlayerContext } from '../../hooks/audio-player-context';
 import { cn } from '../../utils/cn';
 import { Button } from '../ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Slider } from '../ui/slider';
-import { usePlayer } from './root';
+import { RootContext } from './root';
 
 type TriggerProps = {
   asChild?: boolean;
+  children?: ((props: { isPlaying: boolean }) => React.ReactNode) | React.ReactNode;
 } & ComponentPropsWithoutRef<'button'>;
+
+export interface PlayButtonProps {
+  className?: string;
+  style?: React.CSSProperties;
+  children?: ((props: { isPlaying: boolean }) => React.ReactNode);
+  isPlaying?: boolean;
+  onPlay?: () => void;
+  onPause?: () => void;
+}
+
+export interface VolumeControlProps {
+  className?: string;
+  style?: React.CSSProperties;
+  color?: string;
+  backgroundColor?: string;
+  width?: number;
+  height?: number;
+  min?: number;
+  max?: number;
+  step?: number;
+}
 
 const playIcon = (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
@@ -30,56 +55,75 @@ const stopIcon = (
 );
 
 // 播放按钮触发器
-export const PlayTrigger = function PlayTrigger({
-  asChild = false,
+export function PlayTrigger({
   children,
   className,
+  isPlaying: propIsPlaying,
+  onPause: propOnPause,
+  onPlay: propOnPlay,
   style,
-  ...props
-}: TriggerProps) {
-  const { audioState, pause, play } = usePlayer();
-  const isPlaying = audioState.isPlaying;
+}: PlayButtonProps) {
+  const audioPlayerContext = useContext(AudioPlayerContext);
+  const playerContext = useContext(RootContext);
+  const context = (audioPlayerContext || playerContext) as (AudioPlayerContextValue | null | RootContextValue);
 
-  const handleClick = (e: MouseEvent) => {
-    e.preventDefault();
-    if (!isPlaying) {
-      play();
+  if (!context) {
+    // 如果没有 context，则使用 props
+    const handleClick = () => {
+      if (propIsPlaying) {
+        propOnPause?.();
+      }
+      else {
+        propOnPlay?.();
+      }
+    };
+
+    return (
+      <Button
+        variant="ghost"
+        size="icon"
+        className={cn('wa-play-button', className)}
+        style={style}
+        onClick={handleClick}
+      >
+        {typeof children === 'function'
+          ? children({ isPlaying: !!propIsPlaying })
+          : propIsPlaying
+            ? pauseIcon
+            : playIcon}
+      </Button>
+    );
+  }
+
+  const handleClick = () => {
+    if (context.audioState.isPlaying) {
+      context.pause();
     }
     else {
-      pause();
+      context.play();
     }
   };
 
-  if (asChild && children) {
-    const child = Children.only(children) as ReactElement<HTMLAttributes<HTMLElement>>;
-    return cloneElement(child, {
-      ...props,
-      onClick: handleClick,
-    });
-  }
+  const isPlaying = context ? context.audioState.isPlaying : propIsPlaying;
 
   return (
-    <button
-      type="button"
-      onClick={handleClick}
-      aria-pressed={isPlaying}
-      {...props}
-    >
-      {children || (
-        <div
-          style={style}
-          className={cn(
-            'wa-flex wa-items-center wa-justify-center wa-transition-colors',
-            !isPlaying ? 'wa-bg-blue-500 hover:wa-bg-blue-600' : 'wa-bg-yellow-500 hover:wa-bg-yellow-600',
-            className,
-          )}
-        >
-          {isPlaying ? pauseIcon : playIcon}
-        </div>
+    <div
+      className={cn(
+        'wa-flex wa-items-center wa-justify-center wa-transition-colors',
+        !isPlaying ? 'wa-bg-blue-500 hover:wa-bg-blue-600' : 'wa-bg-yellow-500 hover:wa-bg-yellow-600',
+        className,
       )}
-    </button>
+      style={style}
+      onClick={handleClick}
+    >
+      {typeof children === 'function'
+        ? children({ isPlaying: !!isPlaying })
+        : isPlaying
+          ? pauseIcon
+          : playIcon}
+    </div>
   );
-};
+}
 
 // 停止按钮触发器
 export const StopTrigger = function StopTrigger({
@@ -89,11 +133,13 @@ export const StopTrigger = function StopTrigger({
   style,
   ...props
 }: TriggerProps) {
-  const { stop } = usePlayer();
+  const audioPlayerContext = useContext(AudioPlayerContext);
+  const playerContext = useContext(RootContext);
+  const context = audioPlayerContext || playerContext;
 
   const handleClick = (e: MouseEvent) => {
     e.preventDefault();
-    stop();
+    context?.stop();
   };
 
   if (asChild && children) {
@@ -137,8 +183,11 @@ export function CurrentTimeDisplay({
   style?: CSSProperties;
   format?: (seconds: number) => string;
 }) {
-  const { audioState } = usePlayer();
-  return <div className={className} style={style}>{format(audioState.currentTime)}</div>;
+  const audioPlayerContext = useContext(AudioPlayerContext);
+  const playerContext = useContext(RootContext);
+  const context = audioPlayerContext || playerContext;
+
+  return <div className={className} style={style}>{format(context?.audioState?.currentTime ?? 0)}</div>;
 }
 
 export function DurationDisplay({
@@ -150,8 +199,11 @@ export function DurationDisplay({
   style?: CSSProperties;
   format?: (seconds: number) => string;
 }) {
-  const { audioState } = usePlayer();
-  return <div className={className} style={style}>{format(audioState.duration)}</div>;
+  const audioPlayerContext = useContext(AudioPlayerContext);
+  const playerContext = useContext(RootContext);
+  const context = audioPlayerContext || playerContext;
+
+  return <div className={className} style={style}>{format(context?.audioState?.duration ?? 0)}</div>;
 }
 
 // 控制组件容器
@@ -200,8 +252,11 @@ export function VolumeControl({
   max?: number;
   step?: number;
 }) {
-  const { audioState, setVolume } = usePlayer();
-  const volume = (audioState.volume * 100).toFixed(0);
+  const audioPlayerContext = useContext(AudioPlayerContext);
+  const playerContext = useContext(RootContext);
+  const context = audioPlayerContext || playerContext;
+
+  const volume = ((context?.audioState?.volume ?? 1) * 100).toFixed(0);
 
   const volumeIcon = (
     <svg xmlns="http://www.w3.org/2000/svg" className="wa-w-4 wa-h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -225,7 +280,7 @@ export function VolumeControl({
           className={cn('wa-flex wa-items-center !wa-p-1 wa-text-[var(--wa-text-secondary-color)]', className)}
           style={style}
         >
-          <span className="wa-w-4 wa-h-4">{audioState.volume === 0 ? muteIcon : volumeIcon}</span>
+          <span className="wa-w-4 wa-h-4">{context?.audioState?.volume === 0 ? muteIcon : volumeIcon}</span>
           <span className="wa-text-xs wa-font-mon w-[22px]">{volume}</span>
         </Button>
       </PopoverTrigger>
@@ -234,9 +289,9 @@ export function VolumeControl({
           min={min}
           max={max}
           step={step}
-          value={[audioState.volume]}
+          value={[context?.audioState?.volume ?? 1]}
           className="wa-w-full wa-h-2"
-          onValueChange={e => setVolume(Number(e[0]))}
+          onValueChange={e => context?.setVolume(Number(e[0]))}
         />
       </PopoverContent>
     </Popover>
@@ -253,7 +308,9 @@ export function PlaybackRateControl({
   style?: CSSProperties;
   options?: number[];
 }) {
-  const { audioState, setPlaybackRate } = usePlayer();
+  const audioPlayerContext = useContext(AudioPlayerContext);
+  const playerContext = useContext(RootContext);
+  const context = audioPlayerContext || playerContext;
 
   const speedIcon = (
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -273,7 +330,7 @@ export function PlaybackRateControl({
         <Button variant="ghost" size="sm" className="wa-flex wa-items-center !wa-p-1 !wa-ring-0 !wa-outline-none wa-text-[var(--wa-text-secondary-color)]">
           <span className="wa-w-4 wa-h-4">{speedIcon}</span>
           <span className="wa-text-xs wa-font-mono">
-            {audioState.playbackRate}
+            {context?.audioState?.playbackRate ?? 1}
             x
           </span>
         </Button>
@@ -283,7 +340,7 @@ export function PlaybackRateControl({
           {options.map(rate => (
             <DropdownMenuItem
               key={rate}
-              onClick={() => setPlaybackRate(rate)}
+              onClick={() => context?.setPlaybackRate(rate)}
               className="wa-justify-end"
             >
               {rate}
@@ -307,12 +364,15 @@ export function DownloadTrigger({
   className?: string;
   style?: CSSProperties;
 } & TriggerProps) {
-  const { src } = usePlayer();
+  const audioPlayerContext = useContext(AudioPlayerContext);
+  const playerContext = useContext(RootContext);
+  const context = audioPlayerContext || playerContext;
+
   const handleClick = (e: MouseEvent) => {
     e.preventDefault();
-    if (src) {
+    if (context?.src) {
       const a = document.createElement('a');
-      a.href = src;
+      a.href = context.src;
       a.download = 'audio';
       a.click();
     }

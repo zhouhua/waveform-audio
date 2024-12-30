@@ -15,13 +15,34 @@
     "getStarted": "快速开始",
     "viewExamples": "查看示例",
     "features": {
-      "title": "主要特性",
-      "waveform": "波形可视化：实时显示音频波形，支持多种渲染样式",
-      "playback": "播放控制：完整的播放控制功能，包括播放、暂停、跳转等",
-      "customization": "自定义主题：支持自定义颜色、大小、间距等样式",
-      "responsive": "响应式设计：自适应不同屏幕尺寸",
-      "typescript": "TypeScript 支持：完整的类型定义",
-      "events": "事件回调：丰富的事件回调接口"
+      "waveform": {
+        "title": "多样化波形展示",
+        "description": "支持多种波形渲染模式：条形图、镜像、线条、波浪和包络，满足不同场景需求"
+      },
+      "customization": {
+        "title": "高度可定制",
+        "description": "支持自定义样式、主题、布局和行为，轻松适配不同的设计需求"
+      },
+      "theme": {
+        "title": "主题系统",
+        "description": "内置亮色和暗色主题，支持自定义主题变量，轻松实现品牌定制"
+      },
+      "primitives": {
+        "title": "Primitive API",
+        "description": "提供底层原子化组件，支持完全自定义播放器界面和行为"
+      },
+      "typescript": {
+        "title": "TypeScript 支持",
+        "description": "完整的 TypeScript 类型定义，享受智能提示和类型检查"
+      },
+      "hooks": {
+        "title": "React Hooks",
+        "description": "提供多个 React Hooks，轻松获取和控制播放器状态"
+      },
+      "metadata": {
+        "title": "元数据支持",
+        "description": "自动提取和显示音频文件元数据，包括时长、比特率、采样率等"
+      }
     }
   },
   "recorder": {
@@ -114,7 +135,7 @@
         "pause": "暂停播放",
         "stop": "停止播放并返回到开始位置",
         "seek": "跳转到指定时间（秒）",
-        "setVolume": "设置音量，范�� 0-1",
+        "setVolume": "设置音量，范围 0-1",
         "setPlaybackRate": "设置播放速率"
       },
       "waveform": {

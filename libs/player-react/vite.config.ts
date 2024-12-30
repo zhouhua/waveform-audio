@@ -1,9 +1,6 @@
 /// <reference types="vitest" />
 import { resolve } from 'node:path';
 import react from '@vitejs/plugin-react-swc';
-import autoprefixer from 'autoprefixer';
-import tailwindcss from 'tailwindcss';
-import tailwindcssAnimate from 'tailwindcss-animate';
 import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
 
