@@ -114,6 +114,18 @@ export function RootProvider({
     volume: 1,
   });
   const [waveformData, setWaveformData] = useState<{ peaks: number[] }>();
+  const isInitializedRef = useRef(false);
+
+  // 初始化音频元素
+  useEffect(() => {
+    if (!audioRef.current && src) {
+      const audio = new Audio(src);
+      audioRef.current = audio;
+      audio.volume = audioState.volume;
+      audio.playbackRate = audioState.playbackRate;
+      isInitializedRef.current = true;
+    }
+  }, [src, audioState.volume, audioState.playbackRate]);
 
   // 添加音频分析逻辑
   useEffect(() => {

@@ -21,7 +21,6 @@ export type {
   RootContextValue as PlayerContextValue,
   RootProviderProps as PlayerRootProps,
   ProgressIndicatorProps,
-  ProgressProps,
   TimeProps,
   VolumeControlProps,
   WaveformProps,

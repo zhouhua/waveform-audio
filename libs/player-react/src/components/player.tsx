@@ -120,6 +120,7 @@ const Player: FC<PlayerProps> = ({
 }) => {
   const fileName = src?.split('/').pop();
   const [metadata, setMetadata] = useState<AudioMetadata | null>(null);
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     const loadMetadata = async () => {
@@ -129,16 +130,33 @@ const Player: FC<PlayerProps> = ({
         const file = new File([blob], fileName || 'audio', { type: blob.type });
         const meta = await extractAudioMetadata(file);
         setMetadata(meta);
+        setIsReady(true);
       }
       catch (error) {
         console.warn('无法加载音频元数据:', error);
+        setIsReady(true);
       }
     };
 
     if (src) {
-      loadMetadata();
+      void loadMetadata();
     }
   }, [src, fileName]);
+
+  if (!isReady) {
+    return (
+      <div
+        className={cn(
+          'wa-player wa-flex wa-flex-col wa-border wa-rounded-lg wa-backdrop-blur wa-overflow-hidden wa-items-center wa-justify-center',
+          className,
+          classes.root,
+        )}
+        style={{ ...style, ...styles.root }}
+      >
+        <div className="wa-text-[var(--wa-text-color)] wa-opacity-50">加载中...</div>
+      </div>
+    );
+  }
 
   return (
     <PlayerRoot

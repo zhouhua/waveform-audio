@@ -44,7 +44,7 @@ export {
 
 // 导出类型
 export type { PlayButtonProps, VolumeControlProps } from './controls';
-export type { ProgressIndicatorProps, ProgressProps } from './progress-indicator';
+export type { ProgressIndicatorProps } from './progress-indicator';
 export type {
   AudioState,
   RootContextValue,
