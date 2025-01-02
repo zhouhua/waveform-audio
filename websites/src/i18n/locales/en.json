@@ -11,24 +11,45 @@
   },
   "player": {
     "title": "Waveform Player",
-    "description": "A powerful and customizable React waveform player component",
+    "description": "A powerful and customizable React waveform player solution",
     "getStarted": "Get Started",
-    "viewExamples": "View Examples",
+    "viewExamples": "Examples",
     "features": {
-      "title": "Features",
-      "waveform": "Waveform Visualization: Real-time audio waveform display with multiple rendering styles",
-      "playback": "Playback Control: Complete playback control including play, pause, seek, and more",
-      "customization": "Customization: Rich customization options for colors, sizes, spacing, and more",
-      "responsive": "Responsive Design: Adapts to different screen sizes",
-      "typescript": "TypeScript Support: Complete type definitions",
-      "events": "Event Callbacks: Rich event callback interfaces"
+      "waveform": {
+        "title": "Multiple preset waveforms",
+        "description": "Support multiple waveform rendering modes: bar graph, mirror, line, wave, and envelope, to meet different scene needs"
+      },
+      "customization": {
+        "title": "Highly customizable",
+        "description": "Support custom styles, themes, layouts, and behaviors, easily adapting to different design needs"
+      },
+      "theme": {
+        "title": "Theme system",
+        "description": "Built-in light and dark themes, support custom theme variables, easily implementing brand customization"
+      },
+      "primitives": {
+        "title": "Primitive API",
+        "description": "Provide low-level atomic components, supporting fully customizable player interfaces and behaviors"
+      },
+      "typescript": {
+        "title": "TypeScript support",
+        "description": "Complete TypeScript type definitions, enjoy intelligent prompts and type checking"
+      },
+      "hooks": {
+        "title": "React Hooks",
+        "description": "Provide multiple React Hooks, easily obtaining and controlling player status"
+      },
+      "metadata": {
+        "title": "Metadata support",
+        "description": "Automatically extract and display audio file metadata, including duration, bit rate, sample rate, etc."
+      }
     }
   },
   "recorder": {
     "title": "Waveform Recorder",
     "description": "A powerful and customizable React waveform audio recorder component",
     "getStarted": "Get Started",
-    "viewExamples": "View Examples",
+    "viewExamples": "Examples",
     "features": {
       "title": "Features",
       "waveform": "Waveform Visualization: Real-time audio waveform display with multiple rendering styles",

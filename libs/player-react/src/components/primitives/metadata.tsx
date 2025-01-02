@@ -1,43 +1,41 @@
-import type { AudioMetadata } from '../../utils/audio-metadata';
-import { formatFileSize } from '../../utils/audio-metadata';
+import type { AudioPlayerContextValue } from '../../hooks/audio-player-context';
+import { useContext } from 'react';
 import { cn } from '../../utils/cn';
+import { RootContext } from './root';
 
-export interface MetadataProps extends React.HTMLAttributes<HTMLDivElement> {
-  metadata: AudioMetadata;
+// 自定义 hook 用于获取 context
+function usePlayerContext(propsContext?: AudioPlayerContextValue) {
+  const rootContext = useContext(RootContext);
+  return propsContext || rootContext;
+}
+
+export interface MetadataProps {
+  className?: string;
+  style?: React.CSSProperties;
+  context?: AudioPlayerContextValue;
 }
 
 export function Metadata({
   className,
-  metadata,
-  ...props
+  context: propsContext,
+  style,
 }: MetadataProps) {
-  const items = [
-    metadata.bitrate && (
-      <span key="bitrate">
-        {metadata.bitrate}
-        {' '}
-        kbps
-      </span>
-    ),
-    metadata.sampleRate && (
-      <span key="sampleRate">
-        {(metadata.sampleRate / 1000).toFixed(1)}
-        {' '}
-        kHz
-      </span>
-    ),
-    metadata.fileSize && <span key="fileSize">{formatFileSize(metadata.fileSize)}</span>,
-  ].filter(Boolean);
-
+  const context = usePlayerContext(propsContext);
   return (
-    <div
-      className={cn(
-        'wa-flex wa-flex-wrap wa-gap-3 wa-text-xs wa-text-[var(--wa-text-color)]',
-        className,
+    <div className={cn('wa-flex wa-flex-wrap wa-gap-3 wa-text-xs wa-text-[var(--wa-text-color)]', className)} style={style}>
+      {context?.audioState && (
+        <>
+          <span>
+            {context.audioState.duration.toFixed(1)}
+            {' '}
+            秒
+          </span>
+          <span>
+            {context.audioState.playbackRate}
+            x
+          </span>
+        </>
       )}
-      {...props}
-    >
-      {items}
     </div>
   );
 }

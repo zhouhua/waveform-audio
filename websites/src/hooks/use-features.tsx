@@ -1,7 +1,8 @@
 import { LucideIcon, Settings2, Palette, Layers, Box, Zap, Terminal, AudioWaveform } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import { GradientKey } from '@/lib/constants';
+import { useAudioPlayer } from '@zhouhua-dev/waveform-player-react';
+import demoMusic from '@/assets/music.mp3';
 
 interface Feature {
   icon: LucideIcon;
@@ -13,9 +14,18 @@ interface Feature {
   demo: React.ReactElement;
 }
 
+const randomColors = [
+  [['#ddd6f3', '#faaca8'], ['#b721ff', '#21d4fd']],
+  [['#fff1eb', '#ace0f9'], ['#f6d365', '#fda085']],
+  [['#fddb92', '#d1fdff'], ['#4481eb', '#04befe']],
+  [['#e8198b', '#c7eafd'], ['#fa709a', '#fee140']],
+]
+
 export function useFeatures() {
   const { t } = useTranslation();
-
+  const { components: { PlayButton, Waveform }, context } = useAudioPlayer({
+    src: demoMusic,
+  });
   const features: Feature[] = [
     {
       icon: AudioWaveform,
@@ -25,15 +35,28 @@ export function useFeatures() {
       description: t('player.features.waveform.description'),
       code: `<Player
   src="audio.mp3"
-  type="envelope"
+  type="envelope" | "bars" | "mirror" | "line" | "wave"
 />`,
       demo: (
-        <div>
-          {['bars', 'mirror', 'line', 'wave', 'envelope'].map(type => (
-            <div key={type} className="wa-w-8 wa-h-8 wa-rounded wa-bg-gradient-to-r wa-from-purple-500 wa-to-pink-500">
+        <div className="grid grid-cols-2 gap-6 relative">
+          {['mirror', 'line', 'wave', 'envelope'].map((type, index) => (
+            <Waveform
 
-            </div>
+              key={type}
+              type={type}
+              samplePoints={100}
+              gradient={{
+                from: randomColors[index][0][0],
+                to: randomColors[index][0][1]
+              }}
+              progressGradient={{
+                from: randomColors[index][1][0],
+                to: randomColors[index][1][1]
+              }}
+              height={100}
+            />
           ))}
+          <PlayButton className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 size-12" />
         </div>
       )
     },

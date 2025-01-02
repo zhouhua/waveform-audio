@@ -17,6 +17,7 @@ function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className='bg-fixed' style={{
       backgroundImage: 'linear-gradient(120deg, #e0c3fc, #8ec5fc)',
+      width: 'fit-content',
     }}>
       <div className="min-h-screen w-[720px] mx-auto flex flex-col">
         <Header />

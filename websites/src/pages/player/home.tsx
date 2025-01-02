@@ -7,7 +7,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioItem, DropdownMenuT
 import { Button } from '@/components/ui/button';
 import { DropdownMenuRadioGroup } from '@radix-ui/react-dropdown-menu';
 import Player, { WaveformType } from '@zhouhua-dev/waveform-player-react';
-import { Asterisk, Upload, Terminal, Code, Sparkles, Copy, Check, Wand2, Zap, Palette, Layers, Settings2, Waves, Box, LucideIcon } from 'lucide-react';
+import { Asterisk, Upload, Terminal, Code, Sparkles, Copy } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
@@ -15,7 +15,6 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { Toaster } from '@/components/ui/sonner';
 import { FeatureCard } from '@/components/feature-card';
-import { GradientKey } from '@/lib/constants';
 import { useFeatures } from '@/hooks/use-features';
 
 const types = ['bars', 'mirror', 'line', 'wave', 'envelope'];
@@ -122,6 +121,16 @@ export default function App() {
               src={src}
               type={type}
               title={fileName}
+              onEnded={(ctx) => {
+                ctx.seek(0);
+                ctx.play();
+              }}
+            // onTimeUpdate={(ctx) => {
+            //   if (ctx.audioState.isPlaying && ctx.audioState.currentTime > 10) {
+            //     ctx.seek(5);
+            //     ctx.play();
+            //   }
+            // }}
             />
           </div>
           <p className='text-xs text-gray-500 mt-2 pl-4 flex items-center gap-1'>

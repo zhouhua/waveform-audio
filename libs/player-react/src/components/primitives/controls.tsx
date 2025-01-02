@@ -1,8 +1,6 @@
 import type { ComponentPropsWithoutRef, CSSProperties, HTMLAttributes, MouseEvent, ReactElement, ReactNode } from 'react';
 import type { AudioPlayerContextValue } from '../../hooks/audio-player-context';
-import type { RootContextValue } from './root';
 import { Children, cloneElement, useContext } from 'react';
-import { AudioPlayerContext } from '../../hooks/audio-player-context';
 import { cn } from '../../utils/cn';
 import { Button } from '../ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
@@ -10,19 +8,17 @@ import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Slider } from '../ui/slider';
 import { RootContext } from './root';
 
+// 自定义 hook 用于获取 context
+function usePlayerContext(propsContext?: AudioPlayerContextValue) {
+  const rootContext = useContext(RootContext);
+  return propsContext || rootContext;
+}
+
 type TriggerProps = {
   asChild?: boolean;
   children?: ((props: { isPlaying: boolean }) => React.ReactNode) | React.ReactNode;
+  context?: AudioPlayerContextValue;
 } & ComponentPropsWithoutRef<'button'>;
-
-export interface PlayButtonProps {
-  className?: string;
-  style?: React.CSSProperties;
-  children?: ((props: { isPlaying: boolean }) => React.ReactNode);
-  isPlaying?: boolean;
-  onPlay?: () => void;
-  onPause?: () => void;
-}
 
 export interface VolumeControlProps {
   className?: string;
@@ -34,6 +30,7 @@ export interface VolumeControlProps {
   min?: number;
   max?: number;
   step?: number;
+  context?: AudioPlayerContextValue;
 }
 
 const playIcon = (
@@ -56,72 +53,54 @@ const stopIcon = (
 
 // 播放按钮触发器
 export function PlayTrigger({
+  asChild,
   children,
   className,
-  isPlaying: propIsPlaying,
-  onPause: propOnPause,
-  onPlay: propOnPlay,
+  context: propsContext,
   style,
-}: PlayButtonProps) {
-  const audioPlayerContext = useContext(AudioPlayerContext);
-  const playerContext = useContext(RootContext);
-  const context = (audioPlayerContext || playerContext) as (AudioPlayerContextValue | null | RootContextValue);
-
-  if (!context) {
-    // 如果没有 context，则使用 props
-    const handleClick = () => {
-      if (propIsPlaying) {
-        propOnPause?.();
-      }
-      else {
-        propOnPlay?.();
-      }
-    };
-
-    return (
-      <Button
-        variant="ghost"
-        size="icon"
-        className={cn('wa-play-button', className)}
-        style={style}
-        onClick={handleClick}
-      >
-        {typeof children === 'function'
-          ? children({ isPlaying: !!propIsPlaying })
-          : propIsPlaying
-            ? pauseIcon
-            : playIcon}
-      </Button>
-    );
-  }
+  ...props
+}: TriggerProps) {
+  const context = usePlayerContext(propsContext);
 
   const handleClick = () => {
-    if (context.audioState.isPlaying) {
+    if (context?.audioState.isPlaying) {
       context.pause();
     }
     else {
-      context.play();
+      context?.play();
     }
   };
 
-  const isPlaying = context ? context.audioState.isPlaying : propIsPlaying;
+  const isPlaying = context?.audioState.isPlaying;
+
+  if (asChild && children) {
+    const child = Children.only(children) as ReactElement<HTMLAttributes<HTMLElement>>;
+    return cloneElement(child, {
+      ...props,
+      onClick: handleClick,
+    });
+  }
 
   return (
-    <div
-      className={cn(
-        'wa-flex wa-items-center wa-justify-center wa-transition-colors',
-        !isPlaying ? 'wa-bg-blue-500 hover:wa-bg-blue-600' : 'wa-bg-yellow-500 hover:wa-bg-yellow-600',
-        className,
-      )}
-      style={style}
+    <button
+      type="button"
       onClick={handleClick}
+      {...props}
     >
-      {typeof children === 'function'
-        ? children({ isPlaying: !!isPlaying })
-        : isPlaying
-          ? pauseIcon
-          : playIcon}
-    </div>
+      {children || (
+        <div
+          className={cn(
+            'wa-flex wa-items-center wa-justify-center wa-transition-colors',
+            'wa-w-8 wa-h-8 wa-rounded-full',
+            !isPlaying ? 'wa-bg-blue-500 hover:wa-bg-blue-600' : 'wa-bg-yellow-500 hover:wa-bg-yellow-600',
+            className,
+          )}
+          style={style}
+        >
+          {isPlaying ? pauseIcon : playIcon}
+        </div>
+      )}
+    </button>
   );
 }
 
@@ -130,12 +109,11 @@ export const StopTrigger = function StopTrigger({
   asChild = false,
   children,
   className,
+  context: propsContext,
   style,
   ...props
 }: TriggerProps) {
-  const audioPlayerContext = useContext(AudioPlayerContext);
-  const playerContext = useContext(RootContext);
-  const context = audioPlayerContext || playerContext;
+  const context = usePlayerContext(propsContext);
 
   const handleClick = (e: MouseEvent) => {
     e.preventDefault();
@@ -160,6 +138,7 @@ export const StopTrigger = function StopTrigger({
         <div
           className={cn(
             'wa-flex wa-items-center wa-justify-center wa-transition-colors',
+            'wa-w-8 wa-h-8 wa-rounded-full',
             'wa-bg-gray-500 hover:wa-bg-gray-700',
             'hover:wa-text-red-600 wa-text-gray-100',
             className,
@@ -176,33 +155,31 @@ export const StopTrigger = function StopTrigger({
 // 时间显示
 export function CurrentTimeDisplay({
   className,
+  context: propsContext,
   format = formatTime,
   style,
 }: {
   className?: string;
   style?: CSSProperties;
   format?: (seconds: number) => string;
+  context?: AudioPlayerContextValue;
 }) {
-  const audioPlayerContext = useContext(AudioPlayerContext);
-  const playerContext = useContext(RootContext);
-  const context = audioPlayerContext || playerContext;
-
+  const context = usePlayerContext(propsContext);
   return <div className={className} style={style}>{format(context?.audioState?.currentTime ?? 0)}</div>;
 }
 
 export function DurationDisplay({
   className,
+  context: propsContext,
   format = formatTime,
   style,
 }: {
   className?: string;
   style?: CSSProperties;
   format?: (seconds: number) => string;
+  context?: AudioPlayerContextValue;
 }) {
-  const audioPlayerContext = useContext(AudioPlayerContext);
-  const playerContext = useContext(RootContext);
-  const context = audioPlayerContext || playerContext;
-
+  const context = usePlayerContext(propsContext);
   return <div className={className} style={style}>{format(context?.audioState?.duration ?? 0)}</div>;
 }
 
@@ -210,18 +187,21 @@ export function DurationDisplay({
 export function Controls({
   children,
   className,
+  context: propsContext,
   style,
 }: {
   className?: string;
   style?: CSSProperties;
   children?: ReactNode;
+  context?: AudioPlayerContextValue;
 }) {
+  const context = usePlayerContext(propsContext);
   return (
     <div className={`wa-flex wa-items-center wa-space-x-4 ${className}`} style={style}>
       {children || (
         <>
-          <PlayTrigger />
-          <StopTrigger />
+          <PlayTrigger context={context} />
+          <StopTrigger context={context} />
         </>
       )}
     </div>
@@ -241,6 +221,7 @@ function formatTime(seconds: number): string {
 // 音量控制
 export function VolumeControl({
   className,
+  context: propsContext,
   max = 1,
   min = 0,
   step = 0.01,
@@ -251,11 +232,9 @@ export function VolumeControl({
   min?: number;
   max?: number;
   step?: number;
+  context?: AudioPlayerContextValue;
 }) {
-  const audioPlayerContext = useContext(AudioPlayerContext);
-  const playerContext = useContext(RootContext);
-  const context = audioPlayerContext || playerContext;
-
+  const context = usePlayerContext(propsContext);
   const volume = ((context?.audioState?.volume ?? 1) * 100).toFixed(0);
 
   const volumeIcon = (
@@ -301,16 +280,16 @@ export function VolumeControl({
 // 播放速度控制
 export function PlaybackRateControl({
   className,
+  context: propsContext,
   options = [0.5, 0.8, 1, 1.25, 1.5, 2],
   style,
 }: {
   className?: string;
   style?: CSSProperties;
   options?: number[];
+  context?: AudioPlayerContextValue;
 }) {
-  const audioPlayerContext = useContext(AudioPlayerContext);
-  const playerContext = useContext(RootContext);
-  const context = audioPlayerContext || playerContext;
+  const context = usePlayerContext(propsContext);
 
   const speedIcon = (
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -358,15 +337,15 @@ export function DownloadTrigger({
   asChild,
   children,
   className,
+  context: propsContext,
   style,
   ...props
 }: {
   className?: string;
   style?: CSSProperties;
+  context?: AudioPlayerContextValue;
 } & TriggerProps) {
-  const audioPlayerContext = useContext(AudioPlayerContext);
-  const playerContext = useContext(RootContext);
-  const context = audioPlayerContext || playerContext;
+  const context = usePlayerContext(propsContext);
 
   const handleClick = (e: MouseEvent) => {
     e.preventDefault();
@@ -400,3 +379,6 @@ export function DownloadTrigger({
     </Button>
   );
 }
+
+export type PlayButtonProps = TriggerProps;
+export type StopButtonProps = TriggerProps;

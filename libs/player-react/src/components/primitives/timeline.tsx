@@ -1,269 +1,205 @@
-import type { CSSProperties } from 'react';
+import type { CSSProperties, MouseEvent } from 'react';
 import type { AudioPlayerContextValue } from '../../hooks/audio-player-context';
-import type { RootContextValue } from './root';
-import { useCallback, useContext, useEffect, useRef } from 'react';
-import { AudioPlayerContext } from '../../hooks/audio-player-context';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { cn } from '../../utils/cn';
 import { RootContext } from './root';
+
+// 自定义 hook 用于获取 context
+function usePlayerContext(propsContext?: AudioPlayerContextValue) {
+  const rootContext = useContext(RootContext);
+  return propsContext || rootContext;
+}
 
 export interface TimelineProps {
   className?: string;
   style?: CSSProperties;
-  height?: number;
   color?: string;
-  format?: 'current' | 'duration' | 'remaining';
-  currentTime?: number;
-  duration?: number;
-  onSeek?: (time: number) => void;
-}
-
-export interface TimeProps {
-  className?: string;
-  style?: CSSProperties;
-  format?: 'current' | 'duration' | 'remaining';
-  currentTime?: number;
-  duration?: number;
-}
-
-// 计算合适的刻度间隔
-function calculateTickIntervals(width: number, duration: number) {
-  // 计算每秒对应的像素数
-  const pixelsPerSecond = width / duration;
-
-  // 定义刻度间距的范围
-  const maxPixelsBetweenTicks = 100; // 主刻度最大间距
-  const minPixelsBetweenSubTicks = 10; // 子刻度最小间距
-
-  // 常用的时间间隔（秒）
-  const intervals = [1, 5, 10, 15, 30, 60, 120, 300, 600];
-
-  // 找到合适的主刻度间隔
-  // 找到满足最大间距的区间
-  const maxInterval = intervals.find((interval) => {
-    return interval * pixelsPerSecond > maxPixelsBetweenTicks;
-  }) || intervals[intervals.length - 1];
-
-  // 选择合适的主刻度间隔
-  // 如果第一个间隔就超过最大间距，就使用它
-  // 否则使用比最大间隔小一级的间隔
-  const mainInterval = maxInterval === intervals[0]
-    ? maxInterval
-    : intervals[Math.max(0, intervals.indexOf(maxInterval) - 1)];
-
-  // 计算子刻度间隔
-  // 1. 先计算理想的子刻度间隔（主刻度的1/5）
-  const idealSubInterval = mainInterval / 5;
-
-  // 2. 找到不小于理想间隔且满足最小像素间距的最小间隔
-  const subInterval = intervals.find((interval) => {
-    return interval >= 1 // 确保不小于1秒
-      && interval * pixelsPerSecond >= minPixelsBetweenSubTicks
-      && interval <= idealSubInterval;
-  }) || Math.max(1, idealSubInterval); // 如果找不到合适的，就使用理想间隔，但不小于1秒
-
-  return { mainInterval, subInterval };
+  backgroundColor?: string;
+  width?: number;
+  height?: number;
+  context?: AudioPlayerContextValue;
 }
 
 export function Timeline({
-  className = '',
-  color,
-  currentTime: propCurrentTime,
-  duration: propDuration,
-  height = 24,
-  onSeek: propOnSeek,
+  backgroundColor = 'rgba(255, 255, 255, 0.1)',
+  className,
+  color = 'rgba(255, 255, 255, 0.5)',
+  context: propsContext,
+  height = 4,
+  style,
 }: TimelineProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const audioPlayerContext = useContext(AudioPlayerContext);
-  const playerContext = useContext(RootContext);
-  const context = (audioPlayerContext || playerContext) as (AudioPlayerContextValue | null | RootContextValue);
-  const observerRef = useRef<null | ResizeObserver>(null);
+  const context = usePlayerContext(propsContext);
+  const [isDragging, setIsDragging] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [displayTime, setDisplayTime] = useState(0);
+  const rafRef = useRef<number>(0);
+  const lastTimeRef = useRef<number>(0);
+  const dragStartXRef = useRef<number>(0);
+  const dragStartTimeRef = useRef<number>(0);
 
-  const currentTime = context?.audioState?.currentTime ?? propCurrentTime ?? 0;
-  const duration = context?.audioState?.duration ?? propDuration ?? 0;
-  const seek = context?.seek ?? propOnSeek;
+  const calculateProgress = useCallback((clientX: number) => {
+    if (!containerRef.current || !context) {
+      return 0;
+    }
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const progress = Math.max(0, Math.min(1, x / rect.width));
+    return progress * (context.audioState?.duration ?? 0);
+  }, [context]);
 
-  const drawTimeline = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) {
+  const handleMouseDown = useCallback((e: MouseEvent<HTMLDivElement>) => {
+    if (!context) {
       return;
     }
+    e.preventDefault();
+    dragStartXRef.current = e.clientX;
+    dragStartTimeRef.current = Date.now();
+    const newTime = calculateProgress(e.clientX);
+    setDisplayTime(newTime);
+    setIsDragging(true);
+    context.pause();
+  }, [context, calculateProgress]);
 
-    const ctx = canvas.getContext('2d');
-    if (!ctx) {
+  const handleMouseMove = useCallback((e: MouseEvent<HTMLDivElement>) => {
+    if (!isDragging) {
       return;
     }
+    e.preventDefault();
+    const newTime = calculateProgress(e.clientX);
+    setDisplayTime(newTime);
+  }, [isDragging, calculateProgress]);
 
-    const dpr = window.devicePixelRatio || 1;
-    const width = canvas.clientWidth;
-    canvas.width = width * dpr;
-    canvas.height = height * dpr;
-    ctx.scale(dpr, dpr);
-
-    ctx.clearRect(0, 0, width, height);
-
-    const computedStyle = getComputedStyle(canvas);
-    const timelineColor = color || computedStyle.getPropertyValue('--timeline-color').trim() || 'currentColor';
-
-    // 计算刻度间隔
-    const { mainInterval, subInterval } = calculateTickIntervals(width, duration);
-
-    // 绘制时间线
-    drawTimelineCanvas(ctx, {
-      duration,
-      height,
-      mainInterval,
-      subInterval,
-      timelineColor,
-      width,
-    });
-  }, [color, duration, height]);
-
-  useEffect(() => {
-    if (canvasRef.current) {
-      drawTimeline();
-      observerRef.current = new ResizeObserver(() => {
-        requestAnimationFrame(() => {
-          drawTimeline();
-        });
-      });
-      observerRef.current.observe(canvasRef.current);
-    }
-
-    return () => {
-      if (observerRef.current) {
-        observerRef.current.disconnect();
-      }
-    };
-  }, [drawTimeline]);
-
-  useEffect(() => {
-    drawTimeline();
-  }, [currentTime, duration, height, drawTimeline]);
-
-  const handleSeek = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    const canvas = canvasRef.current;
-    if (!canvas || !seek) {
+  const handleMouseUp = useCallback((e: MouseEvent<HTMLDivElement>) => {
+    if (!isDragging || !context) {
       return;
     }
+    e.preventDefault();
+    const finalTime = calculateProgress(e.clientX);
+    setIsDragging(false);
 
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const progress = x / rect.width;
-    const time = Math.max(0, Math.min(progress * duration, duration));
-    seek(time);
-  };
+    // 判断是否是点击（移动距离小于5像素且时间小于200ms）
+    const isClick
+      = Math.abs(e.clientX - dragStartXRef.current) < 5
+      && Date.now() - dragStartTimeRef.current < 200;
 
-  return (
-    <canvas
-      ref={canvasRef}
-      className={`wa-w-full wa-cursor-pointer ${className}`}
-      style={{
-        height,
-        ...(color ? { '--timeline-color': color } as React.CSSProperties : {}),
-      }}
-      onClick={handleSeek}
-    />
-  );
-}
-
-// 绘制时间线的具体实现
-function drawTimelineCanvas(ctx: CanvasRenderingContext2D, {
-  duration,
-  height,
-  mainInterval,
-  subInterval,
-  timelineColor,
-  width,
-}: {
-  width: number;
-  height: number;
-  duration: number;
-  timelineColor: string;
-  mainInterval: number;
-  subInterval: number;
-}) {
-  ctx.beginPath();
-  ctx.strokeStyle = timelineColor;
-  ctx.lineWidth = 1;
-
-  // 绘制主轴线
-  ctx.moveTo(0, height * 0.2);
-  ctx.lineTo(width, height * 0.2);
-
-  // 先计算结束时间标签的宽度
-  const endMinutes = Math.floor(duration / 60);
-  const endSeconds = Math.floor(duration % 60);
-  const endTimeLabel = `${endMinutes}:${endSeconds.toString().padStart(2, '0')}`;
-  ctx.font = '10px sans-serif';
-  const endTimeLabelWidth = ctx.measureText(endTimeLabel).width;
-
-  // 绘制主刻度和子刻度
-  let lastMainTickX = 0;
-  for (let time = 0; time <= duration; time += subInterval) {
-    const x = (time / duration) * width;
-    const isMainTick = time % mainInterval === 0;
-
-    if (isMainTick) {
-      // 主刻度线
-      ctx.moveTo(x, height * 0.2);
-      ctx.lineTo(x, height * 0.4);
-      lastMainTickX = x;
-
-      // 添加时间标签
-      const minutes = Math.floor(time / 60);
-      const seconds = Math.floor(time % 60);
-      const timeLabel = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-
-      ctx.save();
-      ctx.font = '10px sans-serif';
-      const textWidth = ctx.measureText(timeLabel).width;
-
-      // 智能调整文本对齐方式和位置
-      ctx.textBaseline = 'top';
-      ctx.fillStyle = timelineColor;
-
-      if (x < textWidth / 2) {
-        // 最左侧标签，完全左对齐
-        ctx.textAlign = 'left';
-        ctx.fillText(timeLabel, 0, height * 0.45);
-      }
-      else if (x > width - textWidth / 2) {
-        // 最右侧标签，完全右对齐
-        ctx.textAlign = 'right';
-        ctx.fillText(timeLabel, width, height * 0.45);
+    context.seek(finalTime);
+    if (isClick) {
+      // 如果是点击，seek 并切换播放状态
+      if (context.audioState.isPlaying) {
+        context.pause();
       }
       else {
-        // 中间区域，居中对齐
-        ctx.textAlign = 'center';
-        ctx.fillText(timeLabel, x, height * 0.45);
+        context.play();
       }
-      ctx.restore();
     }
     else {
-      // 子刻度线
-      ctx.moveTo(x, height * 0.2);
-      ctx.lineTo(x, height * 0.3);
+      // 如果是拖拽，seek 并恢复播放
+      context.play();
     }
-  }
+  }, [isDragging, context, calculateProgress]);
 
-  // 判断是否有足够空间显示结束时间
-  // 增加一些额外的空间要求，确保不会太挤
-  const hasSpaceForEndTime = width - lastMainTickX > endTimeLabelWidth * 1.5;
+  const handleMouseLeave = useCallback(() => {
+    if (!isDragging || !context) {
+      return;
+    }
+    setIsDragging(false);
+    setDisplayTime(context.audioState.currentTime);
+    context.play();
+  }, [isDragging, context]);
 
-  // 如果最后一个主刻度和结束位置之间有足够空间，显示结束时间
-  if (hasSpaceForEndTime) {
-    // 绘制最后的主刻度线
-    ctx.moveTo(width, height * 0.2);
-    ctx.lineTo(width, height * 0.4);
+  // 初始化 displayTime
+  useEffect(() => {
+    if (!context || isDragging) {
+      return;
+    }
+    setDisplayTime(context.audioState.currentTime);
+  }, [context, isDragging]);
 
-    // 绘制结束时间标签
-    ctx.save();
-    ctx.font = '10px sans-serif';
-    ctx.textBaseline = 'top';
-    ctx.fillStyle = timelineColor;
-    ctx.textAlign = 'right';
-    ctx.fillText(endTimeLabel, width, height * 0.45);
-    ctx.restore();
-  }
+  useEffect(() => {
+    if (!context || isDragging) {
+      return;
+    }
 
-  ctx.stroke();
+    const updateProgress = (timestamp: number) => {
+      if (!lastTimeRef.current) {
+        lastTimeRef.current = timestamp;
+        setDisplayTime(context.audioState.currentTime);
+        rafRef.current = requestAnimationFrame(updateProgress);
+        return;
+      }
+
+      const deltaTime = timestamp - lastTimeRef.current;
+      // 每一帧移动的时间 = deltaTime(ms) / 1000
+      const frameTime = deltaTime / 1000;
+
+      setDisplayTime((prev) => {
+        const currentTime = context.audioState.currentTime;
+        // 如果实际时间小于显示时间，立即更新
+        if (currentTime < prev) {
+          return currentTime;
+        }
+        // 如果差距太大（超过0.5秒），使用线性插值
+        if (Math.abs(currentTime - prev) > 0.5) {
+          return prev + (currentTime - prev) * 0.1;
+        }
+        // 正常情况下，线性移动
+        return prev + (context.audioState.isPlaying ? frameTime : 0);
+      });
+
+      lastTimeRef.current = timestamp;
+      rafRef.current = requestAnimationFrame(updateProgress);
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        if (rafRef.current) {
+          cancelAnimationFrame(rafRef.current);
+        }
+      }
+      else {
+        lastTimeRef.current = 0;
+        setDisplayTime(context.audioState.currentTime);
+        rafRef.current = requestAnimationFrame(updateProgress);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    rafRef.current = requestAnimationFrame(updateProgress);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
+      lastTimeRef.current = 0;
+    };
+  }, [context, isDragging]);
+
+  const progress = context?.audioState?.duration
+    ? displayTime / context.audioState.duration
+    : 0;
+
+  return (
+    <div
+      ref={containerRef}
+      className={cn('wa-relative wa-cursor-pointer wa-overflow-hidden', className)}
+      style={{
+        ...style,
+        backgroundColor,
+        height,
+      }}
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseLeave}
+    >
+      <div
+        className="wa-absolute wa-inset-y-0 wa-left-0 wa-transition-[width]"
+        style={{
+          backgroundColor: color,
+          width: `${progress * 100}%`,
+        }}
+      />
+    </div>
+  );
 }

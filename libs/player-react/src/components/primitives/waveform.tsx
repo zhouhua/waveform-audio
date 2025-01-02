@@ -1,9 +1,6 @@
 import type { AudioPlayerContextValue } from '../../hooks/audio-player-context';
-import type { RootContextValue } from './root';
 import type { WaveformType } from './waveform-renderers';
-import { useContext, useEffect, useRef } from 'react';
-import { AudioPlayerContext } from '../../hooks/audio-player-context';
-import { RootContext } from './root';
+import { useEffect, useRef } from 'react';
 import { renderers } from './waveform-renderers';
 
 export interface WaveformProps {
@@ -30,6 +27,7 @@ export interface WaveformProps {
   duration?: number;
   onSeek?: (time: number) => void;
   peaks?: number[];
+  context?: AudioPlayerContextValue;
 }
 
 export function Waveform({
@@ -38,26 +36,30 @@ export function Waveform({
   barWidth = 2,
   className = '',
   color,
+  context,
   currentTime: propCurrentTime,
   duration: propDuration,
   gradient,
-  height = 100,
   onSeek: propOnSeek,
   peaks: propPeaks,
   progressColor,
   progressGradient,
+  samplePoints,
   style,
   type = 'bars',
 }: WaveformProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const audioPlayerContext = useContext(AudioPlayerContext);
-  const playerContext = useContext(RootContext);
-  const context = (audioPlayerContext || playerContext) as (AudioPlayerContextValue | null | RootContextValue);
 
   const currentTime = context?.audioState?.currentTime ?? propCurrentTime ?? 0;
   const duration = context?.audioState?.duration ?? propDuration ?? 0;
   const seek = context?.seek ?? propOnSeek;
   const peaks = context?.waveformData?.peaks ?? propPeaks;
+
+  useEffect(() => {
+    if (context?.setSamplePoints && samplePoints) {
+      context.setSamplePoints(samplePoints);
+    }
+  }, [context, samplePoints]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -72,6 +74,7 @@ export function Waveform({
 
     const dpr = window.devicePixelRatio || 1;
     const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
     canvas.width = width * dpr;
     canvas.height = height * dpr;
     ctx.scale(dpr, dpr);
@@ -115,7 +118,6 @@ export function Waveform({
     }
   }, [
     peaks,
-    height,
     currentTime,
     duration,
     type,
@@ -145,9 +147,8 @@ export function Waveform({
     <div className="wa-relative wa-w-full" style={style}>
       <canvas
         ref={canvasRef}
-        className={`wa-w-full wa-cursor-pointer ${className}`}
+        className={`wa-w-full wa-cursor-pointer wa-h-[100px] ${className}`}
         style={{
-          height,
           ...(color ? { '--waveform-color': color } : {}),
           ...(progressColor ? { '--waveform-progress-color': progressColor } : {}),
           ...(gradient && {

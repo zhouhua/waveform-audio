@@ -11,12 +11,12 @@
   },
   "player": {
     "title": "Waveform Player",
-    "description": "一个功能强大、自由定制的 React 波形音频播放器组件",
+    "description": "一个功能强大、自由定制的 React 波形音频播放器解决方案",
     "getStarted": "快速开始",
     "viewExamples": "查看示例",
     "features": {
       "waveform": {
-        "title": "多样化波形展示",
+        "title": "多种预设的波型图",
         "description": "支持多种波形渲染模式：条形图、镜像、线条、波浪和包络，满足不同场景需求"
       },
       "customization": {

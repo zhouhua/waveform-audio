@@ -14,6 +14,8 @@ export interface AudioPlayerContextValue {
   seek: (time: number) => void;
   setVolume: (volume: number) => void;
   setPlaybackRate: (rate: number) => void;
+  samplePoints: number;
+  setSamplePoints: (points: number) => void;
 }
 
 export const AudioPlayerContext = createContext<AudioPlayerContextValue | null>(null);
@@ -34,8 +36,8 @@ export function AudioPlayerProvider({
   value: AudioPlayerContextValue;
 }) {
   return (
-    <AudioPlayerContext.Provider value={value}>
+    <AudioPlayerContext value={value}>
       {children}
-    </AudioPlayerContext.Provider>
+    </AudioPlayerContext>
   );
 }

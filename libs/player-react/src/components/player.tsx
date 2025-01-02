@@ -1,6 +1,8 @@
 import type { CSSProperties, FC } from 'react';
 import type { AudioMetadata } from '../utils/audio-metadata';
+import type { RootContextValue } from './primitives';
 import type { WaveformType } from './primitives/waveform-renderers';
+import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { extractAudioMetadata } from '../utils/audio-metadata';
 import { cn } from '../utils/cn';
@@ -40,6 +42,7 @@ export interface PlayerProps {
     timeDisplay?: string;
     volumeControl?: string;
     playbackRateControl?: string;
+    loading?: string;
   };
   styles?: {
     root?: CSSProperties;
@@ -58,6 +61,7 @@ export interface PlayerProps {
     timeDisplay?: CSSProperties;
     volumeControl?: CSSProperties;
     playbackRateControl?: CSSProperties;
+    loading?: CSSProperties;
   };
   volumeControlOptions?: {
     min?: number;
@@ -65,10 +69,10 @@ export interface PlayerProps {
     step?: number;
   };
   playbackRateOptions?: number[];
-  onPlay?: () => void;
-  onPause?: () => void;
-  onTimeUpdate?: (time: number) => void;
-  onEnded?: () => void;
+  onPlay?: (ctx: RootContextValue) => void;
+  onPause?: (ctx: RootContextValue) => void;
+  onTimeUpdate?: (ctx: RootContextValue) => void;
+  onEnded?: (ctx: RootContextValue) => void;
   type?: WaveformType;
   samplePoints?: number;
   progressIndicatorColor?: string;
@@ -86,6 +90,7 @@ export interface PlayerProps {
   showTimeline?: boolean;
   showProgressIndicator?: boolean;
   title?: string;
+  renderLoading?: () => React.ReactNode;
 }
 
 const Player: FC<PlayerProps> = ({
@@ -97,6 +102,7 @@ const Player: FC<PlayerProps> = ({
   onTimeUpdate,
   playbackRateOptions,
   progressIndicatorColor,
+  renderLoading,
   samplePoints = 200,
   showControls = true,
   showDownloadButton = true,
@@ -144,16 +150,20 @@ const Player: FC<PlayerProps> = ({
   }, [src, fileName]);
 
   if (!isReady) {
+    if (renderLoading) {
+      return renderLoading();
+    }
     return (
       <div
         className={cn(
           'wa-player wa-flex wa-flex-col wa-border wa-rounded-lg wa-backdrop-blur wa-overflow-hidden wa-items-center wa-justify-center',
           className,
           classes.root,
+          classes.loading,
         )}
-        style={{ ...style, ...styles.root }}
+        style={{ ...style, ...styles.root, ...styles.loading }}
       >
-        <div className="wa-text-[var(--wa-text-color)] wa-opacity-50">加载中...</div>
+        <Loader2 className="wa-w-4 wa-h-4 wa-animate-spin" />
       </div>
     );
   }
@@ -192,8 +202,8 @@ const Player: FC<PlayerProps> = ({
           <div className={cn('wa-p-4 wa-flex wa-flex-col wa-justify-center wa-w-48 wa-shrink-0 wa-items-start', classes.controls)} style={styles.controls}>
             <div className="wa-space-y-4">
               <div className="wa-flex wa-items-end wa-gap-4">
-                {showPlayButton && <PlayTrigger className={cn('wa-w-12 wa-h-12 wa-rounded-full', classes.playButton)} style={styles.playButton} />}
-                {showStopButton && <StopTrigger className={cn('wa-w-8 wa-h-8 wa-rounded-full', classes.stopButton)} style={styles.stopButton} />}
+                {showPlayButton && <PlayTrigger className={cn('wa-w-12 wa-h-12', classes.playButton)} style={styles.playButton} />}
+                {showStopButton && <StopTrigger className={cn('', classes.stopButton)} style={styles.stopButton} />}
               </div>
               {showTimeDisplay && (
                 <div className="wa-flex wa-items-end wa-space-x-2">
@@ -238,15 +248,14 @@ const Player: FC<PlayerProps> = ({
         <div className={cn('wa-w-full wa-group', classes.right)} style={styles.right}>
           {showTimeline && (
             <div className={cn('', classes.timeline)} style={styles.timeline}>
-              <Timeline height={24} color="#9ca3af" />
+              <Timeline color="#9ca3af" />
             </div>
           )}
-          <div className="wa-relative">
+          <div className="wa-relative wa-w-full wa-h-full">
             {showWaveform && (
               <Waveform
-                className={cn('wa-w-full', classes.waveform)}
+                className={cn('wa-w-full wa-h-[140px]', classes.waveform)}
                 style={styles.waveform}
-                height={140}
                 type={type}
                 barWidth={3}
                 barGap={2}
