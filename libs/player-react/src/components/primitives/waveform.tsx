@@ -1,8 +1,14 @@
 import type { AudioPlayerContextValue } from '../../hooks/audio-player-context';
 import type { WaveformType } from './waveform-renderers';
-import { useEffect, useRef } from 'react';
+import { useContext, useEffect, useRef } from 'react';
+import { RootContext } from './root';
 import { renderers } from './waveform-renderers';
 
+// 自定义 hook 用于获取 context
+function usePlayerContext(propsContext?: AudioPlayerContextValue) {
+  const rootContext = useContext(RootContext);
+  return propsContext || rootContext;
+}
 export interface WaveformProps {
   height?: number;
   className?: string;
@@ -22,11 +28,6 @@ export interface WaveformProps {
     from: string;
     to: string;
   };
-  onClick?: (time: number) => void;
-  currentTime?: number;
-  duration?: number;
-  onSeek?: (time: number) => void;
-  peaks?: number[];
   context?: AudioPlayerContextValue;
 }
 
@@ -36,12 +37,8 @@ export function Waveform({
   barWidth = 2,
   className = '',
   color,
-  context,
-  currentTime: propCurrentTime,
-  duration: propDuration,
+  context: propsContext,
   gradient,
-  onSeek: propOnSeek,
-  peaks: propPeaks,
   progressColor,
   progressGradient,
   samplePoints,
@@ -50,10 +47,11 @@ export function Waveform({
 }: WaveformProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const currentTime = context?.audioState?.currentTime ?? propCurrentTime ?? 0;
-  const duration = context?.audioState?.duration ?? propDuration ?? 0;
-  const seek = context?.seek ?? propOnSeek;
-  const peaks = context?.waveformData?.peaks ?? propPeaks;
+  const context = usePlayerContext(propsContext);
+  const currentTime = context?.audioState?.currentTime ?? 0;
+  const duration = context?.audioState?.duration ?? 0;
+  const seek = context?.seek;
+  const peaks = context?.waveformData?.peaks;
 
   useEffect(() => {
     if (context?.setSamplePoints && samplePoints) {

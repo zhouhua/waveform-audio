@@ -1,7 +1,9 @@
 import type React from 'react';
+import type { AudioMetadata } from '../utils/audio-metadata';
 import type { AudioPlayerContextValue } from './audio-player-context';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { analyzeAudio } from '../utils/audio-analyzer';
+import { extractAudioMetadata } from '../utils/audio-metadata';
 
 export interface AudioState {
   currentTime: number;
@@ -40,6 +42,7 @@ export function useAudioPlayer({
   });
   const [waveformData, setWaveformData] = useState<{ peaks: number[] }>();
   const [currentSamplePoints, setCurrentSamplePoints] = useState(samplePoints);
+  const [metadata, setMetadata] = useState<AudioMetadata>();
 
   // 初始化音频元素
   useEffect(() => {
@@ -107,6 +110,7 @@ export function useAudioPlayer({
   const contextValue = useMemo<AudioPlayerContextValue>(() => ({
     audioRef,
     audioState,
+    metadata,
     pause,
     play,
     samplePoints: currentSamplePoints,
@@ -121,6 +125,7 @@ export function useAudioPlayer({
   }), [
     audioRef,
     audioState,
+    metadata,
     currentSamplePoints,
     pause,
     play,
@@ -212,6 +217,36 @@ export function useAudioPlayer({
     };
   }, [onPlay, onPause, onTimeUpdate, onEnded, contextValue]);
 
+  // 添加元数据加载逻辑
+  useEffect(() => {
+    let mounted = true;
+
+    const loadMetadata = async () => {
+      if (!src) {
+        return;
+      }
+
+      try {
+        const response = await fetch(src);
+        const blob = await response.blob();
+        const file = new File([blob], src.split('/').pop() || 'audio', { type: blob.type });
+        const meta = await extractAudioMetadata(file);
+        if (mounted) {
+          setMetadata(meta);
+        }
+      }
+      catch (error) {
+        console.warn('无法加载音频元数据:', error);
+      }
+    };
+
+    void loadMetadata();
+
+    return () => {
+      mounted = false;
+    };
+  }, [src]);
+
   return {
     audioRef,
     audioState,
@@ -224,6 +259,7 @@ export function useAudioPlayer({
       setVolume,
       stop,
     },
+    metadata,
     waveformData,
   };
 }

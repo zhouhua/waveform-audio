@@ -1,5 +1,6 @@
 import type { AudioPlayerContextValue } from '../../hooks/audio-player-context';
 import { useContext } from 'react';
+import { formatFileSize } from '../../utils/audio-metadata';
 import { cn } from '../../utils/cn';
 import { RootContext } from './root';
 
@@ -21,19 +22,31 @@ export function Metadata({
   style,
 }: MetadataProps) {
   const context = usePlayerContext(propsContext);
+  const metadata = context?.metadata;
+
   return (
     <div className={cn('wa-flex wa-flex-wrap wa-gap-3 wa-text-xs wa-text-[var(--wa-text-color)]', className)} style={style}>
-      {context?.audioState && (
+      {metadata && (
         <>
-          <span>
-            {context.audioState.duration.toFixed(1)}
-            {' '}
-            秒
-          </span>
-          <span>
-            {context.audioState.playbackRate}
-            x
-          </span>
+          {metadata.bitrate && (
+            <span>
+              {Math.round(metadata.bitrate / 1000)}
+              {' '}
+              kbps
+            </span>
+          )}
+          {metadata.sampleRate && (
+            <span>
+              {Math.round(metadata.sampleRate / 1000)}
+              {' '}
+              kHz
+            </span>
+          )}
+          {metadata.fileSize && (
+            <span>
+              {formatFileSize(metadata.fileSize)}
+            </span>
+          )}
         </>
       )}
     </div>

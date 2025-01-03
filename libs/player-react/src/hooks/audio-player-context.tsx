@@ -1,9 +1,11 @@
-import type { AudioState } from '../components/primitives/root';
+import type { AudioMetadata } from '../utils/audio-metadata';
+import type { AudioState } from './use-audio-player';
 import React, { createContext, useContext } from 'react';
 
 export interface AudioPlayerContextValue {
-  audioState: AudioState;
   audioRef: React.RefObject<HTMLAudioElement>;
+  audioState: AudioState;
+  metadata?: AudioMetadata;
   waveformData?: {
     peaks: number[];
   };
@@ -14,6 +16,7 @@ export interface AudioPlayerContextValue {
   seek: (time: number) => void;
   setVolume: (volume: number) => void;
   setPlaybackRate: (rate: number) => void;
+  setWaveformData: (data: { peaks: number[] }) => void;
   samplePoints: number;
   setSamplePoints: (points: number) => void;
 }
@@ -36,8 +39,8 @@ export function AudioPlayerProvider({
   value: AudioPlayerContextValue;
 }) {
   return (
-    <AudioPlayerContext value={value}>
+    <AudioPlayerContext.Provider value={value}>
       {children}
-    </AudioPlayerContext>
+    </AudioPlayerContext.Provider>
   );
 }

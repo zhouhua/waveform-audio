@@ -1,7 +1,7 @@
 import { LucideIcon, Settings2, Palette, Layers, Box, Zap, Terminal, AudioWaveform } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { GradientKey } from '@/lib/constants';
-import { useAudioPlayer } from '@zhouhua-dev/waveform-player-react';
+import { useAudioPlayer, PlayTrigger, Waveform } from '@zhouhua-dev/waveform-player-react';
 import demoMusic from '@/assets/music.mp3';
 
 interface Feature {
@@ -23,7 +23,7 @@ const randomColors = [
 
 export function useFeatures() {
   const { t } = useTranslation();
-  const { components: { PlayButton, Waveform }, context } = useAudioPlayer({
+  const { context } = useAudioPlayer({
     src: demoMusic,
   });
   const features: Feature[] = [
@@ -41,7 +41,7 @@ export function useFeatures() {
         <div className="grid grid-cols-2 gap-6 relative">
           {['mirror', 'line', 'wave', 'envelope'].map((type, index) => (
             <Waveform
-
+              context={context}
               key={type}
               type={type}
               samplePoints={100}
@@ -56,7 +56,7 @@ export function useFeatures() {
               height={100}
             />
           ))}
-          <PlayButton className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 size-12" />
+          <PlayTrigger className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 size-12" context={context} />
         </div>
       )
     },

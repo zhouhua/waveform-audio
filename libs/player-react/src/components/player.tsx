@@ -1,10 +1,8 @@
 import type { CSSProperties, FC } from 'react';
-import type { AudioMetadata } from '../utils/audio-metadata';
 import type { RootContextValue } from './primitives';
 import type { WaveformType } from './primitives/waveform-renderers';
-import { Loader2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { extractAudioMetadata } from '../utils/audio-metadata';
+// import { Loader2 } from 'lucide-react';
+// import { useEffect, useState } from 'react';
 import { cn } from '../utils/cn';
 import {
   CurrentTimeDisplay,
@@ -102,7 +100,7 @@ const Player: FC<PlayerProps> = ({
   onTimeUpdate,
   playbackRateOptions,
   progressIndicatorColor,
-  renderLoading,
+  // renderLoading,
   samplePoints = 200,
   showControls = true,
   showDownloadButton = true,
@@ -125,48 +123,25 @@ const Player: FC<PlayerProps> = ({
   volumeControlOptions = {},
 }) => {
   const fileName = src?.split('/').pop();
-  const [metadata, setMetadata] = useState<AudioMetadata | null>(null);
-  const [isReady, setIsReady] = useState(false);
 
-  useEffect(() => {
-    const loadMetadata = async () => {
-      try {
-        const response = await fetch(src);
-        const blob = await response.blob();
-        const file = new File([blob], fileName || 'audio', { type: blob.type });
-        const meta = await extractAudioMetadata(file);
-        setMetadata(meta);
-        setIsReady(true);
-      }
-      catch (error) {
-        console.warn('无法加载音频元数据:', error);
-        setIsReady(true);
-      }
-    };
-
-    if (src) {
-      void loadMetadata();
-    }
-  }, [src, fileName]);
-
-  if (!isReady) {
-    if (renderLoading) {
-      return renderLoading();
-    }
-    return (
-      <div
-        className={cn(
-          'wa-player wa-flex wa-flex-col wa-border wa-rounded-lg wa-backdrop-blur wa-overflow-hidden wa-items-center wa-justify-center',
-          className,
-          classes.root,
-          classes.loading,
-        )}
-        style={{ ...style, ...styles.root, ...styles.loading }}
-      >
-        <Loader2 className="wa-w-4 wa-h-4 wa-animate-spin" />
-      </div>
-    );
-  }
+  // if (!isReady) {
+  //   if (renderLoading) {
+  //     return renderLoading();
+  //   }
+  //   return (
+  //     <div
+  //       className={cn(
+  //         'wa-player wa-flex wa-flex-col wa-border wa-rounded-lg wa-backdrop-blur wa-overflow-hidden wa-items-center wa-justify-center',
+  //         className,
+  //         classes.root,
+  //         classes.loading,
+  //       )}
+  //       style={{ ...style, ...styles.root, ...styles.loading }}
+  //     >
+  //       <Loader2 className="wa-w-4 wa-h-4 wa-animate-spin" />
+  //     </div>
+  //   );
+  // }
 
   return (
     <PlayerRoot
@@ -188,9 +163,8 @@ const Player: FC<PlayerProps> = ({
           <h3 className={cn('wa-text-lg wa-font-medium wa-text-[var(--wa-text-color)] wa-truncate', classes.title)} style={styles.title}>
             {showTitle ? (title || fileName) : ''}
           </h3>
-          {showMetadata && metadata && (
+          {showMetadata && (
             <Metadata
-              metadata={metadata}
               className={cn('wa-flex wa-items-center wa-gap-4 wa-font-mono', classes.metadata)}
               style={styles.metadata}
             />
@@ -263,13 +237,12 @@ const Player: FC<PlayerProps> = ({
                 samplePoints={samplePoints}
               />
             )}
-
             {showProgressIndicator && (
               <ProgressIndicator
                 color={progressIndicatorColor}
-                overlay
                 className={classes.progressIndicator}
                 style={styles.progressIndicator}
+                overlay
               />
             )}
           </div>
@@ -279,17 +252,3 @@ const Player: FC<PlayerProps> = ({
   );
 };
 export default Player;
-// Re-export primitives for custom implementations
-export const Primitives = {
-  CurrentTimeDisplay,
-  DurationDisplay,
-  Metadata,
-  PlaybackRateControl,
-  PlayerRoot,
-  PlayTrigger,
-  ProgressIndicator,
-  StopTrigger,
-  Timeline,
-  VolumeControl,
-  Waveform,
-} as const;
