@@ -1,8 +1,9 @@
 import { LucideIcon, Settings2, Palette, Layers, Box, Zap, Terminal, AudioWaveform } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { GradientKey } from '@/lib/constants';
-import { useAudioPlayer, PlayTrigger, Waveform } from '@zhouhua-dev/waveform-player-react';
+import Player, { useAudioPlayer, PlayTrigger, Waveform } from '@zhouhua-dev/waveform-player-react';
 import demoMusic from '@/assets/music.mp3';
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 
 interface Feature {
   icon: LucideIcon;
@@ -26,6 +27,9 @@ export function useFeatures() {
   const { context } = useAudioPlayer({
     src: demoMusic,
   });
+  const { context: context4Theme } = useAudioPlayer({
+    src: demoMusic,
+  });
   const features: Feature[] = [
     {
       icon: AudioWaveform,
@@ -33,12 +37,13 @@ export function useFeatures() {
       gradientKey: 'purple',
       title: t('player.features.waveform.title'),
       description: t('player.features.waveform.description'),
-      code: `<Player
+      code: `
+<Player
   src="audio.mp3"
   type="envelope" | "bars" | "mirror" | "line" | "wave"
 />`,
       demo: (
-        <div className="grid grid-cols-2 gap-6 relative">
+        <div className="grid grid-cols-2 gap-2 relative">
           {['mirror', 'line', 'wave', 'envelope'].map((type, index) => (
             <Waveform
               context={context}
@@ -54,9 +59,39 @@ export function useFeatures() {
                 to: randomColors[index][1][1]
               }}
               height={100}
+              className="shadow-lg"
             />
           ))}
           <PlayTrigger className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 size-12" context={context} />
+        </div>
+      )
+    },
+    {
+      icon: Palette,
+      color: 'from-green-500 to-emerald-500',
+      gradientKey: 'green',
+      title: t('player.features.theme.title'),
+      description: t('player.features.theme.description'),
+      code: `
+<div className="dark">
+  <Player src="audio.mp3" />
+</div>
+      `,
+      demo: (
+        <div className="h-[210px] w-full">
+          <ResizablePanelGroup direction="horizontal" className="w-full">
+            <ResizablePanel className="overflow-hidden relative dark">
+              <div className="absolute w-[544px] left-0 top-0">
+                <Player className='h-full' context={context4Theme} />
+              </div>
+            </ResizablePanel>
+            <ResizableHandle className="z-10" withHandle />
+            <ResizablePanel className="overflow-hidden relative">
+              <div className="absolute w-[544px] right-0 top-0">
+                <Player context={context4Theme} />
+              </div>
+            </ResizablePanel>
+          </ResizablePanelGroup>
         </div>
       )
     },
@@ -80,24 +115,6 @@ export function useFeatures() {
           <div className="wa-w-8 wa-h-8 wa-rounded wa-bg-gradient-to-r wa-from-yellow-500 wa-to-orange-500" />
           <div className="wa-w-8 wa-h-8 wa-rounded wa-bg-gradient-to-r wa-from-orange-500 wa-to-red-500" />
           <div className="wa-w-8 wa-h-8 wa-rounded wa-bg-gradient-to-r wa-from-red-500 wa-to-pink-500" />
-        </div>
-      )
-    },
-    {
-      icon: Palette,
-      color: 'from-green-500 to-emerald-500',
-      gradientKey: 'green',
-      title: t('player.features.theme.title'),
-      description: t('player.features.theme.description'),
-      code: `/* 自定义主题变量 */
-:root {
-  --waveform-color: #cbd5e1;
-  --waveform-progress-color: #2563eb;
-}`,
-      demo: (
-        <div className="wa-flex wa-gap-2 wa-justify-center">
-          <div className="wa-w-8 wa-h-8 wa-rounded wa-bg-white wa-border-2 wa-border-gray-200" />
-          <div className="wa-w-8 wa-h-8 wa-rounded wa-bg-gray-900" />
         </div>
       )
     },

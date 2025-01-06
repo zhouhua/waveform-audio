@@ -19,7 +19,7 @@ import { useFeatures } from '@/hooks/use-features';
 
 const types = ['bars', 'mirror', 'line', 'wave', 'envelope'];
 
-export default function HomePage() {
+export function PlayerHome() {
   const { t } = useTranslation();
   const [darkMode, setDarkMode] = useState(false);
   const [type, setType] = useState<WaveformType>('mirror');
@@ -85,12 +85,12 @@ export default function App() {
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <Checkbox id="darkMode" checked={darkMode} onCheckedChange={e => setDarkMode(!!e)} />
-                <Label htmlFor="darkMode">黑暗模式</Label>
+                <Label htmlFor="darkMode">{t('player.home.darkMode')}</Label>
               </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="p-1 h-6 w-28">
-                    波型: {type}
+                  <Button variant="ghost" size="sm" className="p-1 h-6 w-32">
+                    {t('player.home.waveform', { type })}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
@@ -105,7 +105,7 @@ export default function App() {
               </DropdownMenu>
               <Button variant="ghost" size="sm" className="p-1 h-6" onClick={handleUploadClick}>
                 <Upload className="w-4 h-4" />
-                上传音频
+                {t('player.home.uploadAudio')}
               </Button>
               <input
                 type="file"
@@ -134,7 +134,7 @@ export default function App() {
             />
           </div>
           <p className='text-xs text-gray-500 mt-2 pl-4 flex items-center gap-1'>
-            <Asterisk className='w-4 h-4' /> 上传的音频仅用于展示，不会保存到服务器，不会用于其他用途
+            <Asterisk className='w-4 h-4' /> {t('player.home.uploadDisclaimer')}
           </p>
         </div>
 
@@ -143,9 +143,9 @@ export default function App() {
           <div className="text-center mb-12">
             <h2 className="text-2xl text-gray-900 mb-4 flex items-center justify-center gap-2">
               <Terminal className="w-6 h-6" />
-              安装方式
+              {t('player.home.installation.title')}
             </h2>
-            <p className="text-gray-600">使用你喜欢的包管理器安装</p>
+            <p className="text-gray-600">{t('player.home.installation.description')}</p>
           </div>
           <div className="mx-auto">
             <div className="rounded-2xl border border-[#2A2A2A] bg-[#171717] text-white overflow-hidden shadow-lg relative">
@@ -177,7 +177,7 @@ export default function App() {
                               fontSize: '0.875rem',
                             }}
                           >
-                            {command}
+                            {command.trim()}
                           </SyntaxHighlighter>
                         </div>
                       </div>
@@ -202,9 +202,9 @@ export default function App() {
           <div className="text-center mb-12">
             <h2 className="text-2xl text-gray-900 mb-4 flex items-center justify-center gap-2">
               <Code className="w-6 h-6" />
-              代码示例
+              {t('player.home.codeExample.title')}
             </h2>
-            <p className="text-gray-600">简单几行代码即可实现功能强大的音频播放器</p>
+            <p className="text-gray-600">{t('player.home.codeExample.description')}</p>
           </div>
           <div className="max-w-3xl mx-auto">
             <div className="rounded-lg border border-[#2A2A2A] bg-[#171717] text-white overflow-hidden">
@@ -220,7 +220,7 @@ export default function App() {
                     fontSize: '0.875rem',
                   }}
                 >
-                  {codeExample}
+                  {codeExample.trim()}
                 </SyntaxHighlighter>
                 <div className="absolute right-2 top-0 p-1">
                   <button
@@ -240,9 +240,9 @@ export default function App() {
           <div className="text-center mb-12">
             <h2 className="text-2xl text-gray-900 mb-4 flex items-center justify-center gap-2">
               <Sparkles className="w-6 h-6" />
-              功能亮点
+              {t('player.home.highlights.title')}
             </h2>
-            <p className="text-gray-600">强大而灵活的音频播放器解决方案</p>
+            <p className="text-gray-600">{t('player.home.highlights.description')}</p>
           </div>
           <div className="flex flex-col gap-8 max-w-4xl mx-auto">
             {features.map((feature) => (

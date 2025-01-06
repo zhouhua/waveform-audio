@@ -8,64 +8,86 @@ export interface AudioMetadata {
   fileSize?: number;
 }
 
-export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
-  const audioElement = new Audio(URL.createObjectURL(file));
-  const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-
-  // 从文件名解析基本信息
-  const fileName = file.name.replace(/\.[^./]+$/, '');
-  return new Promise((resolve) => {
-    audioElement.onloadedmetadata = async () => {
-      let sampleRate = audioContext.sampleRate;
-      let channels = 2; // 默认值
-
-      try {
-        const arrayBuffer = await file.arrayBuffer();
-        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-        sampleRate = audioBuffer.sampleRate;
-        channels = audioBuffer.numberOfChannels;
-      }
-      catch (error) {
-        console.warn('Cannot get audio metadata:', error);
-      }
-
-      resolve({
-        bitrate: estimateBitrate(file.size, audioElement.duration),
-        channels,
-        duration: audioElement.duration,
-        fileSize: file.size,
-        format: file.type,
-        sampleRate,
-        title: fileName,
-      });
-    };
-
-    audioElement.onerror = () => {
-      resolve({
-        fileSize: file.size,
-        format: file.type,
-        title: fileName,
-      });
-    };
-  });
-}
-
 // 估算比特率（kbps）
 function estimateBitrate(fileSize: number, duration: number): number {
-  if (!duration) {
+  if (!duration || duration <= 0) {
     return 0;
   }
   // 比特率 = 文件大小（比特） / 持续时间（秒）
   return Math.round((fileSize * 8) / (duration * 1000));
 }
 
-export function downloadAudio(src: string, fileName: string = 'audio.mp3') {
-  const link = document.createElement('a');
-  link.href = src;
-  link.download = fileName;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
+  const audioElement = new Audio();
+  const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+  const objectUrl = URL.createObjectURL(file);
+  audioElement.src = objectUrl;
+
+  // 从文件名解析基本信息
+  const fileName = file.name.replace(/\.[^./]+$/, '');
+
+  return new Promise((resolve) => {
+    let metadata: AudioMetadata = {
+      fileSize: file.size,
+      format: file.type,
+      title: fileName,
+    };
+
+    let cleanupFn: (() => void) | undefined;
+
+    const handleError = () => {
+      console.warn('Error loading audio:', audioElement.error);
+      cleanupFn?.();
+      resolve(metadata);
+    };
+
+    const handleLoadedMetadata = async () => {
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+        metadata = {
+          ...metadata,
+          channels: audioBuffer.numberOfChannels,
+          duration: audioBuffer.duration,
+          sampleRate: audioBuffer.sampleRate,
+        };
+
+        // 只在确保有了正确的 duration 后才计算比特率
+        if (metadata.duration && metadata.duration > 0) {
+          metadata.bitrate = estimateBitrate(file.size, metadata.duration);
+        }
+
+        resolve(metadata);
+      }
+      catch (error) {
+        console.warn('Cannot decode audio data:', error);
+        // 使用 audio 元素的基本信息作为后备
+        metadata = {
+          ...metadata,
+          channels: 2, // 默认值
+          duration: audioElement.duration,
+          sampleRate: audioContext.sampleRate,
+        };
+        if (metadata.duration && metadata.duration > 0) {
+          metadata.bitrate = estimateBitrate(file.size, metadata.duration);
+        }
+        resolve(metadata);
+      }
+      finally {
+        cleanupFn?.();
+      }
+    };
+
+    cleanupFn = () => {
+      URL.revokeObjectURL(objectUrl);
+      audioElement.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      audioElement.removeEventListener('error', handleError);
+    };
+
+    audioElement.addEventListener('loadedmetadata', handleLoadedMetadata);
+    audioElement.addEventListener('error', handleError);
+  });
 }
 
 export function formatFileSize(bytes: number): string {

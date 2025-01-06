@@ -11,7 +11,6 @@ export type { WaveformType };
 export type {
   AudioState,
   PlayButtonProps,
-  RootContextValue as PlayerContextValue,
   RootProviderProps as PlayerRootProps,
   ProgressIndicatorProps,
   TimelineProps,
@@ -24,5 +23,7 @@ export {
   usePlayerState,
   usePlayerWaveform,
 } from './components/primitives';
+export type { AudioPlayerContextValue } from './hooks/audio-player-context';
 export { useAudioPlayer } from './hooks/use-audio-player';
 export type { UseAudioPlayerProps } from './hooks/use-audio-player';
+export { useGlobalAudioManager } from './hooks/use-global-audio-manager';

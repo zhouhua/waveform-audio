@@ -1,14 +1,8 @@
 import type { CSSProperties, MouseEvent } from 'react';
 import type { AudioPlayerContextValue } from '../../hooks/audio-player-context';
-import { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { usePlayerContext } from '../../hooks/use-player-context';
 import { cn } from '../../utils/cn';
-import { RootContext } from './root';
-
-// 自定义 hook 用于获取 context
-function usePlayerContext(propsContext?: AudioPlayerContextValue) {
-  const rootContext = useContext(RootContext);
-  return propsContext || rootContext;
-}
 
 export interface ProgressIndicatorProps {
   className?: string;
@@ -34,7 +28,7 @@ export function ProgressIndicator({
   const containerRef = useRef<HTMLDivElement>(null);
   const [displayTime, setDisplayTime] = useState(0);
   const rafRef = useRef<number>(0);
-  const lastTimeRef = useRef<number>(0);
+  const lastTimeRef = useRef<number[]>([0, 0]);
   const dragStartXRef = useRef<number>(0);
   const dragStartTimeRef = useRef<number>(0);
 
@@ -75,19 +69,22 @@ export function ProgressIndicator({
     }
     e.preventDefault();
     const finalTime = calculateProgress(e.clientX);
-    setIsDragging(false);
     context.seek(finalTime);
-
+    setDisplayTime(finalTime);
     context.play();
+    setTimeout(() => {
+      setIsDragging(false);
+    }, 20);
   }, [interactive, isDragging, context, calculateProgress]);
 
   const handleMouseLeave = useCallback(() => {
     if (!interactive || !isDragging || !context) {
       return;
     }
-    setIsDragging(false);
+    setTimeout(() => {
+      setIsDragging(false);
+    }, 20);
     setDisplayTime(context.audioState.currentTime);
-    context.play();
   }, [interactive, isDragging, context]);
 
   // 初始化 displayTime
@@ -104,32 +101,30 @@ export function ProgressIndicator({
     }
 
     const updateProgress = (timestamp: number) => {
-      if (!lastTimeRef.current) {
-        lastTimeRef.current = timestamp;
+      if (isDragging) {
+        return;
+      }
+
+      if (!lastTimeRef.current[1]) {
+        lastTimeRef.current = [context.audioState.currentTime, timestamp];
         setDisplayTime(context.audioState.currentTime);
         rafRef.current = requestAnimationFrame(updateProgress);
         return;
       }
 
-      const deltaTime = timestamp - lastTimeRef.current;
-      // 每一帧移动的时间 = deltaTime(ms) / 1000
-      const frameTime = deltaTime / 1000;
+      if (context.audioState.isPlaying) {
+        const [lastPlayedTime, lastTimestamp] = lastTimeRef.current;
+        const deltaTime = (timestamp - lastTimestamp) / 1000;
+        const newTime = lastPlayedTime + deltaTime;
+        setDisplayTime(newTime);
+        lastTimeRef.current = [newTime, timestamp];
+      }
+      else {
+        // 非播放状态，直接使用当前时间
+        setDisplayTime(context.audioState.currentTime);
+        lastTimeRef.current = [context.audioState.currentTime, timestamp];
+      }
 
-      setDisplayTime((prev) => {
-        const currentTime = context.audioState.currentTime;
-        // 如果实际时间小于显示时间，立即更新
-        if (currentTime < prev) {
-          return currentTime;
-        }
-        // 如果差距太大（超过0.5秒），使用线性插值
-        if (Math.abs(currentTime - prev) > 0.5) {
-          return prev + (currentTime - prev) * 0.1;
-        }
-        // 正常情况下，线性移动
-        return prev + (context.audioState.isPlaying ? frameTime : 0);
-      });
-
-      lastTimeRef.current = timestamp;
       rafRef.current = requestAnimationFrame(updateProgress);
     };
 
@@ -140,7 +135,7 @@ export function ProgressIndicator({
         }
       }
       else {
-        lastTimeRef.current = 0;
+        lastTimeRef.current = [context.audioState.currentTime, 0];
         setDisplayTime(context.audioState.currentTime);
         rafRef.current = requestAnimationFrame(updateProgress);
       }
@@ -154,7 +149,7 @@ export function ProgressIndicator({
       if (rafRef.current) {
         cancelAnimationFrame(rafRef.current);
       }
-      lastTimeRef.current = 0;
+      lastTimeRef.current = [0, 0];
     };
   }, [context, isDragging]);
 

@@ -1,18 +1,13 @@
-import type { ComponentPropsWithoutRef, CSSProperties, HTMLAttributes, MouseEvent, ReactElement, ReactNode } from 'react';
+import type { ComponentPropsWithoutRef, CSSProperties, HTMLAttributes, MouseEvent, ReactElement } from 'react';
 import type { AudioPlayerContextValue } from '../../hooks/audio-player-context';
-import { Children, cloneElement, useContext } from 'react';
+import { Children, cloneElement } from 'react';
+import { usePlayerContext } from '../../hooks/use-player-context';
 import { cn } from '../../utils/cn';
+import { formatTime } from '../../utils/time-format';
 import { Button } from '../ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Slider } from '../ui/slider';
-import { RootContext } from './root';
-
-// 自定义 hook 用于获取 context
-function usePlayerContext(propsContext?: AudioPlayerContextValue) {
-  const rootContext = useContext(RootContext);
-  return propsContext || rootContext;
-}
 
 type TriggerProps = {
   asChild?: boolean;
@@ -90,7 +85,7 @@ export function PlayTrigger({
       {children || (
         <div
           className={cn(
-            'wa-flex wa-items-center wa-justify-center wa-transition-colors',
+            'wa-play-trigger wa-flex wa-items-center wa-justify-center wa-transition-colors',
             'wa-w-8 wa-h-8 wa-rounded-full',
             !isPlaying ? 'wa-bg-blue-500 hover:wa-bg-blue-600' : 'wa-bg-yellow-500 hover:wa-bg-yellow-600',
             className,
@@ -137,7 +132,7 @@ export const StopTrigger = function StopTrigger({
       {children || (
         <div
           className={cn(
-            'wa-flex wa-items-center wa-justify-center wa-transition-colors',
+            'wa-stop-trigger wa-flex wa-items-center wa-justify-center wa-transition-colors',
             'wa-w-8 wa-h-8 wa-rounded-full',
             'wa-bg-gray-500 hover:wa-bg-gray-700',
             'hover:wa-text-red-600 wa-text-gray-100',
@@ -165,7 +160,7 @@ export function CurrentTimeDisplay({
   context?: AudioPlayerContextValue;
 }) {
   const context = usePlayerContext(propsContext);
-  return <div className={className} style={style}>{format(context?.audioState?.currentTime ?? 0)}</div>;
+  return <div className={cn('wa-current-time-display', className)} style={style}>{format(context?.audioState?.currentTime ?? 0)}</div>;
 }
 
 export function DurationDisplay({
@@ -180,42 +175,7 @@ export function DurationDisplay({
   context?: AudioPlayerContextValue;
 }) {
   const context = usePlayerContext(propsContext);
-  return <div className={className} style={style}>{format(context?.audioState?.duration ?? 0)}</div>;
-}
-
-// 控制组件容器
-export function Controls({
-  children,
-  className,
-  context: propsContext,
-  style,
-}: {
-  className?: string;
-  style?: CSSProperties;
-  children?: ReactNode;
-  context?: AudioPlayerContextValue;
-}) {
-  const context = usePlayerContext(propsContext);
-  return (
-    <div className={`wa-flex wa-items-center wa-space-x-4 ${className}`} style={style}>
-      {children || (
-        <>
-          <PlayTrigger context={context} />
-          <StopTrigger context={context} />
-        </>
-      )}
-    </div>
-  );
-}
-
-// 辅助函数：格式化时间
-function formatTime(seconds: number): string {
-  if (Number.isNaN(seconds)) {
-    return '0:00';
-  }
-  const mins = Math.floor(seconds / 60);
-  const secs = Math.floor(seconds % 60);
-  return `${mins}:${secs.toString().padStart(2, '0')}`;
+  return <div className={cn('wa-duration-display', className)} style={style}>{format(context?.audioState?.duration ?? 0)}</div>;
 }
 
 // 音量控制
@@ -256,7 +216,7 @@ export function VolumeControl({
         <Button
           size="sm"
           variant="ghost"
-          className={cn('wa-flex wa-items-center !wa-p-1 wa-text-[var(--wa-text-secondary-color)]', className)}
+          className={cn('wa-volume-control wa-flex wa-items-center !wa-p-1 wa-text-[var(--wa-text-secondary-color)]', className)}
           style={style}
         >
           <span className="wa-w-4 wa-h-4">{context?.audioState?.volume === 0 ? muteIcon : volumeIcon}</span>
@@ -306,7 +266,7 @@ export function PlaybackRateControl({
         style={style}
         asChild
       >
-        <Button variant="ghost" size="sm" className="wa-flex wa-items-center !wa-p-1 !wa-ring-0 !wa-outline-none wa-text-[var(--wa-text-secondary-color)]">
+        <Button variant="ghost" size="sm" className="wa-playback-rate-control wa-flex wa-items-center !wa-p-1 !wa-ring-0 !wa-outline-none wa-text-[var(--wa-text-secondary-color)]">
           <span className="wa-w-4 wa-h-4">{speedIcon}</span>
           <span className="wa-text-xs wa-font-mono">
             {context?.audioState?.playbackRate ?? 1}
@@ -338,11 +298,13 @@ export function DownloadTrigger({
   children,
   className,
   context: propsContext,
+  fileName = 'audio',
   style,
   ...props
 }: {
   className?: string;
   style?: CSSProperties;
+  fileName?: string;
   context?: AudioPlayerContextValue;
 } & TriggerProps) {
   const context = usePlayerContext(propsContext);
@@ -352,7 +314,7 @@ export function DownloadTrigger({
     if (context?.src) {
       const a = document.createElement('a');
       a.href = context.src;
-      a.download = 'audio';
+      a.download = fileName;
       a.click();
     }
   };
@@ -374,7 +336,7 @@ export function DownloadTrigger({
   );
 
   return (
-    <Button variant="ghost" size="sm" onClick={handleClick} className={cn('wa-flex wa-items-center !wa-p-1 wa-text-[var(--wa-text-secondary-color)]', className)} style={style} {...props}>
+    <Button variant="ghost" size="sm" onClick={handleClick} className={cn('wa-download-trigger wa-flex wa-items-center !wa-p-1 wa-text-[var(--wa-text-secondary-color)]', className)} style={style} {...props}>
       {children || <div className="wa-w-4 wa-h-4">{downloadIcon}</div>}
     </Button>
   );

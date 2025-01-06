@@ -1,14 +1,10 @@
 import type { AudioPlayerContextValue } from '../../hooks/audio-player-context';
 import type { WaveformType } from './waveform-renderers';
-import { useContext, useEffect, useRef } from 'react';
-import { RootContext } from './root';
+import { useEffect, useRef } from 'react';
+import { usePlayerContext } from '../../hooks/use-player-context';
+import { cn } from '../../utils/cn';
 import { renderers } from './waveform-renderers';
 
-// 自定义 hook 用于获取 context
-function usePlayerContext(propsContext?: AudioPlayerContextValue) {
-  const rootContext = useContext(RootContext);
-  return propsContext || rootContext;
-}
 export interface WaveformProps {
   height?: number;
   className?: string;
@@ -139,13 +135,14 @@ export function Waveform({
     const progress = x / rect.width;
     const time = progress * duration;
     seek(time);
+    context?.play();
   };
 
   return (
-    <div className="wa-relative wa-w-full" style={style}>
+    <div className={cn('wa-waveform wa-relative wa-w-full', className)} style={style}>
       <canvas
         ref={canvasRef}
-        className={`wa-w-full wa-cursor-pointer wa-h-[100px] ${className}`}
+        className="wa-waveform-canvas wa-w-full wa-cursor-pointer wa-h-full"
         style={{
           ...(color ? { '--waveform-color': color } : {}),
           ...(progressColor ? { '--waveform-progress-color': progressColor } : {}),

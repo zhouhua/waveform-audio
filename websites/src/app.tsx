@@ -10,24 +10,21 @@ import '@zhouhua-dev/waveform-player-react/index.css';
 import { cn } from './lib/utils';
 import { I18nextProvider } from 'react-i18next';
 import i18n from './i18n';
+import { GlobalControl } from './components/global-control';
 
 function Layout({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation();
 
   return (
-    <div className='bg-fixed' style={{
-      backgroundImage: 'linear-gradient(120deg, #e0c3fc, #8ec5fc)',
-      width: 'fit-content',
-    }}>
-      <div className="min-h-screen w-[720px] mx-auto flex flex-col">
-        <Header />
+    <div className="min-h-screen w-[720px] mx-auto flex flex-col">
+      <Header />
 
-        <main className={cn('flex-1', pathname === '/' ? 'flex flex-col items-center justify-center' : '')}>
-          {children}
-        </main>
+      <main className={cn('flex-1', pathname === '/' ? 'flex flex-col items-center justify-center' : '')}>
+        {children}
+      </main>
 
-        <Footer />
-      </div>
+      <Footer />
+      <GlobalControl />
     </div>
   );
 }

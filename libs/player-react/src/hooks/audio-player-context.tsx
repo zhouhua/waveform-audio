@@ -19,6 +19,8 @@ export interface AudioPlayerContextValue {
   setWaveformData: (data: { peaks: number[] }) => void;
   samplePoints: number;
   setSamplePoints: (points: number) => void;
+  isReady: boolean;
+  updateInstance?: (updates: Partial<AudioPlayerContextValue>) => void;
 }
 
 export const AudioPlayerContext = createContext<AudioPlayerContextValue | null>(null);

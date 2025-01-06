@@ -1,6 +1,7 @@
 import type { CSSProperties, FC } from 'react';
-import type { RootContextValue } from './primitives';
+import type { AudioPlayerContextValue } from '../hooks/audio-player-context';
 import type { WaveformType } from './primitives/waveform-renderers';
+import { useMemo } from 'react';
 // import { Loader2 } from 'lucide-react';
 // import { useEffect, useState } from 'react';
 import { cn } from '../utils/cn';
@@ -18,9 +19,9 @@ import {
   VolumeControl,
   Waveform,
 } from './primitives';
+import { RootContext } from './primitives/root';
 
-export interface PlayerProps {
-  src: string;
+export type PlayerProps = {
   className?: string;
   style?: CSSProperties;
   classes?: {
@@ -67,10 +68,6 @@ export interface PlayerProps {
     step?: number;
   };
   playbackRateOptions?: number[];
-  onPlay?: (ctx: RootContextValue) => void;
-  onPause?: (ctx: RootContextValue) => void;
-  onTimeUpdate?: (ctx: RootContextValue) => void;
-  onEnded?: (ctx: RootContextValue) => void;
   type?: WaveformType;
   samplePoints?: number;
   progressIndicatorColor?: string;
@@ -89,11 +86,28 @@ export interface PlayerProps {
   showProgressIndicator?: boolean;
   title?: string;
   renderLoading?: () => React.ReactNode;
-}
+  mutualExclusive?: boolean;
+} & ({
+  context: AudioPlayerContextValue;
+  src?: never;
+  onPlay?: never;
+  onPause?: never;
+  onTimeUpdate?: never;
+  onEnded?: never;
+} | {
+  src: string;
+  context?: never;
+  onPlay?: (ctx: AudioPlayerContextValue) => void;
+  onPause?: (ctx: AudioPlayerContextValue) => void;
+  onTimeUpdate?: (ctx: AudioPlayerContextValue) => void;
+  onEnded?: (ctx: AudioPlayerContextValue) => void;
+});
 
 const Player: FC<PlayerProps> = ({
   classes = {},
   className = '',
+  context,
+  mutualExclusive = false,
   onEnded,
   onPause,
   onPlay,
@@ -122,55 +136,24 @@ const Player: FC<PlayerProps> = ({
   type = 'mirror',
   volumeControlOptions = {},
 }) => {
-  const fileName = src?.split('/').pop();
-
-  // if (!isReady) {
-  //   if (renderLoading) {
-  //     return renderLoading();
-  //   }
-  //   return (
-  //     <div
-  //       className={cn(
-  //         'wa-player wa-flex wa-flex-col wa-border wa-rounded-lg wa-backdrop-blur wa-overflow-hidden wa-items-center wa-justify-center',
-  //         className,
-  //         classes.root,
-  //         classes.loading,
-  //       )}
-  //       style={{ ...style, ...styles.root, ...styles.loading }}
-  //     >
-  //       <Loader2 className="wa-w-4 wa-h-4 wa-animate-spin" />
-  //     </div>
-  //   );
-  // }
-
-  return (
-    <PlayerRoot
-      src={src}
-      className={cn(
-        'wa-player wa-flex wa-flex-col wa-border wa-rounded-lg wa-backdrop-blur wa-overflow-hidden',
-        className,
-        classes.root,
-      )}
-      style={{ ...style, ...styles.root }}
-      onPlay={onPlay}
-      onPause={onPause}
-      onTimeUpdate={onTimeUpdate}
-      onEnded={onEnded}
-      samplePoints={samplePoints}
-    >
-      {showHeader && (
-        <div className={cn('wa-flex wa-justify-between wa-pt-4 wa-px-4', classes.header)} style={styles.header}>
-          <h3 className={cn('wa-text-lg wa-font-medium wa-text-[var(--wa-text-color)] wa-truncate', classes.title)} style={styles.title}>
-            {showTitle ? (title || fileName) : ''}
-          </h3>
-          {showMetadata && (
-            <Metadata
-              className={cn('wa-flex wa-items-center wa-gap-4 wa-font-mono', classes.metadata)}
-              style={styles.metadata}
-            />
-          )}
-        </div>
-      )}
+  const fileName = (src || context?.src)?.split('/').pop();
+  const InnerPlayer = useMemo(() => (
+    <>
+      {
+        showHeader && (
+          <div className={cn('wa-flex wa-justify-between wa-pt-4 wa-px-4', classes.header)} style={styles.header}>
+            <h3 className={cn('wa-text-lg wa-font-medium wa-text-[var(--wa-text-color)] wa-truncate', classes.title)} style={styles.title}>
+              {showTitle ? (title || fileName) : ''}
+            </h3>
+            {showMetadata && (
+              <Metadata
+                className={cn('wa-flex wa-items-center wa-gap-4 wa-font-mono', classes.metadata)}
+                style={styles.metadata}
+              />
+            )}
+          </div>
+        )
+      }
       <div className="wa-flex wa-h-full">
         {showControls && (
           <div className={cn('wa-p-4 wa-flex wa-flex-col wa-justify-center wa-w-48 wa-shrink-0 wa-items-start', classes.controls)} style={styles.controls}>
@@ -225,10 +208,10 @@ const Player: FC<PlayerProps> = ({
               <Timeline color="#9ca3af" />
             </div>
           )}
-          <div className="wa-relative wa-w-full wa-h-full">
+          <div className="wa-relative wa-w-full wa-h-[140px]">
             {showWaveform && (
               <Waveform
-                className={cn('wa-w-full wa-h-[140px]', classes.waveform)}
+                className={cn('wa-w-full wa-h-full', classes.waveform)}
                 style={styles.waveform}
                 type={type}
                 barWidth={3}
@@ -248,6 +231,94 @@ const Player: FC<PlayerProps> = ({
           </div>
         </div>
       </div>
+    </>
+  ), [
+    classes.controls,
+    classes.downloadButton,
+    classes.header,
+    classes.metadata,
+    classes.playButton,
+    classes.playbackRateControl,
+    classes.progressIndicator,
+    classes.right,
+    classes.stopButton,
+    classes.timeDisplay,
+    classes.timeline,
+    classes.title,
+    classes.volumeControl,
+    classes.waveform,
+    fileName,
+    playbackRateOptions,
+    progressIndicatorColor,
+    samplePoints,
+    showControls,
+    showDownloadButton,
+    showHeader,
+    showMetadata,
+    showPlayButton,
+    showPlaybackRateControl,
+    showProgressIndicator,
+    showStopButton,
+    showTimeDisplay,
+    showTimeline,
+    showTitle,
+    showVolumeControl,
+    showWaveform,
+    styles.controls,
+    styles.downloadButton,
+    styles.header,
+    styles.metadata,
+    styles.playButton,
+    styles.playbackRateControl,
+    styles.progressIndicator,
+    styles.right,
+    styles.stopButton,
+    styles.timeDisplay,
+    styles.timeline,
+    styles.title,
+    styles.volumeControl,
+    styles.waveform,
+    title,
+    type,
+    volumeControlOptions.max,
+    volumeControlOptions.min,
+    volumeControlOptions.step,
+  ]);
+
+  if (context) {
+    return (
+      <RootContext.Provider value={context}>
+        <div
+          className={cn(
+            'wa-player wa-root wa-flex wa-flex-col wa-border wa-border-gray-700 wa-rounded-lg wa-bg-gray-900/50 wa-backdrop-blur wa-overflow-hidden',
+            className,
+            classes.root,
+          )}
+          style={{ ...style, ...styles.root }}
+        >
+          {InnerPlayer}
+        </div>
+      </RootContext.Provider>
+    );
+  }
+
+  return (
+    <PlayerRoot
+      src={src}
+      className={cn(
+        'wa-player wa-flex wa-flex-col wa-border wa-border-gray-700 wa-rounded-lg wa-bg-gray-900/50 wa-backdrop-blur wa-overflow-hidden',
+        className,
+        classes.root,
+      )}
+      style={{ ...style, ...styles.root }}
+      onPlay={onPlay}
+      onPause={onPause}
+      onTimeUpdate={onTimeUpdate}
+      onEnded={onEnded}
+      samplePoints={samplePoints}
+      mutualExclusive={mutualExclusive}
+    >
+      {InnerPlayer}
     </PlayerRoot>
   );
 };

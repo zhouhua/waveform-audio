@@ -37,8 +37,6 @@ export default function HomePage() {
         <div className="mb-16">
           <Player
             src={demoMusic}
-            onPlay={() => console.log('播放')}
-            onPause={() => console.log('暂停')}
             samplePoints={500}
           />
         </div>

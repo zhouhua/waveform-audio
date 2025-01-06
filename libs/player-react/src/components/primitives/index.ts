@@ -45,10 +45,6 @@ export {
 // 导出类型
 export type { PlayButtonProps, StopButtonProps, VolumeControlProps } from './controls';
 export type { ProgressIndicatorProps } from './progress-indicator';
-export type {
-  AudioState,
-  RootContextValue,
-  RootProviderProps,
-} from './root';
+export type { AudioState, RootProviderProps } from './root';
 export type { TimelineProps } from './timeline';
 export type { WaveformProps } from './waveform';

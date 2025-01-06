@@ -1,9 +1,12 @@
 import type React from 'react';
 import type { AudioMetadata } from '../utils/audio-metadata';
 import type { AudioPlayerContextValue } from './audio-player-context';
+import { nanoid } from 'nanoid';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { analyzeAudio } from '../utils/audio-analyzer';
 import { extractAudioMetadata } from '../utils/audio-metadata';
+import { useGlobalAudioManager } from './use-global-audio-manager';
+import { useRegisterAudioInstance } from './use-register-audio';
 
 export interface AudioState {
   currentTime: number;
@@ -21,9 +24,11 @@ export interface UseAudioPlayerProps {
   onPause?: (context: AudioPlayerContextValue) => void;
   onTimeUpdate?: (context: AudioPlayerContextValue) => void;
   onEnded?: (context: AudioPlayerContextValue) => void;
+  mutualExclusive?: boolean; // 是否启用互斥播放
 }
 
 export function useAudioPlayer({
+  mutualExclusive = false,
   onEnded,
   onPause,
   onPlay,
@@ -43,26 +48,19 @@ export function useAudioPlayer({
   const [waveformData, setWaveformData] = useState<{ peaks: number[] }>();
   const [currentSamplePoints, setCurrentSamplePoints] = useState(samplePoints);
   const [metadata, setMetadata] = useState<AudioMetadata>();
-
-  // 初始化音频元素
-  useEffect(() => {
-    if (!audioRef.current && src) {
-      const audio = document.createElement('audio');
-      audio.src = src;
-      audioRef.current = audio;
-      audio.volume = audioState.volume;
-      audio.playbackRate = audioState.playbackRate;
-    }
-    else if (audioRef.current && src && audioRef.current.src !== src) {
-      audioRef.current.src = src;
-    }
-  }, [src, audioState.volume, audioState.playbackRate]);
+  const [isReady, setIsReady] = useState(false);
+  const { stopOthers } = useGlobalAudioManager();
+  // eslint-disable-next-line react-hooks-extra/no-unnecessary-use-memo
+  const id = useMemo(() => `audio-${nanoid()}`, []);
 
   const play = useCallback(() => {
     if (audioRef.current) {
+      if (mutualExclusive) {
+        stopOthers(id);
+      }
       void audioRef.current.play();
     }
-  }, []);
+  }, [mutualExclusive, stopOthers, id]);
 
   const pause = useCallback(() => {
     if (audioRef.current) {
@@ -110,6 +108,7 @@ export function useAudioPlayer({
   const contextValue = useMemo<AudioPlayerContextValue>(() => ({
     audioRef,
     audioState,
+    isReady,
     metadata,
     pause,
     play,
@@ -125,6 +124,7 @@ export function useAudioPlayer({
   }), [
     audioRef,
     audioState,
+    isReady,
     metadata,
     currentSamplePoints,
     pause,
@@ -138,6 +138,40 @@ export function useAudioPlayer({
     stop,
     waveformData,
   ]);
+
+  // 注册到全局音频管理器
+  const updateInstance = useRegisterAudioInstance(id, contextValue);
+
+  // 在状态更新时同步到全局管理器
+  useEffect(() => {
+    updateInstance({
+      audioState,
+      isReady,
+      metadata,
+      waveformData,
+    });
+  }, [updateInstance, audioState, isReady, metadata, waveformData]);
+
+  // 初始化音频元素
+  useEffect(() => {
+    if (!audioRef.current && src) {
+      const audio = document.createElement('audio');
+      audio.src = src;
+      audioRef.current = audio;
+      audio.volume = audioState.volume;
+      audio.playbackRate = audioState.playbackRate;
+    }
+    else if (audioRef.current && src && audioRef.current.src !== src) {
+      audioRef.current.src = src;
+    }
+
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+    };
+  }, [src, audioState.volume, audioState.playbackRate]);
 
   // 音频分析
   useEffect(() => {
@@ -153,6 +187,7 @@ export function useAudioPlayer({
         if (mounted) {
           setWaveformData(data);
           setAudioState(prev => ({ ...prev, isPlaying: false, isStoped: true }));
+          setIsReady(true);
         }
       }
       catch (error) {

@@ -1,14 +1,8 @@
 import type { CSSProperties } from 'react';
 import type { AudioPlayerContextValue } from '../../hooks/audio-player-context';
-import { useCallback, useContext, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
+import { usePlayerContext } from '../../hooks/use-player-context';
 import { cn } from '../../utils/cn';
-import { RootContext } from './root';
-
-// 自定义 hook 用于获取 context
-function usePlayerContext(propsContext?: AudioPlayerContextValue) {
-  const rootContext = useContext(RootContext);
-  return propsContext || rootContext;
-}
 
 // 计算合适的刻度间隔
 function calculateTickIntervals(width: number, duration: number) {
@@ -147,7 +141,7 @@ export function Timeline({
   return (
     <canvas
       ref={canvasRef}
-      className={cn('wa-w-full wa-cursor-pointer wa-h-6', className)}
+      className={cn('wa-timeline wa-w-full wa-cursor-pointer wa-h-6', className)}
       style={{
         ...(color ? { '--timeline-color': color } as React.CSSProperties : {}),
         ...style,

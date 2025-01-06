@@ -54,7 +54,7 @@ export function FeatureCard({
               lineHeight: '1.5',
             }}
           >
-            {code}
+            {code.trim()}
           </SyntaxHighlighter>
         </div>
         <div className="p-4 rounded-lg bg-white shadow-sm">

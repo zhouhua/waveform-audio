@@ -1,9 +1,13 @@
+import type { AudioPlayerContextValue } from '../../hooks/audio-player-context';
 import type { AudioMetadata } from '../../utils/audio-metadata';
 import type { PlayTrigger } from './controls';
 import type { ProgressIndicator } from './progress-indicator';
 import type { Timeline } from './timeline';
 import type { Waveform } from './waveform';
+import { nanoid } from 'nanoid';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useGlobalAudioManager } from '../../hooks/use-global-audio-manager';
+import { useRegisterAudioInstance } from '../../hooks/use-register-audio';
 import { analyzeAudio } from '../../utils/audio-analyzer';
 import { extractAudioMetadata } from '../../utils/audio-metadata';
 import { cn } from '../../utils/cn';
@@ -17,26 +21,7 @@ export interface AudioState {
   isStoped: boolean;
 }
 
-export interface RootContextValue {
-  audioState: AudioState;
-  audioRef: React.RefObject<HTMLAudioElement>;
-  waveformData?: {
-    peaks: number[];
-  };
-  metadata?: AudioMetadata;
-  src: string;
-  play: () => void;
-  pause: () => void;
-  stop: () => void;
-  seek: (time: number) => void;
-  setVolume: (volume: number) => void;
-  setPlaybackRate: (rate: number) => void;
-  setWaveformData: (data: { peaks: number[] }) => void;
-  samplePoints: number;
-  setSamplePoints: (points: number) => void;
-}
-
-export const RootContext = createContext<RootContextValue | undefined>(undefined);
+export const RootContext = createContext<AudioPlayerContextValue | undefined>(undefined);
 
 export interface RootProviderProps {
   children: React.ReactNode;
@@ -44,10 +29,11 @@ export interface RootProviderProps {
   samplePoints?: number;
   className?: string;
   style?: React.CSSProperties;
-  onPlay?: (context: RootContextValue) => void;
-  onPause?: (context: RootContextValue) => void;
-  onTimeUpdate?: (context: RootContextValue) => void;
-  onEnded?: (context: RootContextValue) => void;
+  onPlay?: (context: AudioPlayerContextValue) => void;
+  onPause?: (context: AudioPlayerContextValue) => void;
+  onTimeUpdate?: (context: AudioPlayerContextValue) => void;
+  onEnded?: (context: AudioPlayerContextValue) => void;
+  mutualExclusive?: boolean;
 }
 
 export interface RootComponent extends React.FC<RootProviderProps> {
@@ -101,6 +87,7 @@ export function usePlayer() {
 export function RootProvider({
   children,
   className,
+  mutualExclusive = false,
   onEnded,
   onPause,
   onPlay,
@@ -109,7 +96,7 @@ export function RootProvider({
   src,
   style,
 }: RootProviderProps) {
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null) as React.RefObject<HTMLAudioElement>;
   const [audioState, setAudioState] = useState<AudioState>({
     currentTime: 0,
     duration: 0,
@@ -119,16 +106,22 @@ export function RootProvider({
     volume: 1,
   });
   const [waveformData, setWaveformData] = useState<{ peaks: number[] }>();
-  const isInitializedRef = useRef(false);
-  const contextValueRef = useRef<RootContextValue>(null);
   const [currentSamplePoints, setCurrentSamplePoints] = useState(samplePoints);
   const [metadata, setMetadata] = useState<AudioMetadata>();
+  const [isReady, setIsReady] = useState(false);
+  const { stopOthers } = useGlobalAudioManager();
+  // eslint-disable-next-line react-hooks-extra/no-unnecessary-use-memo
+  const instanceId = useMemo(() => `audio-${nanoid()}`, []);
+  const contextValueRef = useRef<AudioPlayerContextValue | null>(null);
 
   const play = useCallback(() => {
     if (audioRef.current) {
-      audioRef.current.play();
+      if (mutualExclusive) {
+        stopOthers(instanceId);
+      }
+      void audioRef.current.play();
     }
-  }, []);
+  }, [mutualExclusive, stopOthers, instanceId]);
 
   const pause = useCallback(() => {
     if (audioRef.current) {
@@ -165,50 +158,20 @@ export function RootProvider({
     }
   }, []);
 
-  const setWaveformDataCallback = useCallback((data: { peaks: number[] }) => {
-    setWaveformData(data);
-  }, []);
-
-  const setSamplePointsCallback = useCallback((points: number) => {
-    setCurrentSamplePoints(points);
-  }, []);
-
-  const contextValue = useMemo(() => ({
-    audioRef: audioRef as React.RefObject<HTMLAudioElement>,
-    audioState,
-    metadata,
-    pause,
-    play,
-    samplePoints: currentSamplePoints,
-    seek,
-    setPlaybackRate,
-    setSamplePoints: setSamplePointsCallback,
-    setVolume,
-    setWaveformData: setWaveformDataCallback,
-    src: src || '',
-    stop,
-    waveformData,
-  }), [
-    audioState,
-    metadata,
-    currentSamplePoints,
-    pause,
-    play,
-    seek,
-    setPlaybackRate,
-    setSamplePointsCallback,
-    setVolume,
-    setWaveformDataCallback,
-    src,
-    stop,
-    waveformData,
-  ]);
-
-  // 更新 contextValueRef
+  // 初始化音频元素
   useEffect(() => {
-    contextValueRef.current = contextValue;
-  }, [contextValue]);
+    if (!audioRef.current && src) {
+      const audio = new Audio(src);
+      audioRef.current = audio;
+      audio.volume = audioState.volume;
+      audio.playbackRate = audioState.playbackRate;
+    }
+    else if (audioRef.current && src && audioRef.current.src !== src) {
+      audioRef.current.src = src;
+    }
+  }, [src, audioState.volume, audioState.playbackRate]);
 
+  // 音频事件监听
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) {
@@ -224,32 +187,31 @@ export function RootProvider({
         playbackRate: audio.playbackRate,
         volume: audio.volume,
       }));
-      onTimeUpdate?.(contextValueRef.current!);
+      if (contextValueRef.current) {
+        onTimeUpdate?.(contextValueRef.current);
+      }
     };
 
     const handlePlay = () => {
-      if (!contextValueRef.current) {
-        return;
-      }
       setAudioState(prev => ({ ...prev, isPlaying: true, isStoped: false }));
-      onPlay?.(contextValueRef.current);
+      if (contextValueRef.current) {
+        onPlay?.(contextValueRef.current);
+      }
     };
 
     const handlePause = () => {
-      if (!contextValueRef.current) {
-        return;
-      }
       setAudioState(prev => ({ ...prev, isPlaying: false, isStoped: false }));
-      onPause?.(contextValueRef.current);
+      if (contextValueRef.current) {
+        onPause?.(contextValueRef.current);
+      }
     };
 
     const handleEnded = () => {
-      if (!contextValueRef.current) {
-        return;
-      }
       setAudioState(prev => ({ ...prev, isPlaying: false, isStoped: true }));
       audio.currentTime = 0;
-      onEnded?.(contextValueRef.current);
+      if (contextValueRef.current) {
+        onEnded?.(contextValueRef.current);
+      }
     };
 
     audio.addEventListener('timeupdate', updateState);
@@ -257,6 +219,7 @@ export function RootProvider({
     audio.addEventListener('play', handlePlay);
     audio.addEventListener('pause', handlePause);
     audio.addEventListener('ended', handleEnded);
+
     return () => {
       audio.removeEventListener('timeupdate', updateState);
       audio.removeEventListener('loadedmetadata', updateState);
@@ -266,21 +229,7 @@ export function RootProvider({
     };
   }, [onPlay, onPause, onTimeUpdate, onEnded]);
 
-  // 初始化音频元素
-  useEffect(() => {
-    if (!audioRef.current && src) {
-      const audio = new Audio(src);
-      audioRef.current = audio;
-      audio.volume = audioState.volume;
-      audio.playbackRate = audioState.playbackRate;
-      isInitializedRef.current = true;
-    }
-    else if (audioRef.current && src && audioRef.current.src !== src) {
-      audioRef.current.src = src;
-    }
-  }, [src, audioState.volume, audioState.playbackRate]);
-
-  // 添加音频分析逻辑
+  // 音频分析
   useEffect(() => {
     let mounted = true;
 
@@ -294,6 +243,7 @@ export function RootProvider({
         if (mounted) {
           setWaveformData(data);
           setAudioState(prev => ({ ...prev, isPlaying: false, isStoped: true }));
+          setIsReady(true);
         }
       }
       catch (error) {
@@ -308,7 +258,7 @@ export function RootProvider({
     };
   }, [src, currentSamplePoints]);
 
-  // 添加元数据加载逻辑
+  // 元数据加载
   useEffect(() => {
     let mounted = true;
 
@@ -338,12 +288,52 @@ export function RootProvider({
     };
   }, [src]);
 
+  const contextValue = useMemo<AudioPlayerContextValue>(() => ({
+    audioRef,
+    audioState,
+    isReady,
+    metadata,
+    pause,
+    play,
+    samplePoints: currentSamplePoints,
+    seek,
+    setPlaybackRate,
+    setSamplePoints: setCurrentSamplePoints,
+    setVolume,
+    setWaveformData,
+    src: src || '',
+    stop,
+    waveformData,
+  }), [
+    audioRef,
+    audioState,
+    isReady,
+    metadata,
+    currentSamplePoints,
+    pause,
+    play,
+    seek,
+    setPlaybackRate,
+    setVolume,
+    src,
+    stop,
+    waveformData,
+  ]);
+
+  // 更新 contextValueRef
+  useEffect(() => {
+    contextValueRef.current = contextValue;
+  }, [contextValue]);
+
+  // 注册到全局音频管理器
+  useRegisterAudioInstance(instanceId, contextValue);
+
   return (
-    <RootContext value={contextValue}>
-      <div className={cn('wa-player wa-flex wa-border-2 wa-border-gray-700 wa-rounded-xl wa-bg-gray-900/50 wa-backdrop-blur wa-overflow-hidden', className)} style={style}>
+    <RootContext.Provider value={contextValue}>
+      <div className={cn('wa-root', className)} style={style}>
         {children}
         {src && <audio ref={audioRef} src={src} />}
       </div>
-    </RootContext>
+    </RootContext.Provider>
   );
 }

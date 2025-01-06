@@ -19,13 +19,13 @@
         "title": "Multiple preset waveforms",
         "description": "Support multiple waveform rendering modes: bar graph, mirror, line, wave, and envelope, to meet different scene needs"
       },
+      "theme": {
+        "title": "Theme system",
+        "description": "Built-in light and dark themes, support custom theme variables, easily customize the appearance"
+      },
       "customization": {
         "title": "Highly customizable",
         "description": "Support custom styles, themes, layouts, and behaviors, easily adapting to different design needs"
-      },
-      "theme": {
-        "title": "Theme system",
-        "description": "Built-in light and dark themes, support custom theme variables, easily implementing brand customization"
       },
       "primitives": {
         "title": "Primitive API",
@@ -42,6 +42,24 @@
       "metadata": {
         "title": "Metadata support",
         "description": "Automatically extract and display audio file metadata, including duration, bit rate, sample rate, etc."
+      }
+    },
+    "home": {
+      "darkMode": "Dark Mode",
+      "waveform": "Waveform: {{type}}",
+      "uploadAudio": "Upload Audio",
+      "uploadDisclaimer": "Uploaded audio is only used for demonstration and will not be saved to the server or used for other purposes",
+      "installation": {
+        "title": "Installation",
+        "description": "Install using your favorite package manager"
+      },
+      "codeExample": {
+        "title": "Code Example",
+        "description": "Implement a powerful audio player with just a few lines of code"
+      },
+      "highlights": {
+        "title": "Highlights",
+        "description": "A powerful and flexible audio player solution"
       }
     }
   },
@@ -146,6 +164,12 @@
         "isLoading": "Whether waveform data is loading",
         "error": "Error information during loading"
       }
+    }
+  },
+  "globalControl": {
+    "tooltip": {
+      "clickToStop": "Click to stop all audio",
+      "status": "There are {{count}} players, {{playing}} of them are playing"
     }
   }
 }
