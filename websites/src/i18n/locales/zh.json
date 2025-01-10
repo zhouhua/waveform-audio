@@ -25,11 +25,11 @@
       },
       "customization": {
         "title": "高度可定制",
-        "description": "支持自定义样式、主题、布局和行为，轻松适配不同的设计需求"
+        "description": "支持自定义样式、主题、布局和行为，甚至完全自定义成你想要的样子，轻松适配不同的设计需求"
       },
       "primitives": {
-        "title": "Primitive API",
-        "description": "提供底层原子化组件，支持完全自定义播放器界面和行为"
+        "title": "Primitive 组件",
+        "description": "提供底层原子化组件，可以以最小的成本定制播放器的功能和外观"
       },
       "typescript": {
         "title": "TypeScript 支持",

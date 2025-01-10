@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef, CSSProperties, HTMLAttributes, MouseEvent, ReactElement } from 'react';
 import type { AudioPlayerContextValue } from '../../hooks/audio-player-context';
-import { Children, cloneElement } from 'react';
+import { Children, cloneElement, memo, useCallback } from 'react';
 import { usePlayerContext } from '../../hooks/use-player-context';
 import { cn } from '../../utils/cn';
 import { formatTime } from '../../utils/time-format';
@@ -179,7 +179,7 @@ export function DurationDisplay({
 }
 
 // 音量控制
-export function VolumeControl({
+export const VolumeControl = memo(({
   className,
   context: propsContext,
   max = 1,
@@ -193,9 +193,13 @@ export function VolumeControl({
   max?: number;
   step?: number;
   context?: AudioPlayerContextValue;
-}) {
+}) => {
   const context = usePlayerContext(propsContext);
   const volume = ((context?.audioState?.volume ?? 1) * 100).toFixed(0);
+
+  const handleVolumeChange = useCallback((values: number[]) => {
+    context?.setVolume(Number(values[0]));
+  }, [context]);
 
   const volumeIcon = (
     <svg xmlns="http://www.w3.org/2000/svg" className="wa-w-4 wa-h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -230,12 +234,14 @@ export function VolumeControl({
           step={step}
           value={[context?.audioState?.volume ?? 1]}
           className="wa-w-full wa-h-2"
-          onValueChange={e => context?.setVolume(Number(e[0]))}
+          onValueChange={handleVolumeChange}
         />
       </PopoverContent>
     </Popover>
   );
-}
+});
+
+VolumeControl.displayName = 'VolumeControl';
 
 // 播放速度控制
 export function PlaybackRateControl({
@@ -250,6 +256,13 @@ export function PlaybackRateControl({
   context?: AudioPlayerContextValue;
 }) {
   const context = usePlayerContext(propsContext);
+
+  const handleRateChange = (rate: number) => {
+    if (context?.audioRef.current) {
+      context.audioRef.current.playbackRate = rate;
+      context.setPlaybackRate(rate);
+    }
+  };
 
   const speedIcon = (
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -279,7 +292,7 @@ export function PlaybackRateControl({
           {options.map(rate => (
             <DropdownMenuItem
               key={rate}
-              onClick={() => context?.setPlaybackRate(rate)}
+              onClick={() => handleRateChange(rate)}
               className="wa-justify-end"
             >
               {rate}

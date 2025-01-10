@@ -40,7 +40,7 @@ export default function HomePage() {
                 'hover:border-gray-400'
               )}
             >
-              <Play className="w-6 h-6 fill-black/80" />
+              <Play className="w-5 h-5 fill-black/80" />
             </Link>
           </div>
           <div className="flex items-center justify-end px-4 mx-4 bg-white/40 backdrop-blur-lg h-8 border relative z-[1] -top-px rounded-b-lg shadow-md gap-4">

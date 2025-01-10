@@ -25,11 +25,11 @@
       },
       "customization": {
         "title": "Highly customizable",
-        "description": "Support custom styles, themes, layouts, and behaviors, easily adapting to different design needs"
+        "description": "Support custom styles, themes, layouts, and behaviors, even fully customizing it to your liking, easily adapting to different design needs"
       },
       "primitives": {
         "title": "Primitive API",
-        "description": "Provide low-level atomic components, supporting fully customizable player interfaces and behaviors"
+        "description": "Provide low-level atomic components. You can customize the player's functionality and appearance with minimal effort"
       },
       "typescript": {
         "title": "TypeScript support",

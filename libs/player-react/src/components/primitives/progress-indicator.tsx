@@ -115,7 +115,7 @@ export function ProgressIndicator({
       if (context.audioState.isPlaying) {
         const [lastPlayedTime, lastTimestamp] = lastTimeRef.current;
         const deltaTime = (timestamp - lastTimestamp) / 1000;
-        const newTime = lastPlayedTime + deltaTime;
+        const newTime = lastPlayedTime + (deltaTime * context.audioState.playbackRate);
         setDisplayTime(newTime);
         lastTimeRef.current = [newTime, timestamp];
       }

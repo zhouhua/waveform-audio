@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react';
 import type { AudioPlayerContextValue } from '../../hooks/audio-player-context';
-import { useCallback, useEffect, useRef } from 'react';
+import { memo, useCallback, useEffect, useRef } from 'react';
 import { usePlayerContext } from '../../hooks/use-player-context';
 import { cn } from '../../utils/cn';
 
@@ -52,19 +52,17 @@ export interface TimelineProps {
   height?: number;
   context?: AudioPlayerContextValue;
 }
-export function Timeline({
+
+export const Timeline = memo(({
   className = '',
   color,
   context: propsContext,
   style,
-}: TimelineProps) {
+}: TimelineProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const context = usePlayerContext(propsContext);
   const observerRef = useRef<null | ResizeObserver>(null);
-
-  const currentTime = context?.audioState?.currentTime ?? 0;
   const duration = context?.audioState?.duration ?? 0;
-  const seek = context?.seek;
 
   const drawTimeline = useCallback(() => {
     const canvas = canvasRef.current;
@@ -121,23 +119,6 @@ export function Timeline({
     };
   }, [drawTimeline]);
 
-  useEffect(() => {
-    drawTimeline();
-  }, [currentTime, duration, drawTimeline]);
-
-  const handleSeek = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    const canvas = canvasRef.current;
-    if (!canvas || !seek) {
-      return;
-    }
-
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const progress = x / rect.width;
-    const time = Math.max(0, Math.min(progress * duration, duration));
-    seek(time);
-  };
-
   return (
     <canvas
       ref={canvasRef}
@@ -146,10 +127,11 @@ export function Timeline({
         ...(color ? { '--timeline-color': color } as React.CSSProperties : {}),
         ...style,
       }}
-      onClick={handleSeek}
     />
   );
-}
+});
+
+Timeline.displayName = 'Timeline';
 
 // 绘制时间线的具体实现
 function drawTimelineCanvas(ctx: CanvasRenderingContext2D, {
@@ -184,6 +166,7 @@ function drawTimelineCanvas(ctx: CanvasRenderingContext2D, {
 
   // 绘制主刻度和子刻度
   let lastMainTickX = 0;
+  let lastMainTickLabel = '';
   for (let time = 0; time <= duration; time += subInterval) {
     const x = (time / duration) * width;
     const isMainTick = time % mainInterval === 0;
@@ -198,6 +181,7 @@ function drawTimelineCanvas(ctx: CanvasRenderingContext2D, {
       const minutes = Math.floor(time / 60);
       const seconds = Math.floor(time % 60);
       const timeLabel = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+      lastMainTickLabel = timeLabel;
 
       ctx.save();
       ctx.font = '10px sans-serif';
@@ -235,8 +219,8 @@ function drawTimelineCanvas(ctx: CanvasRenderingContext2D, {
   // 增加一些额外的空间要求，确保不会太挤
   const hasSpaceForEndTime = width - lastMainTickX > endTimeLabelWidth * 1.5;
 
-  // 如果最后一个主刻度和结束位置之间有足够空间，显示结束时间
-  if (hasSpaceForEndTime) {
+  // 如果最后一个主刻度和结束位置之间有足够空间，且最后一个主刻度标签与结束时间不同，才显示结束时间
+  if (hasSpaceForEndTime && lastMainTickLabel !== endTimeLabel) {
     // 绘制最后的主刻度线
     ctx.moveTo(width, height * 0.2);
     ctx.lineTo(width, height * 0.4);

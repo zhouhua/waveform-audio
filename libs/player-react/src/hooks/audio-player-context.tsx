@@ -3,7 +3,7 @@ import type { AudioState } from './use-audio-player';
 import React, { createContext, useContext } from 'react';
 
 export interface AudioPlayerContextValue {
-  audioRef: React.RefObject<HTMLAudioElement>;
+  audioRef: React.RefObject<HTMLAudioElement | null>;
   audioState: AudioState;
   metadata?: AudioMetadata;
   waveformData?: {

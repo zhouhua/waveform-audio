@@ -9,5 +9,8 @@ import { RootContext } from '../components/primitives/root';
  */
 export function usePlayerContext(propsContext?: AudioPlayerContextValue) {
   const rootContext = useContext(RootContext);
+  if (!rootContext && !propsContext) {
+    throw new Error('usePlayerContext must be used within a RootProvider');
+  }
   return propsContext || rootContext;
 }

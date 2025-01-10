@@ -1,8 +1,9 @@
-import { LucideIcon } from 'lucide-react';
+import type { GradientKey } from '@/lib/constants';
+import type { LucideIcon } from 'lucide-react';
+import { gradientMap } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { GradientKey, gradientMap } from '@/lib/constants';
 
 interface FeatureCardProps {
   icon: LucideIcon;
@@ -15,28 +16,29 @@ interface FeatureCardProps {
 }
 
 export function FeatureCard({
-  icon: Icon,
-  color,
-  gradientKey,
-  title,
-  description,
   code,
-  demo
+  color,
+  demo,
+  description,
+  gradientKey,
+  icon: Icon,
+  title,
 }: FeatureCardProps) {
   return (
-    <div className="group relative overflow-hidden rounded-xl transition-all hover:shadow-lg hover:scale-[1.01]">
+    <div className="group relative overflow-hidden rounded-xl transition-all hover:shadow-lg">
       <div
         className="absolute inset-0"
         style={{
-          background: gradientMap[gradientKey]
+          background: gradientMap[gradientKey],
         }}
       />
       <div className="relative z-10 p-6">
         <div className="flex items-center gap-4 mb-6">
           <div className={cn(
-            "w-12 h-12 rounded-lg flex items-center justify-center bg-gradient-to-r shadow-sm",
-            color
-          )}>
+            'w-12 h-12 rounded-lg flex items-center justify-center bg-gradient-to-r shadow-sm',
+            color,
+          )}
+          >
             <Icon className="w-6 h-6 text-white" />
           </div>
           <h3 className="text-xl font-semibold text-gray-800">{title}</h3>
@@ -47,11 +49,11 @@ export function FeatureCard({
             language="typescript"
             style={vscDarkPlus}
             customStyle={{
+              background: 'transparent',
+              fontSize: '10px',
+              lineHeight: '1.5',
               margin: 0,
               padding: '1rem',
-              background: 'transparent',
-              fontSize: '0.75rem',
-              lineHeight: '1.5',
             }}
           >
             {code.trim()}
@@ -63,4 +65,4 @@ export function FeatureCard({
       </div>
     </div>
   );
-} 
+}

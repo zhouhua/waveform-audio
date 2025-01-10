@@ -2,8 +2,6 @@ import type { CSSProperties, FC } from 'react';
 import type { AudioPlayerContextValue } from '../hooks/audio-player-context';
 import type { WaveformType } from './primitives/waveform-renderers';
 import { useMemo } from 'react';
-// import { Loader2 } from 'lucide-react';
-// import { useEffect, useState } from 'react';
 import { cn } from '../utils/cn';
 import {
   CurrentTimeDisplay,
@@ -136,7 +134,7 @@ const Player: FC<PlayerProps> = ({
   type = 'mirror',
   volumeControlOptions = {},
 }) => {
-  const fileName = (src || context?.src)?.split('/').pop();
+  const fileName = (src || context?.src)?.split('/').pop()?.replace(/\?.*$/, '');
   const InnerPlayer = useMemo(() => (
     <>
       {
@@ -147,7 +145,7 @@ const Player: FC<PlayerProps> = ({
             </h3>
             {showMetadata && (
               <Metadata
-                className={cn('wa-flex wa-items-center wa-gap-4 wa-font-mono', classes.metadata)}
+                className={cn('wa-flex wa-items-center wa-gap-4 wa-font-mono wa-shrink-0', classes.metadata)}
                 style={styles.metadata}
               />
             )}
@@ -156,49 +154,47 @@ const Player: FC<PlayerProps> = ({
       }
       <div className="wa-flex wa-h-full">
         {showControls && (
-          <div className={cn('wa-p-4 wa-flex wa-flex-col wa-justify-center wa-w-48 wa-shrink-0 wa-items-start', classes.controls)} style={styles.controls}>
-            <div className="wa-space-y-4">
-              <div className="wa-flex wa-items-end wa-gap-4">
-                {showPlayButton && <PlayTrigger className={cn('wa-w-12 wa-h-12', classes.playButton)} style={styles.playButton} />}
-                {showStopButton && <StopTrigger className={cn('', classes.stopButton)} style={styles.stopButton} />}
+          <div className={cn('wa-px-4 wa-py-3 wa-flex wa-flex-col wa-justify-center wa-w-48 wa-shrink-0 wa-items-start wa-gap-2', classes.controls)} style={styles.controls}>
+            <div className="wa-flex wa-items-end wa-gap-4">
+              {showPlayButton && <PlayTrigger className={cn('wa-w-12 wa-h-12', classes.playButton)} style={styles.playButton} />}
+              {showStopButton && <StopTrigger className={cn('', classes.stopButton)} style={styles.stopButton} />}
+            </div>
+            {showTimeDisplay && (
+              <div className="wa-flex wa-items-end wa-space-x-2">
+                <CurrentTimeDisplay
+                  className={cn('wa-font-mono wa-text-[var(--wa-text-secondary-color)] wa-leading-none', classes.timeDisplay)}
+                  style={styles.timeDisplay}
+                />
+                <span className="wa-text-[var(--wa-text-secondary-color)] wa-text-sm wa-leading-none wa-opacity-70">/</span>
+                <DurationDisplay
+                  className={cn('wa-font-mono wa-text-[var(--wa-text-secondary-color)] wa-text-sm wa-leading-none wa-opacity-70', classes.timeDisplay)}
+                  style={styles.timeDisplay}
+                />
               </div>
-              {showTimeDisplay && (
-                <div className="wa-flex wa-items-end wa-space-x-2">
-                  <CurrentTimeDisplay
-                    className={cn('wa-font-mono wa-text-[var(--wa-text-secondary-color)] wa-leading-none', classes.timeDisplay)}
-                    style={styles.timeDisplay}
-                  />
-                  <span className="wa-text-[var(--wa-text-secondary-color)] wa-text-sm wa-leading-none wa-opacity-70">/</span>
-                  <DurationDisplay
-                    className={cn('wa-font-mono wa-text-[var(--wa-text-secondary-color)] wa-text-sm wa-leading-none wa-opacity-70', classes.timeDisplay)}
-                    style={styles.timeDisplay}
-                  />
-                </div>
+            )}
+
+            <div className="wa-flex wa-items-center wa-gap-2">
+              {showVolumeControl && (
+                <VolumeControl
+                  className={classes.volumeControl}
+                  style={styles.volumeControl}
+                  min={volumeControlOptions.min}
+                  max={volumeControlOptions.max}
+                  step={volumeControlOptions.step}
+                />
               )}
 
-              <div className="wa-flex wa-items-center wa-gap-2">
-                {showVolumeControl && (
-                  <VolumeControl
-                    className={classes.volumeControl}
-                    style={styles.volumeControl}
-                    min={volumeControlOptions.min}
-                    max={volumeControlOptions.max}
-                    step={volumeControlOptions.step}
-                  />
-                )}
+              {showPlaybackRateControl && (
+                <PlaybackRateControl
+                  className={classes.playbackRateControl}
+                  style={styles.playbackRateControl}
+                  options={playbackRateOptions}
+                />
+              )}
 
-                {showPlaybackRateControl && (
-                  <PlaybackRateControl
-                    className={classes.playbackRateControl}
-                    style={styles.playbackRateControl}
-                    options={playbackRateOptions}
-                  />
-                )}
-
-                {showDownloadButton && (
-                  <DownloadTrigger className={classes.downloadButton} style={styles.downloadButton} />
-                )}
-              </div>
+              {showDownloadButton && (
+                <DownloadTrigger className={classes.downloadButton} style={styles.downloadButton} />
+              )}
             </div>
           </div>
         )}
@@ -208,10 +204,10 @@ const Player: FC<PlayerProps> = ({
               <Timeline color="#9ca3af" />
             </div>
           )}
-          <div className="wa-relative wa-w-full wa-h-[140px]">
+          <div className="wa-relative wa-w-full">
             {showWaveform && (
               <Waveform
-                className={cn('wa-w-full wa-h-full', classes.waveform)}
+                className={cn('wa-w-full wa-h-[140px]', classes.waveform)}
                 style={styles.waveform}
                 type={type}
                 barWidth={3}

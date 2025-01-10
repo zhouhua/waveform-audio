@@ -8,13 +8,13 @@ export interface AudioMetadata {
   fileSize?: number;
 }
 
-// 估算比特率（kbps）
+// 估算比特率（bps）
 function estimateBitrate(fileSize: number, duration: number): number {
   if (!duration || duration <= 0) {
     return 0;
   }
-  // 比特率 = 文件大小（比特） / 持续时间（秒）
-  return Math.round((fileSize * 8) / (duration * 1000));
+  // 比特率（bps）= 文件大小（bytes）* 8 / 持续时间（seconds）
+  return Math.round((fileSize * 8) / duration);
 }
 
 export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
@@ -52,12 +52,10 @@ export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
           duration: audioBuffer.duration,
           sampleRate: audioBuffer.sampleRate,
         };
-
         // 只在确保有了正确的 duration 后才计算比特率
         if (metadata.duration && metadata.duration > 0) {
           metadata.bitrate = estimateBitrate(file.size, metadata.duration);
         }
-
         resolve(metadata);
       }
       catch (error) {

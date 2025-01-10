@@ -44,18 +44,18 @@ export interface RootComponent extends React.FC<RootProviderProps> {
 }
 
 // 自定义 hooks
-export function usePlayerState() {
+export function useCurrentPlayerState() {
   const context = useContext(RootContext);
   if (!context) {
-    throw new Error('usePlayerState must be used within a RootProvider');
+    throw new Error('useCurrentPlayerState must be used within a RootProvider');
   }
   return context.audioState;
 }
 
-export function usePlayerControls() {
+export function useCurrentPlayerControls() {
   const context = useContext(RootContext);
   if (!context) {
-    throw new Error('usePlayerControls must be used within a RootProvider');
+    throw new Error('useCurrentPlayerControls must be used within a RootProvider');
   }
   return {
     pause: context.pause,
@@ -67,18 +67,18 @@ export function usePlayerControls() {
   };
 }
 
-export function usePlayerWaveform() {
+export function useCurrentPlayerWaveform() {
   const context = useContext(RootContext);
   if (!context) {
-    throw new Error('usePlayerWaveform must be used within a RootProvider');
+    throw new Error('useCurrentPlayerWaveform must be used within a RootProvider');
   }
   return context.waveformData;
 }
 
-export function usePlayer() {
+export function useCurrentPlayer() {
   const context = useContext(RootContext);
   if (!context) {
-    throw new Error('usePlayer must be used within a RootProvider');
+    throw new Error('useCurrentPlayer must be used within a RootProvider');
   }
   return context;
 }
@@ -96,7 +96,7 @@ export function RootProvider({
   src,
   style,
 }: RootProviderProps) {
-  const audioRef = useRef<HTMLAudioElement>(null) as React.RefObject<HTMLAudioElement>;
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const [audioState, setAudioState] = useState<AudioState>({
     currentTime: 0,
     duration: 0,
@@ -133,28 +133,45 @@ export function RootProvider({
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
-      setAudioState(prev => ({ ...prev, isPlaying: false, isStoped: true }));
+      setAudioState(prev => ({
+        ...prev,
+        currentTime: 0,
+        isPlaying: false,
+        isStoped: true,
+      }));
     }
   }, []);
 
   const seek = useCallback((time: number) => {
     if (audioRef.current) {
       audioRef.current.currentTime = time;
-      setAudioState(prev => ({ ...prev, isStoped: false }));
+      setAudioState(prev => ({
+        ...prev,
+        currentTime: time,
+        isStoped: false,
+      }));
     }
   }, []);
 
   const setVolume = useCallback((volume: number) => {
     if (audioRef.current) {
       audioRef.current.volume = volume;
-      setAudioState(prev => ({ ...prev, volume }));
+      setAudioState(prev => ({
+        ...prev,
+        currentTime: audioRef.current?.currentTime ?? prev.currentTime,
+        volume,
+      }));
     }
   }, []);
 
   const setPlaybackRate = useCallback((rate: number) => {
     if (audioRef.current) {
       audioRef.current.playbackRate = rate;
-      setAudioState(prev => ({ ...prev, playbackRate: rate }));
+      setAudioState(prev => ({
+        ...prev,
+        currentTime: audioRef.current?.currentTime ?? prev.currentTime,
+        playbackRate: rate,
+      }));
     }
   }, []);
 
@@ -162,14 +179,24 @@ export function RootProvider({
   useEffect(() => {
     if (!audioRef.current && src) {
       const audio = new Audio(src);
-      audioRef.current = audio;
       audio.volume = audioState.volume;
       audio.playbackRate = audioState.playbackRate;
+      audioRef.current = audio;
     }
     else if (audioRef.current && src && audioRef.current.src !== src) {
       audioRef.current.src = src;
+      audioRef.current.volume = audioState.volume;
+      audioRef.current.playbackRate = audioState.playbackRate;
     }
-  }, [src, audioState.volume, audioState.playbackRate]);
+
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+        audioRef.current = null;
+      }
+    };
+  }, [src]);
 
   // 音频事件监听
   useEffect(() => {
@@ -179,11 +206,10 @@ export function RootProvider({
     }
 
     const updateState = () => {
-      const currentTime = audio.currentTime;
       setAudioState(prev => ({
         ...prev,
-        currentTime,
-        duration: audio.duration || 0,
+        currentTime: audio.currentTime,
+        duration: audio.duration || prev.duration,
         playbackRate: audio.playbackRate,
         volume: audio.volume,
       }));
@@ -193,25 +219,62 @@ export function RootProvider({
     };
 
     const handlePlay = () => {
-      setAudioState(prev => ({ ...prev, isPlaying: true, isStoped: false }));
+      setAudioState(prev => ({
+        ...prev,
+        currentTime: audio.currentTime,
+        isPlaying: true,
+        isStoped: false,
+        playbackRate: audio.playbackRate,
+        volume: audio.volume,
+      }));
       if (contextValueRef.current) {
         onPlay?.(contextValueRef.current);
       }
     };
 
     const handlePause = () => {
-      setAudioState(prev => ({ ...prev, isPlaying: false, isStoped: false }));
+      setAudioState(prev => ({
+        ...prev,
+        currentTime: audio.currentTime,
+        isPlaying: false,
+        isStoped: false,
+        playbackRate: audio.playbackRate,
+        volume: audio.volume,
+      }));
       if (contextValueRef.current) {
         onPause?.(contextValueRef.current);
       }
     };
 
     const handleEnded = () => {
-      setAudioState(prev => ({ ...prev, isPlaying: false, isStoped: true }));
       audio.currentTime = 0;
+      setAudioState(prev => ({
+        ...prev,
+        currentTime: 0,
+        isPlaying: false,
+        isStoped: true,
+        playbackRate: audio.playbackRate,
+        volume: audio.volume,
+      }));
       if (contextValueRef.current) {
         onEnded?.(contextValueRef.current);
       }
+    };
+
+    const handleRateChange = () => {
+      setAudioState(prev => ({
+        ...prev,
+        currentTime: audio.currentTime,
+        playbackRate: audio.playbackRate,
+      }));
+    };
+
+    const handleVolumeChange = () => {
+      setAudioState(prev => ({
+        ...prev,
+        currentTime: audio.currentTime,
+        volume: audio.volume,
+      }));
     };
 
     audio.addEventListener('timeupdate', updateState);
@@ -219,6 +282,8 @@ export function RootProvider({
     audio.addEventListener('play', handlePlay);
     audio.addEventListener('pause', handlePause);
     audio.addEventListener('ended', handleEnded);
+    audio.addEventListener('ratechange', handleRateChange);
+    audio.addEventListener('volumechange', handleVolumeChange);
 
     return () => {
       audio.removeEventListener('timeupdate', updateState);
@@ -226,6 +291,8 @@ export function RootProvider({
       audio.removeEventListener('play', handlePlay);
       audio.removeEventListener('pause', handlePause);
       audio.removeEventListener('ended', handleEnded);
+      audio.removeEventListener('ratechange', handleRateChange);
+      audio.removeEventListener('volumechange', handleVolumeChange);
     };
   }, [onPlay, onPause, onTimeUpdate, onEnded]);
 

@@ -18,12 +18,14 @@ export type {
   WaveformProps,
 } from './components/primitives';
 export {
-  usePlayer,
-  usePlayerControls,
-  usePlayerState,
-  usePlayerWaveform,
+  useCurrentPlayer,
+  useCurrentPlayerControls,
+  useCurrentPlayerState,
+  useCurrentPlayerWaveform,
 } from './components/primitives';
 export type { AudioPlayerContextValue } from './hooks/audio-player-context';
 export { useAudioPlayer } from './hooks/use-audio-player';
 export type { UseAudioPlayerProps } from './hooks/use-audio-player';
 export { useGlobalAudioManager } from './hooks/use-global-audio-manager';
+
+export { formatTime } from './utils/time-format';

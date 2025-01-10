@@ -19,7 +19,7 @@ import { useFeatures } from '@/hooks/use-features';
 
 const types = ['bars', 'mirror', 'line', 'wave', 'envelope'];
 
-export function PlayerHome() {
+export default function PlayerHome() {
   const { t } = useTranslation();
   const [darkMode, setDarkMode] = useState(false);
   const [type, setType] = useState<WaveformType>('mirror');

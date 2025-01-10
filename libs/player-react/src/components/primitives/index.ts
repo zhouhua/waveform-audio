@@ -1,3 +1,5 @@
+/* eslint-disable perfectionist/sort-exports */
+/* eslint-disable perfectionist/sort-named-exports */
 import type { RootComponent } from './root';
 import {
   CurrentTimeDisplay,
@@ -10,7 +12,7 @@ import {
 } from './controls';
 import { Metadata } from './metadata';
 import { ProgressIndicator } from './progress-indicator';
-import { RootProvider, usePlayer, usePlayerControls, usePlayerState, usePlayerWaveform } from './root';
+import { RootProvider, useCurrentPlayer, useCurrentPlayerControls, useCurrentPlayerState, useCurrentPlayerWaveform } from './root';
 import { Timeline } from './timeline';
 import { Waveform } from './waveform';
 
@@ -34,10 +36,10 @@ export {
   RootProvider,
   StopTrigger,
   Timeline,
-  usePlayer,
-  usePlayerControls,
-  usePlayerState,
-  usePlayerWaveform,
+  useCurrentPlayer,
+  useCurrentPlayerControls,
+  useCurrentPlayerState,
+  useCurrentPlayerWaveform,
   VolumeControl,
   Waveform,
 };
@@ -48,3 +50,6 @@ export type { ProgressIndicatorProps } from './progress-indicator';
 export type { AudioState, RootProviderProps } from './root';
 export type { TimelineProps } from './timeline';
 export type { WaveformProps } from './waveform';
+
+// 导出虚拟组件
+export { Playing, Paused, Stopped, NotStopped, Loading, NotLoading, WithContext } from './virtual';

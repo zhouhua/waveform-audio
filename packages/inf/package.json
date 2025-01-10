@@ -1,10 +1,10 @@
 {
   "name": "@waveform/inf",
+  "type": "module",
   "version": "0.0.1",
   "private": true,
-  "type": "module",
   "exports": {
-    "./eslint": "./eslint.config.js",
+    "./eslint": "./eslint.config.mjs",
     "./tailwind": "./tailwind.config.js",
     "./tsconfig": "./tsconfig.json"
   },
