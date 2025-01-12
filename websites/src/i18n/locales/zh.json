@@ -11,7 +11,150 @@
   },
   "player": {
     "title": "Waveform Player",
-    "description": "一个功能强大、自由定制的 React 波形音频播放器解决方案",
+    "description": "一个功能强大的音频播放器组件库",
+    "docs": {
+      "nav": {
+        "introduction": "介绍",
+        "player": "Player 组件",
+        "primitives": {
+          "title": "原子组件",
+          "root": "Root - 根组件",
+          "controls": "Controls - 控制组件",
+          "waveform": "Waveform - 波形组件",
+          "timeline": "Timeline - 时间轴",
+          "virtual": "Virtual - 状态组件"
+        },
+        "use_audio_player": "useAudioPlayer",
+        "others": {
+          "title": "其他",
+          "global_state": "全局状态管理",
+          "time_format": "时间格式化",
+          "audio_analyzer": "音频分析",
+          "audio_metadata": "音频元数据",
+          "hooks": "辅助 Hooks"
+        },
+        "examples": {
+          "title": "示例",
+          "basic": "基础示例",
+          "custom_ui": "自定义界面",
+          "playlist": "播放列表",
+          "global_player": "全局播放器"
+        }
+      },
+      "pages": {
+        "introduction": {
+          "title": "介绍",
+          "description": "Waveform Player 是一个功能强大的音频播放器组件库，它提供了一系列可组合的组件和工具，帮助你快速构建自定义的音频播放器。无论是简单的音频播放，还是复杂的音乐播放器，都能轻松实现。",
+          "features": {
+            "title": "功能特点",
+            "waveform": "波形可视化",
+            "waveform_desc": "支持多种波形渲染模式，包括条形图、镜像、线条、波浪和包络线。每种模式都经过精心设计，能够清晰地展示音频的波形和能量分布。",
+            "primitives": "原子组件",
+            "primitives_desc": "提供一系列可组合的原子组件，包括播放控制、波形图、时间轴等。每个组件都是独立的，可以自由组合，打造你想要的播放器界面。",
+            "hooks": "React Hooks",
+            "hooks_desc": "提供强大而灵活的 React Hooks，让你能够轻松控制音频播放、获取播放状态，甚至实现全局播放控制。所有的 Hooks 都经过类型检查，使用起来更加安心。",
+            "customization": "样式定制",
+            "customization_desc": "通过 classes 和 styles 参数，你可以自定义播放器的每一个部分。支持 Tailwind CSS，让样式定制变得更加简单。",
+            "typescript": "TypeScript 支持",
+            "typescript_desc": "使用 TypeScript 编写，提供完整的类型定义。IDE 智能提示让你的开发更加顺畅，减少错误发生的可能。",
+            "global": "全局控制",
+            "global_desc": "内置全局音频管理器，可以轻松实现多个播放器的互斥播放、全局暂停等功能。再也不用担心多个音频同时播放的问题。"
+          },
+          "installation": {
+            "title": "安装",
+            "description": "Waveform Player 可以通过 npm、yarn 或 pnpm 安装。选择你喜欢的包管理器，只需一行命令就能开始使用。"
+          },
+          "quickstart": {
+            "title": "快速开始",
+            "description": "Waveform Player 提供了多种使用方式，从最简单的 Player 组件到灵活的 Hooks API，都能满足你的需求。让我们看看几种常见的使用方式：",
+            "basic": {
+              "title": "基础使用",
+              "description": "使用 Player 组件是最简单的方式。它提供了一个完整的音频播放器界面，包含播放控制、波形图、时间显示等功能。你只需要提供音频文件的 URL，其他的交给我们。"
+            },
+            "custom": {
+              "title": "自定义样式",
+              "description": "想要一个独特的播放器？没问题！通过 classes 和 styles 参数，你可以自定义播放器的每一个部分。这个例子展示了如何改变播放器的背景色和波形图高度。"
+            },
+            "hook": {
+              "title": "使用 Hooks",
+              "description": "如果你需要更多控制，可以使用 useAudioPlayer hook。它提供了完整的播放控制和状态管理，让你能够构建完全自定义的播放器界面。"
+            }
+          },
+          "next": {
+            "title": "下一步",
+            "description": "现在你已经了解了 Waveform Player 的基础用法，接下来可以深入了解更多功能：",
+            "player_title": "Player 组件",
+            "player_desc": "了解 Player 组件的所有功能和配置选项，包括事件处理、样式定制等。",
+            "primitives_title": "原子组件",
+            "primitives_desc": "探索可组合的原子组件，学习如何构建自定义的播放器界面。",
+            "hooks_title": "Hooks API",
+            "hooks_desc": "深入了解 React Hooks，掌握音频播放控制和状态管理的精髓。"
+          }
+        },
+        "player": {
+          "title": "Player 组件",
+          "description": "Player 组件是一个功能完整的音频播放器，它包含了波形可视化、播放控制、音量控制等功能。",
+          "basic": {
+            "title": "基础使用",
+            "description": "Player 组件提供了丰富的功能选项，你可以通过属性来控制显示哪些功能。",
+            "preview": {
+              "title": "基础示例",
+              "description": "展示了 Player 组件的基本功能，包括波形显示、播放控制、时间显示、音量控制和播放速率控制。"
+            }
+          },
+          "styling": {
+            "title": "自定义样式",
+            "description": "Player 组件提供了灵活的样式自定义能力，你可以通过 classes 和 styles 属性来自定义组件的样式。",
+            "preview": {
+              "title": "样式示例",
+              "description": "展示了如何使用 classes 和 styles 属性来自定义 Player 组件的样式。"
+            }
+          },
+          "events": {
+            "title": "事件处理",
+            "description": "Player 组件提供了丰富的事件回调，你可以通过这些回调来实现自定义的播放行为。",
+            "preview": {
+              "title": "事件示例",
+              "description": "展示了如何使用事件回调来实现音频播放结束后自动重新播放的功能。"
+            }
+          },
+          "mutualExclusive": {
+            "title": "互斥播放",
+            "description": "通过设置 mutualExclusive 属性，可以实现多个播放器之间的互斥播放。",
+            "preview": {
+              "title": "互斥播放示例",
+              "description": "展示了两个播放器之间的互斥播放效果，当一个播放器开始播放时，另一个播放器会自动暂停。"
+            }
+          },
+          "api": {
+            "title": "API 参考",
+            "props": {
+              "src": "音频文件的 URL 地址",
+              "type": "波形显示类型，可选值：'mirror'（镜像）、'normal'（普通）",
+              "classes": "用于自定义组件各部分的 CSS 类名",
+              "styles": "用于自定义组件各部分的内联样式",
+              "mutualExclusive": "是否启用互斥播放模式",
+              "onPlay": "播放开始时的回调函数",
+              "onPause": "播放暂停时的回调函数",
+              "onTimeUpdate": "播放进度更新时的回调函数",
+              "onEnded": "播放结束时的回调函数"
+            }
+          }
+        },
+        "hooks": {
+          "title": "Hooks",
+          "description": "Hooks API 提供了一系列的 React Hooks，让你能够更灵活地控制音频播放。"
+        },
+        "utils": {
+          "title": "工具函数",
+          "description": "工具函数提供了一些常用的辅助功能，如时间格式化、音频分析等。"
+        },
+        "examples": {
+          "title": "示例",
+          "description": "这里提供了一些常见的使用场景示例，帮助你更好地理解如何使用 Waveform Player。"
+        }
+      }
+    },
     "getStarted": "快速开始",
     "viewExamples": "查看示例",
     "features": {
@@ -31,17 +174,9 @@
         "title": "Primitive 组件",
         "description": "提供底层原子化组件，可以以最小的成本定制播放器的功能和外观"
       },
-      "typescript": {
-        "title": "TypeScript 支持",
-        "description": "完整的 TypeScript 类型定义，享受智能提示和类型检查"
-      },
-      "hooks": {
-        "title": "React Hooks",
-        "description": "提供多个 React Hooks，轻松获取和控制播放器状态"
-      },
-      "metadata": {
-        "title": "元数据支持",
-        "description": "自动提取和显示音频文件元数据，包括时长、比特率、采样率等"
+      "globalControl": {
+        "title": "全局控制",
+        "description": "提供全局控制 hooks，可以控制页面上所有播放器的状态和行为"
       }
     },
     "home": {
@@ -91,79 +226,6 @@
       "responsive": "响应式设计：自适应不同屏幕尺寸",
       "typescript": "TypeScript 支持：完整的类型定义",
       "events": "事件回调：丰富的事件回调接口"
-    }
-  },
-  "docs": {
-    "gettingStarted": {
-      "title": "快速开始",
-      "installation": {
-        "title": "安装",
-        "description": "使用你喜欢的包管理器安装 @waveform/player-react："
-      },
-      "basicUsage": {
-        "title": "基本使用",
-        "description": "安装完成后，你可以在你的 React 应用中使用 Waveform Player 组件："
-      },
-      "features": {
-        "title": "主要特性",
-        "nextSteps": "下一步",
-        "learnMore": "要了解更多关于 Waveform Player 的使用方法，请查看："
-      }
-    },
-    "props": {
-      "title": "组件 Props",
-      "description": "Player 组件是 Waveform Player 的主要组件，它接受以下 props：",
-      "basicConfig": {
-        "title": "基础配置",
-        "src": "音频文件的 URL 地址，支持所有浏览器支持的音频格式",
-        "samplePoints": "波形图的采样点数量，默认为 100。数值越大，波形图越精细，但也会消耗更多性能",
-        "height": "播放器的高度，单位为像素，默认为 200"
-      },
-      "styleConfig": {
-        "title": "样式配置",
-        "type": "波形渲染类型，可选值：'bars'（条形图）、'line'（线条图）、'mirror'（镜像图）",
-        "gradient": "波形的颜色渐变配置，包含 from 和 to 两个颜色值",
-        "progressGradient": "已播放部分的颜色渐变配置，包含 from 和 to 两个颜色值"
-      },
-      "callbacks": {
-        "title": "事件回调",
-        "onPlay": "开始播放时的回调函数",
-        "onPause": "暂停播放时的回调函数",
-        "onEnded": "播放结束时的回调函数",
-        "onTimeUpdate": "播放进度更新时的回调函数，参数为当前播放时间（秒）",
-        "onError": "发生错误时的回调函数，参数为错误对象"
-      }
-    },
-    "hooks": {
-      "title": "Hooks API",
-      "description": "Waveform Player 提供了一系列 Hooks 来帮助你控制播放器和获取播放器状态：",
-      "playerState": {
-        "title": "usePlayerState",
-        "description": "用于获取播放器的当前状态。",
-        "currentTime": "当前播放时间，单位为秒",
-        "duration": "音频总时长，单位为秒",
-        "isPlaying": "是否正在播放",
-        "playbackRate": "当前播放速率，默认为 1",
-        "volume": "当前音量，范围 0-1"
-      },
-      "playerControls": {
-        "title": "usePlayerControls",
-        "description": "提供播放器控制方法。",
-        "play": "开始播放",
-        "pause": "暂停播放",
-        "stop": "停止播放并返回到开始位置",
-        "seek": "跳转到指定时间（秒）",
-        "setVolume": "设置音量，范围 0-1",
-        "setPlaybackRate": "设置播放速率"
-      },
-      "waveform": {
-        "title": "usePlayerWaveform",
-        "description": "用于获取音频波形数据。",
-        "peaks": "波形数据数组，每个元素的范围为 -1 到 1",
-        "duration": "音频总时长（秒）",
-        "isLoading": "是否正在加载波形数据",
-        "error": "加载过程中的错误信息"
-      }
     }
   },
   "globalControl": {

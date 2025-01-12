@@ -1,23 +1,29 @@
-import { useTranslation } from 'react-i18next';
-import demoMusic from '../../assets/music.mp3';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
-import { useState, useRef } from 'react';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import type { WaveformType } from '@zhouhua-dev/waveform-player-react';
+import { FeatureCard } from '@/components/feature-card';
 import { Button } from '@/components/ui/button';
-import { DropdownMenuRadioGroup } from '@radix-ui/react-dropdown-menu';
-import Player, { WaveformType } from '@zhouhua-dev/waveform-player-react';
-import { Asterisk, Upload, Terminal, Code, Sparkles, Copy } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Checkbox } from '@/components/ui/checkbox';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Label } from '@/components/ui/label';
+import { Toaster } from '@/components/ui/sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { toast } from 'sonner';
+import { useFeatures } from '@/hooks/use-features';
+import { cn } from '@/lib/utils';
+import { DropdownMenuRadioGroup } from '@radix-ui/react-dropdown-menu';
+import Player from '@zhouhua-dev/waveform-player-react';
+import { Asterisk, Code, Copy, Sparkles, Terminal, Upload } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Toaster } from '@/components/ui/sonner';
-import { FeatureCard } from '@/components/feature-card';
-import { useFeatures } from '@/hooks/use-features';
+import { toast } from 'sonner';
+import demoMusic from '../../assets/music.mp3';
 
 const types = ['bars', 'mirror', 'line', 'wave', 'envelope'];
+
+async function copyToClipboard(text: string) {
+  await navigator.clipboard.writeText(text);
+  toast.success('代码已复制到剪贴板');
+}
 
 export default function PlayerHome() {
   const { t } = useTranslation();
@@ -45,13 +51,9 @@ export default function PlayerHome() {
 
   const installCommands = {
     pnpm: 'pnpm add @zhouhua-dev/waveform-player-react',
+    // eslint-disable-next-line perfectionist/sort-objects
     npm: 'npm install @zhouhua-dev/waveform-player-react',
     yarn: 'yarn add @zhouhua-dev/waveform-player-react',
-  };
-
-  const copyToClipboard = async (text: string) => {
-    await navigator.clipboard.writeText(text);
-    toast.success('代码已复制到剪贴板');
   };
 
   const codeExample = `import Player from '@zhouhua-dev/waveform-player-react';
@@ -66,7 +68,7 @@ export default function App() {
 }`;
 
   return (
-    <div className="min-h-screen container">
+    <div className="min-h-screen container w-[720px] mx-auto">
       <Toaster />
       <div className="w-full px-4 py-16 mt-32">
         {/* Hero Section */}
@@ -94,7 +96,7 @@ export default function App() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                  <DropdownMenuRadioGroup value={type} onValueChange={(value) => setType(value as WaveformType)}>
+                  <DropdownMenuRadioGroup value={type} onValueChange={value => setType(value as WaveformType)}>
                     {types.map(type => (
                       <DropdownMenuRadioItem key={type} value={type}>
                         {type}
@@ -133,8 +135,10 @@ export default function App() {
             // }}
             />
           </div>
-          <p className='text-xs text-gray-500 mt-2 pl-4 flex items-center gap-1'>
-            <Asterisk className='w-4 h-4' /> {t('player.home.uploadDisclaimer')}
+          <p className="text-xs text-gray-500 mt-2 pl-4 flex items-center gap-1">
+            <Asterisk className="w-4 h-4" />
+            {' '}
+            {t('player.home.uploadDisclaimer')}
           </p>
         </div>
 
@@ -151,7 +155,7 @@ export default function App() {
             <div className="rounded-2xl border border-[#2A2A2A] bg-[#171717] text-white overflow-hidden shadow-lg relative">
               <Tabs value={selectedPkg} onValueChange={v => setSelectedPkg(v as keyof typeof installCommands)} className="w-full">
                 <TabsList className="w-full flex h-10 items-center justify-start bg-[#171717] p-0 border-b border-[#2A2A2A]">
-                  {Object.keys(installCommands).map((pkg) => (
+                  {Object.keys(installCommands).map(pkg => (
                     <TabsTrigger
                       key={pkg}
                       value={pkg}
@@ -166,15 +170,14 @@ export default function App() {
                     <TabsContent key={pkg} value={pkg} className="m-0">
                       <div className="relative group">
                         <div className="flex items-center">
-                          {/** @ts-ignore */}
                           <SyntaxHighlighter
                             language="bash"
                             style={vscDarkPlus}
                             customStyle={{
-                              margin: 0,
-                              padding: '1rem',
                               background: '#171717',
                               fontSize: '0.875rem',
+                              margin: 0,
+                              padding: '1rem',
                             }}
                           >
                             {command.trim()}
@@ -209,21 +212,21 @@ export default function App() {
           <div className="max-w-3xl mx-auto">
             <div className="rounded-lg border border-[#2A2A2A] bg-[#171717] text-white overflow-hidden">
               <div className="relative">
-                {/** @ts-ignore */}
                 <SyntaxHighlighter
                   language="typescript"
                   style={vscDarkPlus}
                   customStyle={{
-                    margin: 0,
-                    padding: '1rem',
                     background: '#171717',
                     fontSize: '0.875rem',
+                    margin: 0,
+                    padding: '1rem',
                   }}
                 >
                   {codeExample.trim()}
                 </SyntaxHighlighter>
                 <div className="absolute right-2 top-0 p-1">
                   <button
+                    type="button"
                     onClick={() => copyToClipboard(codeExample)}
                     className="p-2 rounded-md transition-colors hover:bg-white/10 text-white/50 hover:text-white/90"
                   >
@@ -245,7 +248,7 @@ export default function App() {
             <p className="text-gray-600">{t('player.home.highlights.description')}</p>
           </div>
           <div className="flex flex-col gap-8 max-w-4xl mx-auto">
-            {features.map((feature) => (
+            {features.map(feature => (
               <FeatureCard key={feature.title} {...feature} />
             ))}
           </div>

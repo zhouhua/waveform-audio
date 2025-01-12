@@ -12,14 +12,32 @@ export default function Footer() {
           {t('footer.copyright')}
         </div>
         <div className="text-gray-600 dark:text-gray-400 flex gap-4 items-center">
-          <a href="https://github.com/zhouhua/waveform-audio" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
-            <SiGithub className="w-4 h-4" /> GitHub
+          <a
+            href="https://github.com/zhouhua/waveform-audio"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-gray-600 hover:bg-black/10 hover:text-gray-900 rounded-md p-2 cursor-pointer transition-colors duration-200 flex items-center gap-2"
+          >
+            <SiGithub className="w-4 h-4" />
+            GitHub
           </a>
-          <a href="https://zhouhua.site" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
-            <Rss className="w-4 h-4" /> {t('footer.blog')}
+          <a
+            href="https://zhouhua.site"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-gray-600 hover:bg-black/10 hover:text-gray-900 rounded-md p-2 cursor-pointer transition-colors duration-200 flex items-center gap-2"
+          >
+            <Rss className="w-4 h-4" />
+            {t('footer.blog')}
           </a>
-          <a href="https://ko-fi.com/zhouhua" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
-            <SiKofi className="w-4 h-4" /> {t('footer.donate')}
+          <a
+            href="https://ko-fi.com/zhouhua"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-gray-600 hover:bg-black/10 hover:text-gray-900 rounded-md p-2 cursor-pointer transition-colors duration-200 flex items-center gap-2"
+          >
+            <SiKofi className="w-4 h-4" />
+            {t('footer.donate')}
           </a>
         </div>
       </div>

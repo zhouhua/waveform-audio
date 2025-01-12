@@ -75,3 +75,62 @@ body {
   background-image: linear-gradient(120deg, #e0c3fc, #8ec5fc);
   background-attachment: fixed;
 }
+
+/* 文档样式 */
+@layer components {
+  .docs section {
+    @apply my-12 space-y-4;
+  }
+
+  .docs h1 {
+    @apply scroll-m-20 text-4xl font-bold tracking-tight;
+  }
+
+  .docs h2 {
+    @apply scroll-m-20 border-b pb-2 text-2xl font-semibold tracking-tight;
+  }
+
+  .docs h3 {
+    @apply text-lg font-medium mt-8;
+  }
+
+  .docs p {
+    @apply leading-7 text-muted-foreground;
+  }
+
+  .docs-grid {
+    @apply grid gap-4 md:grid-cols-2;
+  }
+
+  .docs-card {
+    @apply rounded-lg border bg-gradient-to-br from-background to-muted/50 p-4 shadow-sm
+      transition-all hover:shadow-md hover:border-border/60;
+    text-decoration: none;
+    a {
+      text-decoration: none;
+    }
+    h3 {
+      @apply mt-2;
+    }
+  }
+
+  .docs table {
+    @apply w-full rounded-lg border;
+  }
+
+  .docs th {
+    @apply p-4 text-left font-medium border-b;
+  }
+
+  .docs td {
+    @apply p-4 border-b;
+  }
+
+  .docs td:is(:first-child, :nth-child(2), :nth-child(3)) {
+    @apply font-mono text-sm;
+  }
+
+  .docs td:last-child {
+    @apply text-sm;
+  }
+}

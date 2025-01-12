@@ -1,7 +1,7 @@
-import React from 'react';
+import AUDIO_URL from '@/assets/music.mp3';
 import Player, { PlayerRoot, useAudioPlayer } from '@zhouhua-dev/waveform-player-react';
 
-import AUDIO_URL from '@/assets/music.mp3';
+import React from 'react';
 
 // 1. 单一组件方式
 function SingleComponentExample() {
@@ -68,9 +68,9 @@ function HeadlessExample() {
   const {
     components: { Audio, PlayButton, Progress, Time, VolumeControl, Waveform },
   } = useAudioPlayer({
-    src: AUDIO_URL,
-    onPlay: () => console.log('播放'),
     onPause: () => console.log('暂停'),
+    onPlay: () => console.log('播放'),
+    src: AUDIO_URL,
   });
 
   return (
@@ -128,4 +128,4 @@ export default function ExamplesPage() {
       </div>
     </div>
   );
-} 
+}

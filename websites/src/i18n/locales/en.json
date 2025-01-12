@@ -11,7 +11,134 @@
   },
   "player": {
     "title": "Waveform Player",
-    "description": "A powerful and customizable React waveform player solution",
+    "description": "A powerful audio player component library",
+    "docs": {
+      "nav": {
+        "introduction": "Introduction",
+        "player": "Player Component",
+        "primitives": {
+          "title": "Primitive Components",
+          "root": "Root Component",
+          "controls": "Controls Component",
+          "waveform": "Waveform Component",
+          "timeline": "Timeline Component",
+          "virtual": "Virtual Components"
+        },
+        "use_audio_player": "useAudioPlayer",
+        "others": {
+          "title": "Others",
+          "global_state": "Global State Management",
+          "time_format": "Time Formatting",
+          "audio_analyzer": "Audio Analysis",
+          "audio_metadata": "Audio Metadata",
+          "hooks": "Helper Hooks"
+        },
+        "examples": {
+          "title": "Examples",
+          "basic": "Basic Examples",
+          "custom_ui": "Custom UI",
+          "playlist": "Playlist",
+          "global_player": "Global Player"
+        }
+      },
+      "pages": {
+        "introduction": {
+          "title": "Introduction",
+          "description": "Waveform Player is a powerful audio player component library that provides a set of composable components and tools to help you quickly build custom audio players. Whether you need a simple audio player or a complex music player, it's got you covered.",
+          "features": {
+            "title": "Features",
+            "waveform": "Waveform Visualization",
+            "waveform_desc": "Multiple waveform rendering modes including bars, mirror, line, wave, and envelope. Each mode is carefully designed to clearly display the audio waveform and energy distribution.",
+            "primitives": "Primitive Components",
+            "primitives_desc": "A set of composable primitive components including playback controls, waveform, timeline, and more. Each component is independent and can be freely combined to create your desired player interface.",
+            "hooks": "React Hooks",
+            "hooks_desc": "Powerful and flexible React Hooks that let you easily control audio playback, get playback state, and even implement global playback control. All hooks are type-checked for a safer development experience.",
+            "customization": "Style Customization",
+            "customization_desc": "Customize every part of the player through classes and styles props. Tailwind CSS support makes styling even easier.",
+            "typescript": "TypeScript Support",
+            "typescript_desc": "Written in TypeScript with complete type definitions. IDE intellisense makes your development smoother and reduces the possibility of errors.",
+            "global": "Global Control",
+            "global_desc": "Built-in global audio manager for easy implementation of mutual exclusive playback, global pause, and more. No more worries about multiple audio playing simultaneously."
+          },
+          "installation": {
+            "title": "Installation",
+            "description": "Waveform Player can be installed via npm, yarn, or pnpm. Choose your favorite package manager and start using it with just one command."
+          },
+          "quickstart": {
+            "title": "Quick Start",
+            "description": "Waveform Player offers multiple ways to use, from the simplest Player component to flexible Hooks API, all to meet your needs. Let's look at some common usage patterns:",
+            "basic": {
+              "title": "Basic Usage",
+              "description": "Using the Player component is the simplest way. It provides a complete audio player interface with playback controls, waveform visualization, time display, and more. Just provide the audio file URL and let us handle the rest."
+            },
+            "custom": {
+              "title": "Custom Styling",
+              "description": "Want a unique player? No problem! Through classes and styles props, you can customize every part of the player. This example shows how to change the player's background color and waveform height."
+            },
+            "hook": {
+              "title": "Using Hooks",
+              "description": "If you need more control, you can use the useAudioPlayer hook. It provides complete playback control and state management, allowing you to build fully customized player interfaces."
+            }
+          },
+          "next": {
+            "title": "Next Steps",
+            "description": "Now that you understand the basics of Waveform Player, let's dive deeper into more features:",
+            "player_title": "Player Component",
+            "player_desc": "Learn about all the features and configuration options of the Player component, including event handling and style customization.",
+            "primitives_title": "Primitive Components",
+            "primitives_desc": "Explore composable primitive components and learn how to build custom player interfaces.",
+            "hooks_title": "Hooks API",
+            "hooks_desc": "Deep dive into React Hooks and master the essence of audio playback control and state management."
+          }
+        },
+        "player": {
+          "title": "Player Component",
+          "description": "The Player component is a complete audio player component that provides rich features and flexible customization options.",
+          "basic": {
+            "title": "Basic Usage",
+            "description": "The simplest way to use the Player component is to use it directly, which provides a complete audio player interface."
+          },
+          "styling": {
+            "title": "Custom Styling",
+            "description": "You can customize the player's appearance using the classes and styles props. Each part can be styled individually, giving you complete control over the player's appearance."
+          },
+          "events": {
+            "title": "Event Handling",
+            "description": "The Player component provides rich event callbacks that allow you to monitor and respond to player state changes."
+          },
+          "mutualExclusive": {
+            "title": "Mutual Exclusive Playback",
+            "description": "By setting the mutualExclusive prop, you can make multiple players play exclusively, meaning when one player starts playing, other players will automatically pause."
+          },
+          "api": {
+            "title": "API Reference",
+            "props": {
+              "src": "URL of the audio file",
+              "type": "Type of waveform visualization, options: 'bars', 'mirror', 'line', 'wave', 'envelope'",
+              "classes": "CSS class names for customizing each part",
+              "styles": "Inline styles for customizing each part",
+              "mutualExclusive": "Whether to enable mutual exclusive playback",
+              "onPlay": "Callback function when playback starts",
+              "onPause": "Callback function when playback pauses",
+              "onTimeUpdate": "Callback function when playback progress updates",
+              "onEnded": "Callback function when playback ends"
+            }
+          }
+        },
+        "hooks": {
+          "title": "Hooks",
+          "description": "The Hooks API provides a set of React Hooks that allow you to control audio playback more flexibly."
+        },
+        "utils": {
+          "title": "Utilities",
+          "description": "Utility functions provide common helper functionalities such as time formatting, audio analysis, etc."
+        },
+        "examples": {
+          "title": "Examples",
+          "description": "Here are some examples of common use cases to help you better understand how to use Waveform Player."
+        }
+      }
+    },
     "getStarted": "Get Started",
     "viewExamples": "Examples",
     "features": {
@@ -31,17 +158,9 @@
         "title": "Primitive API",
         "description": "Provide low-level atomic components. You can customize the player's functionality and appearance with minimal effort"
       },
-      "typescript": {
-        "title": "TypeScript support",
-        "description": "Complete TypeScript type definitions, enjoy intelligent prompts and type checking"
-      },
-      "hooks": {
-        "title": "React Hooks",
-        "description": "Provide multiple React Hooks, easily obtaining and controlling player status"
-      },
-      "metadata": {
-        "title": "Metadata support",
-        "description": "Automatically extract and display audio file metadata, including duration, bit rate, sample rate, etc."
+      "globalControl": {
+        "title": "Global Control",
+        "description": "Provide global control hooks, can control the status and behavior of all players on the page"
       }
     },
     "home": {
@@ -91,79 +210,6 @@
       "responsive": "Responsive Design: Adapts to different screen sizes",
       "typescript": "TypeScript Support: Complete type definitions",
       "events": "Event Callbacks: Rich event callback interfaces"
-    }
-  },
-  "docs": {
-    "gettingStarted": {
-      "title": "Getting Started",
-      "installation": {
-        "title": "Installation",
-        "description": "Install @waveform/player-react using your favorite package manager:"
-      },
-      "basicUsage": {
-        "title": "Basic Usage",
-        "description": "After installation, you can use the Waveform Player component in your React application:"
-      },
-      "features": {
-        "title": "Features",
-        "nextSteps": "Next Steps",
-        "learnMore": "To learn more about using Waveform Player, check out:"
-      }
-    },
-    "props": {
-      "title": "Component Props",
-      "description": "The Player component is the main component of Waveform Player. It accepts the following props:",
-      "basicConfig": {
-        "title": "Basic Configuration",
-        "src": "Audio file URL, supports all browser-supported audio formats",
-        "samplePoints": "Number of waveform sample points. Higher values mean more detail but more performance cost",
-        "height": "Player height in pixels, defaults to 200"
-      },
-      "styleConfig": {
-        "title": "Style Configuration",
-        "type": "Waveform rendering type: 'bars' (bar graph), 'line' (line graph), 'mirror' (mirror graph)",
-        "gradient": "Waveform color gradient configuration with 'from' and 'to' colors",
-        "progressGradient": "Played portion color gradient configuration with 'from' and 'to' colors"
-      },
-      "callbacks": {
-        "title": "Event Callbacks",
-        "onPlay": "Called when playback starts",
-        "onPause": "Called when playback is paused",
-        "onEnded": "Called when playback ends",
-        "onTimeUpdate": "Called when playback time updates, with current time in seconds",
-        "onError": "Called when an error occurs, with error object"
-      }
-    },
-    "hooks": {
-      "title": "Hooks API",
-      "description": "Waveform Player provides a set of hooks to help you control the player and get player state:",
-      "playerState": {
-        "title": "usePlayerState",
-        "description": "Get current player state.",
-        "currentTime": "Current playback time in seconds",
-        "duration": "Total audio duration in seconds",
-        "isPlaying": "Whether audio is currently playing",
-        "playbackRate": "Current playback rate, defaults to 1",
-        "volume": "Current volume, range 0-1"
-      },
-      "playerControls": {
-        "title": "usePlayerControls",
-        "description": "Provides player control methods.",
-        "play": "Start playback",
-        "pause": "Pause playback",
-        "stop": "Stop playback and return to start",
-        "seek": "Seek to specified time (seconds)",
-        "setVolume": "Set volume, range 0-1",
-        "setPlaybackRate": "Set playback rate"
-      },
-      "waveform": {
-        "title": "usePlayerWaveform",
-        "description": "Get audio waveform data.",
-        "peaks": "Waveform data array, each element ranges from -1 to 1",
-        "duration": "Audio duration in seconds",
-        "isLoading": "Whether waveform data is loading",
-        "error": "Error information during loading"
-      }
     }
   },
   "globalControl": {

@@ -3,8 +3,8 @@ import type { LucideIcon } from 'lucide-react';
 import demoMusic from '@/assets/music.mp3';
 import { Button } from '@/components/ui/button';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
-import Player, { DownloadTrigger, formatTime, Metadata, Paused, PlaybackRateControl, PlayerRoot, Playing, PlayTrigger, ProgressIndicator, StopTrigger, Timeline, useAudioPlayer, VolumeControl, Waveform, WithContext } from '@zhouhua-dev/waveform-player-react';
-import { AudioWaveform, Box, Layers, Palette, Pause, Play, Settings2, Terminal, Zap } from 'lucide-react';
+import Player, { CurrentTimeDisplay, DownloadTrigger, DurationDisplay, formatTime, Metadata, Paused, PlaybackRateControl, PlayerRoot, Playing, PlayTrigger, ProgressIndicator, StopTrigger, Timeline, useAudioPlayer, useGlobalAudioManager, VolumeControl, Waveform, WithContext } from '@zhouhua-dev/waveform-player-react';
+import { AudioWaveform, Box, Layers, Palette, Pause, Play, Settings2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 interface Feature {
@@ -35,6 +35,8 @@ export function useFeatures() {
   const { audioState, controls } = useAudioPlayer({
     src: demoMusic,
   });
+  const { instances, stopAll } = useGlobalAudioManager();
+
   const features: Feature[] = [
     {
       code: `
@@ -169,46 +171,54 @@ function CustomPlayer() {
       title: t('player.features.customization.title'),
     },
     {
-      code: `import { Primitives } from '@zhouhua-dev/waveform-player-react';
-
-const { PlayTrigger, Timeline, Waveform } = Primitives;
-
-function CustomPlayer() {
-  return (
-    <Root src="audio.mp3">
-      <PlayTrigger />
-      <Timeline />
-      <Waveform />
-    </Root>
-  );
-}`,
+      code: `<PlayerRoot src="audio.mp3">
+  <PlayTrigger />
+  <StopTrigger />
+  <WithContext
+    render={({ audioState, pause, play }) => (
+      <Button variant="outline" size="sm" onClick={() => (audioState.isPlaying ? pause() : play())}>{audioState.isPlaying ? 'Pause' : 'Play'}</Button>
+    )}
+  />
+  <CurrentTimeDisplay />{'/'}<DurationDisplay />
+  <DownloadTrigger />
+  <VolumeControl />
+  <PlaybackRateControl />
+  <Timeline />
+  <Waveform />
+</PlayerRoot>`,
       color: 'from-blue-500 to-cyan-500',
       demo: (
         <PlayerRoot src={demoMusic}>
-          <div className="w-full flex gap-2">
-            <div className="w-52 flex flex-col gap-2 justify-around">
-              <div className="flex gap-2">
+          <div className="w-full flex">
+            <div className="w-52 flex flex-col justify-around">
+              <div className="flex gap-2 border-b border-gray-200 flex-1 items-center">
                 <PlayTrigger />
                 <StopTrigger />
                 <WithContext render={context => <Button variant="outline" size="sm" onClick={() => (context.audioState.isPlaying ? context.pause() : context.play())}>{context.audioState.isPlaying ? '暂停' : '播放'}</Button>} />
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 border-b border-gray-200 flex-1 items-center">
                 <DownloadTrigger />
-              </div>
-              <div className="flex gap-2">
                 <VolumeControl />
-              </div>
-              <div className="flex gap-2">
                 <PlaybackRateControl />
               </div>
-              <Playing>
-                <div>正在播放</div>
-              </Playing>
-              <Paused>
-                <div>不在播放</div>
-              </Paused>
+              <div className="flex gap-2 border-b border-gray-200 flex-1 items-center">
+                已播放
+                {' '}
+                <CurrentTimeDisplay />
+                ，共
+                {' '}
+                <DurationDisplay />
+              </div>
+              <div className="flex flex-1 items-center">
+                <Playing>
+                  <div>正在播放</div>
+                </Playing>
+                <Paused>
+                  <div>不在播放</div>
+                </Paused>
+              </div>
             </div>
-            <div className="flex-1">
+            <div className="flex-1 border-l border-gray-200 pl-4">
               <Timeline />
               <div className="relative h-20">
                 <Waveform type="mirror" className="h-24" gradient={{ from: '#007fd1', to: '#c600ff' }} />
@@ -229,69 +239,57 @@ function CustomPlayer() {
       title: t('player.features.primitives.title'),
     },
     {
-      code: `import type { PlayerProps } from '@zhouhua-dev/waveform-player-react';
+      code: `import { useGlobalAudioManager } from '@zhouhua-dev/waveform-player-react';
 
-type CustomPlayerProps = PlayerProps & {
-  onCustomEvent: () => void;
-};`,
+function GlobalControl() {
+  const { instances, stopAll } = useGlobalAudioManager();
+  
+  return (
+    <div>
+      <div>
+        {instances.map(({ id, instance }) => (
+          <div className="opacity-50 text-sm text-right truncate" key={id}>{id}</div>
+        ))}
+      </div>
+      <div>
+        <Button
+          onClick={stopAll}
+          disabled={instances.every(({ instance }) => !instance.audioState.isPlaying)}
+        >
+          Stop All
+        </Button>
+      </div>
+    </div>
+  );
+}`,
       color: 'from-indigo-500 to-purple-500',
       demo: (
-        <div className="wa-flex wa-gap-2 wa-justify-center">
-          <div className="wa-px-2 wa-py-1 wa-rounded wa-bg-indigo-100 wa-text-indigo-600 wa-text-xs">*.d.ts</div>
-          <div className="wa-px-2 wa-py-1 wa-rounded wa-bg-indigo-100 wa-text-indigo-600 wa-text-xs">*.tsx</div>
+        <div className="flex gap-6 justify-around">
+          <div className="flex flex-col gap-2">
+            {instances.map(({ id, instance }) => (
+              <div className="opacity-50 text-sm text-right truncate" key={id}>
+                {id}
+                {' '}
+                -
+                {' '}
+                {instance.audioState.isPlaying ? '正在播放' : '不在播放'}
+              </div>
+            ))}
+          </div>
+          <div className="flex items-center justify-center">
+            <Button
+              onClick={stopAll}
+              disabled={instances.every(({ instance }) => !instance.audioState.isPlaying)}
+            >
+              停止所有
+            </Button>
+          </div>
         </div>
       ),
-      description: t('player.features.typescript.description'),
+      description: t('player.features.globalControl.description'),
       gradientKey: 'indigo',
       icon: Box,
-      title: t('player.features.typescript.title'),
-    },
-    {
-      code: `import { usePlayerState, usePlayerControls } from '@zhouhua-dev/waveform-player-react';
-
-function Controls() {
-  const { isPlaying } = usePlayerState();
-  const { play, pause } = usePlayerControls();
-  return <button onClick={isPlaying ? pause : play} />;
-}`,
-      color: 'from-pink-500 to-rose-500',
-      demo: (
-        <div className="wa-flex wa-gap-2 wa-justify-center">
-          <div className="wa-px-2 wa-py-1 wa-rounded wa-bg-pink-100 wa-text-pink-600 wa-text-xs">usePlayerState</div>
-          <div className="wa-px-2 wa-py-1 wa-rounded wa-bg-pink-100 wa-text-pink-600 wa-text-xs">usePlayerControls</div>
-        </div>
-      ),
-      description: t('player.features.hooks.description'),
-      gradientKey: 'pink',
-      icon: Zap,
-      title: t('player.features.hooks.title'),
-    },
-    {
-      code: `<Player
-  src="audio.mp3"
-  showMetadata
-/>
-
-// 提取的元数据
-{
-  title: string;
-  format: string;
-  bitrate: number;
-  sampleRate: number;
-  duration: number;
-  channels: number;
-}`,
-      color: 'from-orange-500 to-red-500',
-      demo: (
-        <div className="wa-flex wa-flex-col wa-gap-1 wa-justify-center wa-items-center">
-          <div className="wa-text-xs wa-text-gray-500">44.1kHz</div>
-          <div className="wa-text-xs wa-text-gray-500">320kbps</div>
-        </div>
-      ),
-      description: t('player.features.metadata.description'),
-      gradientKey: 'orange',
-      icon: Terminal,
-      title: t('player.features.metadata.title'),
+      title: t('player.features.globalControl.title'),
     },
   ];
 

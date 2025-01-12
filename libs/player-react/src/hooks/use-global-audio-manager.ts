@@ -30,7 +30,7 @@ export function useGlobalAudioManager() {
   }, []);
 
   const controls = useMemo(() => ({
-    instances,
+    instances: Array.from(instances.entries()).map(([id, instance]) => ({ id, instance })),
     pauseAll,
     stopAll,
     stopOthers,

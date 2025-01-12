@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "private": true,
   "exports": {
-    "./eslint": "./eslint.config.mjs",
+    "./eslint": "./eslint.config.js",
     "./tailwind": "./tailwind.config.js",
     "./tsconfig": "./tsconfig.json"
   },

@@ -8,5 +8,9 @@
   },
   "keywords": [],
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "@tailwindcss/typography": "^0.5.16",
+    "react-router-dom": "^7.1.1"
+  }
 }

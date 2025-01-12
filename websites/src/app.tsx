@@ -1,28 +1,27 @@
-import { Route, Routes, useLocation } from 'react-router-dom';
-import PlayerDocsPage from './pages/player/docs';
-import PlayerExamplesPage from './pages/player/examples';
-import PlayerHomePage from './pages/player/home';
+import { I18nextProvider } from 'react-i18next';
+import { Route, Routes, useLocation } from 'react-router';
+import Footer from './components/footer';
+import { GlobalControl } from './components/global-control';
+import Header from './components/header';
+import i18n from './i18n';
+import { cn } from './lib/utils';
 import ExamplesPage from './pages/examples';
 import HomePage from './pages/home';
-import Footer from './components/footer';
-import Header from './components/header';
+import PlayerDocs from './pages/player/docs';
+import PlayerExamplesPage from './pages/player/examples';
+import PlayerHomePage from './pages/player/home';
 import '@zhouhua-dev/waveform-player-react/index.css';
-import { cn } from './lib/utils';
-import { I18nextProvider } from 'react-i18next';
-import i18n from './i18n';
-import { GlobalControl } from './components/global-control';
 
 function Layout({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation();
 
   return (
-    <div className="min-h-screen w-[720px] mx-auto flex flex-col">
+    <div className="min-h-screen w-full max-w-[1000px] mx-auto flex flex-col">
       <Header />
 
       <main className={cn('flex-1', pathname === '/' ? 'flex flex-col items-center justify-center' : '')}>
         {children}
       </main>
-
       <Footer />
       <GlobalControl />
     </div>
@@ -37,7 +36,7 @@ export default function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/examples" element={<ExamplesPage />} />
           <Route path="/player" element={<PlayerHomePage />} />
-          <Route path="/player/docs/*" element={<PlayerDocsPage />} />
+          <Route path="/player/docs/*" element={<PlayerDocs />} />
           <Route path="/player/examples" element={<PlayerExamplesPage />} />
         </Routes>
       </Layout>
