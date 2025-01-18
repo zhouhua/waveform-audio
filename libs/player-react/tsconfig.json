@@ -1,5 +1,9 @@
 {
   "extends": "@waveform/inf/tsconfig",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "types": ["@vitest/browser/providers/playwright"]
+  },
   "include": [
     "src"
   ]

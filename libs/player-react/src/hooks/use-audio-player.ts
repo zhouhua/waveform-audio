@@ -23,7 +23,8 @@ export interface UseAudioPlayerProps {
   onPause?: (context: AudioPlayerContextValue) => void;
   onTimeUpdate?: (context: AudioPlayerContextValue) => void;
   onEnded?: (context: AudioPlayerContextValue) => void;
-  mutualExclusive?: boolean; // 是否启用互斥播放
+  mutualExclusive?: boolean;
+  instanceId?: string;
 }
 
 export function useAudioPlayer({
@@ -34,7 +35,8 @@ export function useAudioPlayer({
   onTimeUpdate,
   samplePoints = 200,
   src,
-}: UseAudioPlayerProps) {
+  instanceId = `audio-${nanoid()}`,
+}: UseAudioPlayerProps): AudioPlayerContextValue {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [audioState, setAudioState] = useState<AudioState>({
     currentTime: 0,
@@ -49,17 +51,15 @@ export function useAudioPlayer({
   const [metadata, setMetadata] = useState<AudioMetadata>();
   const [isReady, setIsReady] = useState(false);
   const { stopOthers } = useGlobalAudioManager();
-  // eslint-disable-next-line react-hooks-extra/no-unnecessary-use-memo
-  const id = useMemo(() => `audio-${nanoid()}`, []);
 
   const play = useCallback(() => {
     if (audioRef.current) {
       if (mutualExclusive) {
-        stopOthers(id);
+        stopOthers(instanceId);
       }
-      void audioRef.current.play();
+      audioRef.current.play();
     }
-  }, [mutualExclusive, stopOthers, id]);
+  }, [mutualExclusive, stopOthers, instanceId]);
 
   const pause = useCallback(() => {
     if (audioRef.current) {
@@ -156,7 +156,7 @@ export function useAudioPlayer({
   ]);
 
   // 注册到全局音频管理器
-  const updateInstance = useRegisterAudioInstance(id, contextValue);
+  const updateInstance = useRegisterAudioInstance(instanceId, contextValue);
 
   // 在状态更新时同步到全局管理器
   useEffect(() => {
@@ -166,7 +166,7 @@ export function useAudioPlayer({
       metadata,
       waveformData,
     });
-  }, [updateInstance, audioState, isReady, metadata, waveformData]);
+  }, [instanceId, audioState, isReady, metadata, waveformData]);
 
   // 初始化音频元素
   useEffect(() => {
@@ -344,16 +344,19 @@ export function useAudioPlayer({
   return {
     audioRef,
     audioState,
-    context: contextValue,
-    controls: {
-      pause,
-      play,
-      seek,
-      setPlaybackRate,
-      setVolume,
-      stop,
-    },
+    isReady,
     metadata,
+    pause,
+    play,
+    samplePoints: currentSamplePoints,
+    seek,
+    setPlaybackRate,
+    setSamplePoints: setSamplePointsCallback,
+    setVolume,
+    setWaveformData: setWaveformDataCallback,
+    src,
+    stop,
+    updateInstance,
     waveformData,
   };
 }

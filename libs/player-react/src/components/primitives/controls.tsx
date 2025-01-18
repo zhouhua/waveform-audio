@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef, CSSProperties, HTMLAttributes, MouseEvent, ReactElement } from 'react';
 import type { AudioPlayerContextValue } from '../../hooks/audio-player-context';
-import { Children, cloneElement, memo, useCallback } from 'react';
+import React, { Children, cloneElement, memo, useCallback } from 'react';
 import { usePlayerContext } from '../../hooks/use-player-context';
 import { cn } from '../../utils/cn';
 import { formatTime } from '../../utils/time-format';
@@ -81,6 +81,7 @@ export function PlayTrigger({
       type="button"
       onClick={handleClick}
       {...props}
+      data-testid="wa-play-trigger"
     >
       {children || (
         <div
@@ -128,6 +129,7 @@ export const StopTrigger = function StopTrigger({
       type="button"
       onClick={handleClick}
       {...props}
+      data-testid="wa-stop-trigger"
     >
       {children || (
         <div
@@ -222,8 +224,11 @@ export const VolumeControl = memo(({
           variant="ghost"
           className={cn('wa-volume-control wa-flex wa-items-center !wa-p-1 wa-text-[var(--wa-text-secondary-color)]', className)}
           style={style}
+          data-testid="wa-volume-control"
         >
-          <span className="wa-w-4 wa-h-4">{context?.audioState?.volume === 0 ? muteIcon : volumeIcon}</span>
+          <span className="wa-w-4 wa-h-4" data-testid="wa-volume-mute">
+            {context?.audioState?.volume === 0 ? muteIcon : volumeIcon}
+          </span>
           <span className="wa-text-xs wa-font-mon w-[22px]">{volume}</span>
         </Button>
       </PopoverTrigger>
@@ -279,7 +284,12 @@ export function PlaybackRateControl({
         style={style}
         asChild
       >
-        <Button variant="ghost" size="sm" className="wa-playback-rate-control wa-flex wa-items-center !wa-p-1 !wa-ring-0 !wa-outline-none wa-text-[var(--wa-text-secondary-color)]">
+        <Button
+          variant="ghost"
+          size="sm"
+          data-testid="wa-playback-rate-control"
+          className="wa-playback-rate-control wa-flex wa-items-center !wa-p-1 !wa-ring-0 !wa-outline-none wa-text-[var(--wa-text-secondary-color)]"
+        >
           <span className="wa-w-4 wa-h-4">{speedIcon}</span>
           <span className="wa-text-xs wa-font-mono">
             {context?.audioState?.playbackRate ?? 1}

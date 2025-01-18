@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation } from 'react-router';
 
 interface NavItem {
   title: string;
@@ -109,7 +109,7 @@ function DocsLayout() {
 
   return (
     <div className="flex min-h-screen">
-      <div className="w-64 border-r p-4 space-y-4">
+      <div className="w-64 py-4 pr-8 space-y-4 sticky top-16 h-screen overflow-y-auto">
         {navItems.map(section => (
           <div key={section.title} className="space-y-1">
             {section.href && (
@@ -117,14 +117,14 @@ function DocsLayout() {
                 to={section.href}
                 className={
                   currentPath === section.href
-                    ? 'block text-sm font-medium text-primary'
-                    : 'block text-sm font-medium text-muted-foreground hover:text-foreground'
+                    ? 'block text-sm font-medium text-primary truncate'
+                    : 'block text-sm font-medium text-muted-foreground hover:text-foreground truncate'
                 }
               >
                 {section.title}
               </Link>
             )}
-            {!section.href && <h4 className="text-sm font-medium">{section.title}</h4>}
+            {!section.href && <h4 className="text-sm font-medium truncate">{section.title}</h4>}
             {section.items?.map(item => (
               <Link
                 key={item.href}
@@ -133,8 +133,8 @@ function DocsLayout() {
                   currentPath + (item.href?.includes('#')
                     ? item.href.split('#')[1]
                     : '') === item.href
-                    ? 'block pl-4 text-sm text-primary'
-                    : 'block pl-4 text-sm text-muted-foreground hover:text-foreground'
+                    ? 'block pl-4 text-sm text-primary truncate'
+                    : 'block pl-4 text-sm text-muted-foreground hover:text-foreground truncate'
                 }
               >
                 {item.title}
@@ -143,7 +143,7 @@ function DocsLayout() {
           </div>
         ))}
       </div>
-      <div className="flex-1 p-6">
+      <div className="flex-1 p-6 overflow-auto">
         <Outlet />
       </div>
     </div>

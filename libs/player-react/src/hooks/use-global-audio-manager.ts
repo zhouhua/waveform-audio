@@ -34,7 +34,7 @@ export function useGlobalAudioManager() {
     pauseAll,
     stopAll,
     stopOthers,
-  }), [instances]);
+  }), [instances, pauseAll, stopAll, stopOthers]);
 
   return controls;
 }

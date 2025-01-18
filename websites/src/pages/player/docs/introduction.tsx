@@ -29,10 +29,10 @@ function HookExample({ src }: { src: string }) {
           }
         }}
       >
-        {audioState.isPlaying ? '暂停' : '播放'}
+        {audioState.isPlaying ? 'Pause' : 'Play'}
       </Button>
       <div className="text-sm text-foreground/80">
-        当前时间：
+        Current time:
         {audioState.currentTime.toFixed(1)}
         s
       </div>
@@ -52,13 +52,7 @@ import '@zhouhua-dev/waveform-player-react/index.css';
 export default function App() {
   return (
     <Player
-      src="your-audio-file.mp3"
-      type="mirror"
-      showWaveform
-      showControls
-      showTimeDisplay
-      showVolumeControl
-      showPlaybackRateControl
+      src="music.mp3"
     />
   );
 }`;
@@ -94,9 +88,9 @@ export default function App() {
   return (
     <div>
       <button onClick={controls.play}>
-        {audioState.isPlaying ? '暂停' : '播放'}
+        {audioState.isPlaying ? 'Pause' : 'Play'}
       </button>
-      <div>当前时间：{audioState.currentTime}s</div>
+      <div>Current time: {audioState.currentTime}s</div>
     </div>
   );
 }`;
@@ -135,7 +129,7 @@ export default function Introduction() {
           ].map(({ icon, key }) => (
             <div key={key} className="docs-card">
               <h3 className="mb-2 font-medium text-foreground flex items-center gap-2">
-                {icon}
+                <span className="mr-1">{icon}</span>
                 {t(`player.docs.pages.introduction.features.${key}`)}
               </h3>
               <p className="text-sm text-foreground/80">
@@ -149,13 +143,12 @@ export default function Introduction() {
       {/* 安装 */}
       <section>
         <h2 id="installation" className="flex items-center gap-2">
-          <Terminal className="w-6 h-6" />
           {t('player.docs.pages.introduction.installation.title')}
         </h2>
         <p>
           {t('player.docs.pages.introduction.installation.description')}
         </p>
-        <div className="rounded-xl border bg-gradient-to-br from-zinc-950 to-zinc-900 shadow-lg overflow-hidden">
+        <div className="rounded-xl border bg-gradient-to-br from-zinc-950 to-zinc-900 shadow-lg overflow-hidden relative">
           <Tabs value={selectedPkg} onValueChange={v => setSelectedPkg(v as keyof typeof installCommands)} className="w-full">
             <TabsList className="w-full flex h-10 items-center justify-start bg-zinc-900/50 p-0 border-b border-zinc-800">
               {Object.keys(installCommands).map(pkg => (
@@ -214,67 +207,18 @@ export default function Introduction() {
         </p>
 
         {/* 基础使用 */}
-        <h3>
-          {t('player.docs.pages.introduction.quickstart.basic.title')}
-        </h3>
         <p>
           {t('player.docs.pages.introduction.quickstart.basic.description')}
         </p>
         <div className="docs-preview">
           <CodePreview
+            showCode
             code={basicExample}
             preview={(
               <Player
                 src={demoMusic}
-                type="mirror"
-                showWaveform
-                showControls
-                showTimeDisplay
-                showVolumeControl
-                showPlaybackRateControl
               />
             )}
-          />
-        </div>
-
-        {/* 自定义样式 */}
-        <h3>
-          {t('player.docs.pages.introduction.quickstart.custom.title')}
-        </h3>
-        <p>
-          {t('player.docs.pages.introduction.quickstart.custom.description')}
-        </p>
-        <div className="docs-preview">
-          <CodePreview
-            code={customExample}
-            preview={(
-              <Player
-                src={demoMusic}
-                type="mirror"
-                classes={{
-                  controls: 'gap-4',
-                  root: 'bg-black/90',
-                  waveform: 'h-[200px]',
-                }}
-                styles={{
-                  header: { padding: '1rem' },
-                }}
-              />
-            )}
-          />
-        </div>
-
-        {/* 使用 Hooks */}
-        <h3>
-          {t('player.docs.pages.introduction.quickstart.hook.title')}
-        </h3>
-        <p>
-          {t('player.docs.pages.introduction.quickstart.hook.description')}
-        </p>
-        <div className="docs-preview">
-          <CodePreview
-            code={hookExample}
-            preview={<HookExample src={demoMusic} />}
           />
         </div>
       </section>

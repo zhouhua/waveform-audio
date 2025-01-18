@@ -34,6 +34,7 @@ export interface RootProviderProps {
   onTimeUpdate?: (context: AudioPlayerContextValue) => void;
   onEnded?: (context: AudioPlayerContextValue) => void;
   mutualExclusive?: boolean;
+  instanceId?: string;
 }
 
 export interface RootComponent extends React.FC<RootProviderProps> {
@@ -95,6 +96,7 @@ export function RootProvider({
   samplePoints = 200,
   src,
   style,
+  instanceId = `audio-${nanoid()}`,
 }: RootProviderProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [audioState, setAudioState] = useState<AudioState>({
@@ -110,8 +112,6 @@ export function RootProvider({
   const [metadata, setMetadata] = useState<AudioMetadata>();
   const [isReady, setIsReady] = useState(false);
   const { stopOthers } = useGlobalAudioManager();
-  // eslint-disable-next-line react-hooks-extra/no-unnecessary-use-memo
-  const instanceId = useMemo(() => `audio-${nanoid()}`, []);
   const contextValueRef = useRef<AudioPlayerContextValue | null>(null);
 
   const play = useCallback(() => {
@@ -133,12 +133,14 @@ export function RootProvider({
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
-      setAudioState(prev => ({
-        ...prev,
-        currentTime: 0,
-        isPlaying: false,
-        isStoped: true,
-      }));
+      setTimeout(() => {
+        setAudioState(prev => ({
+          ...prev,
+          currentTime: 0,
+          isPlaying: false,
+          isStoped: true,
+        }));
+      }, 20);
     }
   }, []);
 
@@ -178,7 +180,8 @@ export function RootProvider({
   // 初始化音频元素
   useEffect(() => {
     if (!audioRef.current && src) {
-      const audio = new Audio(src);
+      const audio = document.createElement('audio');
+      audio.src = src;
       audio.volume = audioState.volume;
       audio.playbackRate = audioState.playbackRate;
       audioRef.current = audio;
@@ -193,6 +196,7 @@ export function RootProvider({
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
+        audioRef.current.remove();
         audioRef.current = null;
       }
     };
@@ -399,7 +403,6 @@ export function RootProvider({
     <RootContext.Provider value={contextValue}>
       <div className={cn('wa-root', className)} style={style}>
         {children}
-        {src && <audio ref={audioRef} src={src} />}
       </div>
     </RootContext.Provider>
   );

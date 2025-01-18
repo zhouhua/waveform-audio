@@ -5,7 +5,7 @@ export function padNumber(num: number): string {
 
 // 辅助函数：格式化时间
 export function formatTime(seconds: number): string {
-  if (Number.isNaN(seconds)) {
+  if (Number.isNaN(seconds) || seconds < 0) {
     return '0:00';
   }
   const hours = Math.floor(seconds / 3600);

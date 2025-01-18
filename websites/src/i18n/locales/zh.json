@@ -1,9 +1,5 @@
 {
-  "nav": {
-    "docs": "用法",
-    "examples": "示例",
-    "github": "GitHub"
-  },
+
   "footer": {
     "copyright": "版权所有 © 2024 Zhou Hua;",
     "blog": "博客",
@@ -11,40 +7,20 @@
   },
   "player": {
     "title": "Waveform Player",
-    "description": "一个功能强大的音频播放器组件库",
+    "description": "一个功能强大的音频播放器解决方案",
+    "readDocs": "文档",
+    "viewRepo": "GitHub",
+    "react": "为 React 而打造",
+    "nav": {
+      "docs": "文档",
+      "examples": "示例",
+      "github": "GitHub"
+    },
     "docs": {
-      "nav": {
-        "introduction": "介绍",
-        "player": "Player 组件",
-        "primitives": {
-          "title": "原子组件",
-          "root": "Root - 根组件",
-          "controls": "Controls - 控制组件",
-          "waveform": "Waveform - 波形组件",
-          "timeline": "Timeline - 时间轴",
-          "virtual": "Virtual - 状态组件"
-        },
-        "use_audio_player": "useAudioPlayer",
-        "others": {
-          "title": "其他",
-          "global_state": "全局状态管理",
-          "time_format": "时间格式化",
-          "audio_analyzer": "音频分析",
-          "audio_metadata": "音频元数据",
-          "hooks": "辅助 Hooks"
-        },
-        "examples": {
-          "title": "示例",
-          "basic": "基础示例",
-          "custom_ui": "自定义界面",
-          "playlist": "播放列表",
-          "global_player": "全局播放器"
-        }
-      },
       "pages": {
         "introduction": {
           "title": "介绍",
-          "description": "Waveform Player 是一个功能强大的音频播放器组件库，它提供了一系列可组合的组件和工具，帮助你快速构建自定义的音频播放器。无论是简单的音频播放，还是复杂的音乐播放器，都能轻松实现。",
+          "description": "Waveform Player 是一个功能强大的音频播放器解决方案，它提供了一系列可组合的组件和工具，帮助你快速构建自定义的音频播放器。无论是简单的音频播放，还是复杂的音乐播放器，都能轻松实现。",
           "features": {
             "title": "功能特点",
             "waveform": "波形可视化",
@@ -68,16 +44,7 @@
             "title": "快速开始",
             "description": "Waveform Player 提供了多种使用方式，从最简单的 Player 组件到灵活的 Hooks API，都能满足你的需求。让我们看看几种常见的使用方式：",
             "basic": {
-              "title": "基础使用",
               "description": "使用 Player 组件是最简单的方式。它提供了一个完整的音频播放器界面，包含播放控制、波形图、时间显示等功能。你只需要提供音频文件的 URL，其他的交给我们。"
-            },
-            "custom": {
-              "title": "自定义样式",
-              "description": "想要一个独特的播放器？没问题！通过 classes 和 styles 参数，你可以自定义播放器的每一个部分。这个例子展示了如何改变播放器的背景色和波形图高度。"
-            },
-            "hook": {
-              "title": "使用 Hooks",
-              "description": "如果你需要更多控制，可以使用 useAudioPlayer hook。它提供了完整的播放控制和状态管理，让你能够构建完全自定义的播放器界面。"
             }
           },
           "next": {
@@ -102,12 +69,12 @@
               "description": "展示了 Player 组件的基本功能，包括波形显示、播放控制、时间显示、音量控制和播放速率控制。"
             }
           },
-          "styling": {
-            "title": "自定义样式",
-            "description": "Player 组件提供了灵活的样式自定义能力，你可以通过 classes 和 styles 属性来自定义组件的样式。",
+          "anatomy": {
+            "title": "组件结构",
+            "description": "Player 组件由多个部分组成，每个部分都可以通过 props 进行控制和样式定制。",
             "preview": {
-              "title": "样式示例",
-              "description": "展示了如何使用 classes 和 styles 属性来自定义 Player 组件的样式。"
+              "title": "组件结构示例",
+              "description": "展示了 Player 组件的各个部分及其对应的功能区域。"
             }
           },
           "events": {
@@ -233,5 +200,8 @@
       "clickToStop": "点击停止所有音频",
       "status": "共有 {{count}} 个播放器，其中 {{playing}} 个音频正在播放"
     }
+  },
+  "toast": {
+    "copySuccess": "代码已复制到剪贴板"
   }
 }

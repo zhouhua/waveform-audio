@@ -124,7 +124,7 @@ export function Waveform({
     progressGradient,
   ]);
 
-  const handleSeek = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
     const canvas = canvasRef.current;
     if (!canvas || !seek) {
       return;
@@ -139,13 +139,20 @@ export function Waveform({
   };
 
   return (
-    <div className={cn('wa-waveform wa-relative wa-w-full', className)} style={style}>
+    <div
+      className={cn('wa-waveform wa-relative wa-w-full', className)}
+      style={style}
+      data-testid="wa-waveform"
+      onClick={handleSeek}
+    >
       <canvas
         ref={canvasRef}
         className="wa-waveform-canvas wa-w-full wa-cursor-pointer wa-h-full"
+        data-testid="wa-waveform-canvas"
+        data-type={type}
         style={{
-          ...(color ? { '--waveform-color': color } : {}),
-          ...(progressColor ? { '--waveform-progress-color': progressColor } : {}),
+          '--waveform-color': color,
+          '--waveform-progress-color': progressColor,
           ...(gradient && {
             '--waveform-gradient-from': gradient.from,
             '--waveform-gradient-to': gradient.to,
@@ -155,7 +162,6 @@ export function Waveform({
             '--waveform-progress-gradient-to': progressGradient.to,
           }),
         } as React.CSSProperties}
-        onClick={handleSeek}
       />
     </div>
   );

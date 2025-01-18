@@ -274,10 +274,11 @@ export default function PlayerDocs() {
 
       {/* 组件结构 */}
       <section>
-        <h2 id="anatomy">组件结构</h2>
+        <h2 id="anatomy">
+          {t('player.docs.pages.player.anatomy.title')}
+        </h2>
         <p>
-          Player 组件由多个部分组成，每个部分都可以通过 props 进行控制和样式定制。
-          下面是一个完整的组件结构示意图，展示了所有可用的 props 及其对应的功能区域。
+          {t('player.docs.pages.player.anatomy.description')}
         </p>
         <div className="relative p-32 bg-gradient-to-br from-slate-900 to-slate-800 rounded-xl">
           <PlayerAnatomy />

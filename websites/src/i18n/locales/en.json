@@ -1,9 +1,4 @@
 {
-  "nav": {
-    "docs": "Usage",
-    "examples": "Examples",
-    "github": "GitHub"
-  },
   "footer": {
     "copyright": "Copyright © 2024 Zhou Hua",
     "blog": "Blog",
@@ -11,40 +6,20 @@
   },
   "player": {
     "title": "Waveform Player",
-    "description": "A powerful audio player component library",
+    "description": "A powerful audio player solution",
+    "readDocs": "Documentation",
+    "viewRepo": "GitHub",
+    "react": "Built for React",
+    "nav": {
+      "docs": "Docs",
+      "examples": "Examples",
+      "github": "GitHub"
+    },
     "docs": {
-      "nav": {
-        "introduction": "Introduction",
-        "player": "Player Component",
-        "primitives": {
-          "title": "Primitive Components",
-          "root": "Root Component",
-          "controls": "Controls Component",
-          "waveform": "Waveform Component",
-          "timeline": "Timeline Component",
-          "virtual": "Virtual Components"
-        },
-        "use_audio_player": "useAudioPlayer",
-        "others": {
-          "title": "Others",
-          "global_state": "Global State Management",
-          "time_format": "Time Formatting",
-          "audio_analyzer": "Audio Analysis",
-          "audio_metadata": "Audio Metadata",
-          "hooks": "Helper Hooks"
-        },
-        "examples": {
-          "title": "Examples",
-          "basic": "Basic Examples",
-          "custom_ui": "Custom UI",
-          "playlist": "Playlist",
-          "global_player": "Global Player"
-        }
-      },
       "pages": {
         "introduction": {
           "title": "Introduction",
-          "description": "Waveform Player is a powerful audio player component library that provides a set of composable components and tools to help you quickly build custom audio players. Whether you need a simple audio player or a complex music player, it's got you covered.",
+          "description": "Waveform Player is a powerful audio player solution that provides a set of composable components and tools to help you quickly build custom audio players. Whether you need a simple audio player or a complex music player, it's got you covered.",
           "features": {
             "title": "Features",
             "waveform": "Waveform Visualization",
@@ -68,16 +43,7 @@
             "title": "Quick Start",
             "description": "Waveform Player offers multiple ways to use, from the simplest Player component to flexible Hooks API, all to meet your needs. Let's look at some common usage patterns:",
             "basic": {
-              "title": "Basic Usage",
               "description": "Using the Player component is the simplest way. It provides a complete audio player interface with playback controls, waveform visualization, time display, and more. Just provide the audio file URL and let us handle the rest."
-            },
-            "custom": {
-              "title": "Custom Styling",
-              "description": "Want a unique player? No problem! Through classes and styles props, you can customize every part of the player. This example shows how to change the player's background color and waveform height."
-            },
-            "hook": {
-              "title": "Using Hooks",
-              "description": "If you need more control, you can use the useAudioPlayer hook. It provides complete playback control and state management, allowing you to build fully customized player interfaces."
             }
           },
           "next": {
@@ -98,9 +64,13 @@
             "title": "Basic Usage",
             "description": "The simplest way to use the Player component is to use it directly, which provides a complete audio player interface."
           },
-          "styling": {
-            "title": "Custom Styling",
-            "description": "You can customize the player's appearance using the classes and styles props. Each part can be styled individually, giving you complete control over the player's appearance."
+          "anatomy": {
+            "title": "Component Structure",
+            "description": "The Player component is composed of multiple parts, each of which can be controlled and styled through props.",
+            "preview": {
+              "title": "Component Structure Example",
+              "description": "Shows the Player component's various parts and their corresponding functional areas."
+            }
           },
           "events": {
             "title": "Event Handling",
@@ -217,5 +187,8 @@
       "clickToStop": "Click to stop all audio",
       "status": "There are {{count}} players, {{playing}} of them are playing"
     }
+  },
+  "toast": {
+    "copySuccess": "Code copied to clipboard"
   }
 }

@@ -102,6 +102,9 @@
   position: relative;
   background-color: var(--wa-background);
   border-color: var(--wa-border-color);
+  button {
+    @apply wa-bg-transparent wa-border-none wa-text-white wa-p-0 wa-m-0;
+  }
 }
 
 .wa-volume-slider {

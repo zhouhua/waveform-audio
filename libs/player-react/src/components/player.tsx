@@ -88,6 +88,7 @@ export type PlayerProps = {
 } & ({
   context: AudioPlayerContextValue;
   src?: never;
+  instanceId?: never;
   onPlay?: never;
   onPause?: never;
   onTimeUpdate?: never;
@@ -95,6 +96,7 @@ export type PlayerProps = {
 } | {
   src: string;
   context?: never;
+  instanceId?: string;
   onPlay?: (ctx: AudioPlayerContextValue) => void;
   onPause?: (ctx: AudioPlayerContextValue) => void;
   onTimeUpdate?: (ctx: AudioPlayerContextValue) => void;
@@ -133,19 +135,20 @@ const Player: FC<PlayerProps> = ({
   title,
   type = 'mirror',
   volumeControlOptions = {},
+  instanceId,
 }) => {
   const fileName = (src || context?.src)?.split('/').pop()?.replace(/\?.*$/, '');
   const InnerPlayer = useMemo(() => (
     <>
       {
         showHeader && (
-          <div className={cn('wa-flex wa-justify-between wa-pt-4 wa-px-4', classes.header)} style={styles.header}>
-            <h3 className={cn('wa-text-lg wa-font-medium wa-text-[var(--wa-text-color)] wa-truncate', classes.title)} style={styles.title}>
+          <div className={cn('wa-header wa-flex wa-justify-between wa-pt-4 wa-px-4', classes.header)} style={styles.header}>
+            <h3 className={cn('wa-title wa-text-lg wa-font-medium wa-text-[var(--wa-text-color)] wa-truncate', classes.title)} style={styles.title}>
               {showTitle ? (title || fileName) : ''}
             </h3>
             {showMetadata && (
               <Metadata
-                className={cn('wa-flex wa-items-center wa-gap-4 wa-font-mono wa-shrink-0', classes.metadata)}
+                className={cn('wa-metadata wa-flex wa-items-center wa-gap-4 wa-font-mono wa-shrink-0', classes.metadata)}
                 style={styles.metadata}
               />
             )}
@@ -154,15 +157,15 @@ const Player: FC<PlayerProps> = ({
       }
       <div className="wa-flex wa-h-full">
         {showControls && (
-          <div className={cn('wa-px-4 wa-py-3 wa-flex wa-flex-col wa-justify-center wa-w-48 wa-shrink-0 wa-items-start wa-gap-2', classes.controls)} style={styles.controls}>
+          <div className={cn('wa-controls wa-px-4 wa-py-3 wa-flex wa-flex-col wa-justify-center wa-w-48 wa-shrink-0 wa-items-start wa-gap-2', classes.controls)} style={styles.controls}>
             <div className="wa-flex wa-items-end wa-gap-4">
-              {showPlayButton && <PlayTrigger className={cn('wa-w-12 wa-h-12', classes.playButton)} style={styles.playButton} />}
-              {showStopButton && <StopTrigger className={cn('', classes.stopButton)} style={styles.stopButton} />}
+              {showPlayButton && <PlayTrigger className={cn('wa-play-button wa-w-12 wa-h-12', classes.playButton)} style={styles.playButton} />}
+              {showStopButton && <StopTrigger className={cn('wa-stop-button', classes.stopButton)} style={styles.stopButton} />}
             </div>
             {showTimeDisplay && (
               <div className="wa-flex wa-items-end wa-space-x-2">
                 <CurrentTimeDisplay
-                  className={cn('wa-font-mono wa-text-[var(--wa-text-secondary-color)] wa-leading-none', classes.timeDisplay)}
+                  className={cn('wa-time-display wa-font-mono wa-text-[var(--wa-text-secondary-color)] wa-leading-none', classes.timeDisplay)}
                   style={styles.timeDisplay}
                 />
                 <span className="wa-text-[var(--wa-text-secondary-color)] wa-text-sm wa-leading-none wa-opacity-70">/</span>
@@ -200,14 +203,14 @@ const Player: FC<PlayerProps> = ({
         )}
         <div className={cn('wa-w-full wa-group', classes.right)} style={styles.right}>
           {showTimeline && (
-            <div className={cn('', classes.timeline)} style={styles.timeline}>
+            <div className={cn('wa-timeline', classes.timeline)} style={styles.timeline}>
               <Timeline color="#9ca3af" />
             </div>
           )}
           <div className="wa-relative wa-w-full">
             {showWaveform && (
               <Waveform
-                className={cn('wa-w-full wa-h-[140px]', classes.waveform)}
+                className={cn('wa-waveform wa-w-full wa-h-[140px]', classes.waveform)}
                 style={styles.waveform}
                 type={type}
                 barWidth={3}
@@ -219,7 +222,7 @@ const Player: FC<PlayerProps> = ({
             {showProgressIndicator && (
               <ProgressIndicator
                 color={progressIndicatorColor}
-                className={classes.progressIndicator}
+                className={cn('wa-progress-indicator', classes.progressIndicator)}
                 style={styles.progressIndicator}
                 overlay
               />
@@ -313,6 +316,7 @@ const Player: FC<PlayerProps> = ({
       onEnded={onEnded}
       samplePoints={samplePoints}
       mutualExclusive={mutualExclusive}
+      instanceId={instanceId}
     >
       {InnerPlayer}
     </PlayerRoot>

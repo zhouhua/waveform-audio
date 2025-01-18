@@ -1,18 +1,20 @@
 import type { WaveformType } from '@zhouhua-dev/waveform-player-react';
+import type { TFunction } from 'i18next';
 import { FeatureCard } from '@/components/feature-card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Label } from '@/components/ui/label';
-import { Toaster } from '@/components/ui/sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useFeatures } from '@/hooks/use-features';
 import { cn } from '@/lib/utils';
+import { SiGithub, SiReact } from '@icons-pack/react-simple-icons';
 import { DropdownMenuRadioGroup } from '@radix-ui/react-dropdown-menu';
 import Player from '@zhouhua-dev/waveform-player-react';
-import { Asterisk, Code, Copy, Sparkles, Terminal, Upload } from 'lucide-react';
+import { Asterisk, BookOpenText, Code, Copy, Sparkles, Terminal, Upload } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { toast } from 'sonner';
@@ -20,9 +22,9 @@ import demoMusic from '../../assets/music.mp3';
 
 const types = ['bars', 'mirror', 'line', 'wave', 'envelope'];
 
-async function copyToClipboard(text: string) {
+async function copyToClipboard(text: string, t: TFunction) {
   await navigator.clipboard.writeText(text);
-  toast.success('代码已复制到剪贴板');
+  toast.success(t('toast.copySuccess'));
 }
 
 export default function PlayerHome() {
@@ -69,16 +71,19 @@ export default function App() {
 
   return (
     <div className="min-h-screen container w-[720px] mx-auto">
-      <Toaster />
       <div className="w-full px-4 py-16 mt-32">
         {/* Hero Section */}
         <div className="text-center mb-28">
           <h1 className="text-5xl font-bold text-gray-900 mb-6">
             {t('player.title')}
           </h1>
-          <p className="text-xl text-gray-600 mb-8">
+          <p className="text-xl text-gray-600 mt-12 mb-2">
             {t('player.description')}
           </p>
+          <div className="text-xl text-gray-600 mb-8 flex items-center justify-center gap-2">
+            <SiReact className="w-5 h-5" />
+            {t('player.react')}
+          </div>
         </div>
 
         <div className={cn(darkMode ? 'dark' : '', 'mb-32')}>
@@ -142,6 +147,44 @@ export default function App() {
           </p>
         </div>
 
+        <div className="mb-32 flex items-center justify-center gap-20">
+          <Button
+            className={cn(
+              'border-[0.5px] duration-200 rounded-sm bg-transparent',
+              // light mode
+              'shadow-[4px_4px_0px_0px_rgba(0,0,0)] active:shadow-none border-zinc-800 hover:bg-zinc-50 text-zinc-800',
+              // dark mode
+              'dark:border-zinc-600 dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.7)] active:dark:shadow-none dark:text-zinc-50 dark:bg-zinc-950',
+              'flex items-center gap-2',
+            )}
+            asChild
+          >
+            <Link to="/player/docs/introduction">
+              <BookOpenText className="w-4 h-4" />
+              {' '}
+              {t('player.readDocs')}
+            </Link>
+          </Button>
+
+          <Button
+            className={cn(
+              'border-[0.5px] duration-200 rounded-sm bg-transparent',
+              // light mode
+              'shadow-[4px_4px_0px_0px_rgba(0,0,0)] active:shadow-none border-zinc-800 hover:bg-zinc-50 text-zinc-800',
+              // dark mode
+              'dark:border-zinc-600 dark:shadow-[3px_3px_0px_0px_rgba(255,255,255,0.7)] active:dark:shadow-none dark:text-zinc-50 dark:bg-zinc-950',
+              'flex items-center gap-2',
+            )}
+            asChild
+          >
+            <Link to="https://github.com/zhouhua/waveform-audio" target="_blank" rel="noopener noreferrer">
+              <SiGithub className="w-4 h-4" />
+              {' '}
+              {t('player.viewRepo')}
+            </Link>
+          </Button>
+        </div>
+
         {/* Installation Section */}
         <div className="mb-32">
           <div className="text-center mb-12">
@@ -190,7 +233,8 @@ export default function App() {
               </Tabs>
               <div className="absolute right-2 top-0 p-1">
                 <button
-                  onClick={() => copyToClipboard(installCommands[selectedPkg])}
+                  type="button"
+                  onClick={() => copyToClipboard(installCommands[selectedPkg], t)}
                   className="p-2 rounded-md transition-colors hover:bg-white/10 text-white/50 hover:text-white/90"
                 >
                   <Copy className="w-4 h-4" />
@@ -227,7 +271,7 @@ export default function App() {
                 <div className="absolute right-2 top-0 p-1">
                   <button
                     type="button"
-                    onClick={() => copyToClipboard(codeExample)}
+                    onClick={() => copyToClipboard(codeExample, t)}
                     className="p-2 rounded-md transition-colors hover:bg-white/10 text-white/50 hover:text-white/90"
                   >
                     <Copy className="w-4 h-4" />

@@ -1,6 +1,9 @@
+import type { TFunction } from 'i18next';
 import { Button } from '@/components/ui/button';
 import { Copy } from 'lucide-react';
-import { useState } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
+import { useLayoutEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { toast } from 'sonner';
@@ -8,21 +11,30 @@ import { toast } from 'sonner';
 interface CodePreviewProps {
   code: string;
   preview: React.ReactNode;
+  showCode?: boolean;
 }
 
-async function copyToClipboard(text: string) {
+async function copyToClipboard(text: string, t: TFunction) {
   await navigator.clipboard.writeText(text);
-  toast.success('代码已复制到剪贴板');
+  toast.success(t('toast.copySuccess'));
 }
 
 export function CodePreview({
   code,
   preview,
+  showCode = false,
 }: CodePreviewProps) {
-  const [showCode, setShowCode] = useState(false);
+  const [showCodeState, setShowCodeState] = useState(false);
+  const { t } = useTranslation();
+
+  useLayoutEffect(() => {
+    setTimeout(() => {
+      setShowCodeState(showCode);
+    }, 20);
+  }, [showCode]);
 
   return (
-    <div>
+    <div className="not-prose">
       <div className="p-4 bg-card/50 rounded-lg shadow-lg relative z-10">
         {preview}
       </div>
@@ -31,33 +43,42 @@ export function CodePreview({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setShowCode(!showCode)}
+            onClick={() => setShowCodeState(!showCodeState)}
             className="h-8"
           >
-            {showCode ? '隐藏代码' : '查看代码'}
+            {showCodeState ? '隐藏代码' : '查看代码'}
           </Button>
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => copyToClipboard(code)}
+            onClick={() => copyToClipboard(code, t)}
             className="h-8"
           >
             <Copy className="w-4 h-4" />
           </Button>
         </div>
-        {showCode && (
-          <SyntaxHighlighter
-            language="tsx"
-            style={vscDarkPlus}
-            customStyle={{
-              borderBottomLeftRadius: '0.5rem',
-              borderBottomRightRadius: '0.5rem',
-              margin: 0,
-            }}
-          >
-            {code.trim()}
-          </SyntaxHighlighter>
-        )}
+        <AnimatePresence>
+          {showCodeState && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: showCodeState ? 'auto' : 0, opacity: showCodeState ? 1 : 0 }}
+              exit={{ height: showCodeState ? 0 : 'auto', opacity: showCodeState ? 0 : 1 }}
+              transition={{ duration: 0.3 }}
+            >
+              <SyntaxHighlighter
+                language="tsx"
+                style={vscDarkPlus}
+                customStyle={{
+                  borderBottomLeftRadius: '0.5rem',
+                  borderBottomRightRadius: '0.5rem',
+                  margin: 0,
+                }}
+              >
+                {code.trim()}
+              </SyntaxHighlighter>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
