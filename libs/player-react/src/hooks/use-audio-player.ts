@@ -57,7 +57,7 @@ export function useAudioPlayer({
       if (mutualExclusive) {
         stopOthers(instanceId);
       }
-      audioRef.current.play();
+      void audioRef.current.play();
     }
   }, [mutualExclusive, stopOthers, instanceId]);
 
@@ -96,7 +96,6 @@ export function useAudioPlayer({
       audioRef.current.volume = volume;
       setAudioState(prev => ({
         ...prev,
-        currentTime: audioRef.current?.currentTime ?? prev.currentTime,
         volume,
       }));
     }
@@ -107,7 +106,6 @@ export function useAudioPlayer({
       audioRef.current.playbackRate = rate;
       setAudioState(prev => ({
         ...prev,
-        currentTime: audioRef.current?.currentTime ?? prev.currentTime,
         playbackRate: rate,
       }));
     }
@@ -170,64 +168,23 @@ export function useAudioPlayer({
 
   // 初始化音频元素
   useEffect(() => {
-    if (!audioRef.current && src) {
+    // 只在组件挂载时创建 audio 元素
+    if (!audioRef.current) {
       const audio = document.createElement('audio');
-      audio.src = src;
       audio.volume = audioState.volume;
       audio.playbackRate = audioState.playbackRate;
       audioRef.current = audio;
     }
-    else if (audioRef.current && src && audioRef.current.src !== src) {
+
+    // 更新 audio 属性
+    if (audioRef.current) {
       audioRef.current.src = src;
-      audioRef.current.volume = audioState.volume;
-      audioRef.current.playbackRate = audioState.playbackRate;
     }
 
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
-        audioRef.current = null;
-      }
-    };
-  }, [src]);
-
-  // 音频分析
-  useEffect(() => {
-    let mounted = true;
-
-    const loadAudio = async () => {
-      if (!src) {
-        return;
-      }
-
-      try {
-        const data = await analyzeAudio(src, currentSamplePoints);
-        if (mounted) {
-          setWaveformData(data);
-          setAudioState(prev => ({ ...prev, isPlaying: false, isStoped: true }));
-          setIsReady(true);
-        }
-      }
-      catch (error) {
-        console.error('Failed to analyze audio:', error);
-      }
-    };
-
-    void loadAudio();
-
-    return () => {
-      mounted = false;
-    };
-  }, [src, currentSamplePoints]);
-
-  // 音频事件监听
-  useEffect(() => {
     const audio = audioRef.current;
-    if (!audio) {
-      return;
-    }
+    if (!audio) return;
 
+    // 事件监听
     const updateState = () => {
       setAudioState(prev => ({
         ...prev,
@@ -264,10 +221,9 @@ export function useAudioPlayer({
     };
 
     const handleEnded = () => {
-      audio.currentTime = 0;
       setAudioState(prev => ({
         ...prev,
-        currentTime: 0,
+        currentTime: audio.duration || 0,
         isPlaying: false,
         isStoped: true,
         playbackRate: audio.playbackRate,
@@ -300,7 +256,9 @@ export function useAudioPlayer({
     audio.addEventListener('ratechange', handleRateChange);
     audio.addEventListener('volumechange', handleVolumeChange);
 
+    // 清理函数
     return () => {
+      // 只在组件卸载时移除事件监听器，不暂停播放
       audio.removeEventListener('timeupdate', updateState);
       audio.removeEventListener('loadedmetadata', updateState);
       audio.removeEventListener('play', handlePlay);
@@ -309,9 +267,56 @@ export function useAudioPlayer({
       audio.removeEventListener('ratechange', handleRateChange);
       audio.removeEventListener('volumechange', handleVolumeChange);
     };
-  }, [onPlay, onPause, onTimeUpdate, onEnded, contextValue]);
+  }, [src, onPlay, onPause, onTimeUpdate, onEnded, contextValue]);
 
-  // 添加元数据加载逻辑
+  // 监听音量和播放速率变化
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = audioState.volume;
+      audioRef.current.playbackRate = audioState.playbackRate;
+    }
+  }, [audioState.volume, audioState.playbackRate]);
+
+  // 组件卸载时清理 audio 元素
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = '';
+        audioRef.current = null;
+      }
+    };
+  }, []);
+
+  // 音频分析
+  useEffect(() => {
+    let mounted = true;
+
+    const loadAudio = async () => {
+      if (!src) {
+        return;
+      }
+
+      try {
+        const data = await analyzeAudio(src, currentSamplePoints);
+        if (mounted) {
+          setWaveformData(data);
+          setIsReady(true);
+        }
+      }
+      catch (error) {
+        console.error('Failed to analyze audio:', error);
+      }
+    };
+
+    void loadAudio();
+
+    return () => {
+      mounted = false;
+    };
+  }, [src, currentSamplePoints]);
+
+  // 元数据加载
   useEffect(() => {
     let mounted = true;
 
@@ -341,22 +346,5 @@ export function useAudioPlayer({
     };
   }, [src]);
 
-  return {
-    audioRef,
-    audioState,
-    isReady,
-    metadata,
-    pause,
-    play,
-    samplePoints: currentSamplePoints,
-    seek,
-    setPlaybackRate,
-    setSamplePoints: setSamplePointsCallback,
-    setVolume,
-    setWaveformData: setWaveformDataCallback,
-    src,
-    stop,
-    updateInstance,
-    waveformData,
-  };
+  return contextValue;
 }

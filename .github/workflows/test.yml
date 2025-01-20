@@ -1,0 +1,43 @@
+name: Test
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'libs/player-react/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'libs/player-react/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          
+      - name: Install dependencies
+        run: cd libs/player-react && pnpm install
+        
+      - name: Run tests
+        run: cd libs/player-react && pnpm test
+        
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v4
+        with:
+          directory: ./libs/player-react/coverage/
+          flags: player-react
+          name: player-react-coverage
+          fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }} 

@@ -26,13 +26,13 @@ const randomColors = [
 
 export function useFeatures() {
   const { t } = useTranslation();
-  const { context } = useAudioPlayer({
+  const context = useAudioPlayer({
     src: demoMusic,
   });
-  const { context: context4Theme } = useAudioPlayer({
+  const context4Theme = useAudioPlayer({
     src: demoMusic,
   });
-  const { audioState, controls } = useAudioPlayer({
+  const { audioState, play, pause, seek } = useAudioPlayer({
     src: demoMusic,
   });
   const { instances, stopAll } = useGlobalAudioManager();
@@ -135,7 +135,7 @@ function CustomPlayer() {
         >
           <div
             className="w-10 h-full hover:bg-gray-950 flex items-center justify-center border-r-gray-600 border-r rounded-l-sm cursor-pointer transition-colors duration-300 shrink-0"
-            onClick={() => (audioState.isPlaying ? controls.pause() : controls.play())}
+            onClick={() => (audioState.isPlaying ? pause() : play())}
           >
             {audioState.isPlaying ? <Pause fill="white" size={16} /> : <Play fill="white" size={16} />}
           </div>
@@ -150,8 +150,8 @@ function CustomPlayer() {
             onClick={(e) => {
               const rect = e.currentTarget.getBoundingClientRect();
               const x = e.clientX - rect.left;
-              controls.seek(x / rect.width * audioState.duration);
-              controls.play();
+              seek(x / rect.width * audioState.duration);
+              play();
             }}
           >
             <div

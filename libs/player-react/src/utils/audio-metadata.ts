@@ -161,7 +161,6 @@ function parseOggHeader(buffer: ArrayBuffer): Partial<AudioMetadata> {
       view.getUint8(offset + 6) === 0x73) { // 's'
 
       offset += 7;
-      const vorbisVersion = view.getUint32(offset, true);
       const channels = view.getUint8(offset + 4);
       const sampleRate = view.getUint32(offset + 5, true);
       const maxBitrate = view.getUint32(offset + 9, true);
@@ -231,15 +230,11 @@ function parseWmaHeader(buffer: ArrayBuffer): Partial<AudioMetadata> {
           offset += 24; // 跳过 Stream Type GUID 和 Error Correction Type GUID
 
           // 读取 8 字节的时间偏移（替换 getUint64）
-          const timeOffsetLow = view.getUint32(offset, true);
-          const timeOffsetHigh = view.getUint32(offset + 4, true);
           offset += 8;
 
-          const formatTag = view.getUint16(offset, true);
           const channels = view.getUint16(offset + 2, true);
           const samplesPerSec = view.getUint32(offset + 4, true);
           const avgBytesPerSec = view.getUint32(offset + 8, true);
-          const blockAlign = view.getUint16(offset + 12, true);
           const bitsPerSample = view.getUint16(offset + 14, true);
 
           return {

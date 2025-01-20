@@ -44,22 +44,51 @@ export function removeInstance(id: string) {
 export function updateInstance(id: string, updates: Partial<AudioPlayerContextValue>) {
   const instance = globalInstances.get(id);
   if (instance && typeof instance.play === 'function') {
-    const updatedInstance = {
-      ...instance,
-      audioRef: updates.audioRef || instance.audioRef,
-      audioState: updates.audioState || instance.audioState,
-      isReady: updates.isReady ?? instance.isReady,
-      metadata: updates.metadata || instance.metadata,
-      samplePoints: updates.samplePoints || instance.samplePoints,
-      src: updates.src || instance.src,
-      waveformData: updates.waveformData || instance.waveformData,
-    };
-    globalInstances.set(id, updatedInstance);
-    window.dispatchEvent(
-      new CustomEvent(AUDIO_EVENTS.INSTANCE_UPDATE, {
-        detail: { id, instance: updatedInstance, updates },
-      }),
-    );
+    // 只在真正需要更新的时候才更新
+    let hasChanges = false;
+    const updatedInstance = { ...instance };
+
+    // 检查每个字段是否真的需要更新
+    if (updates.audioRef && updates.audioRef !== instance.audioRef) {
+      updatedInstance.audioRef = updates.audioRef;
+      hasChanges = true;
+    }
+    if (updates.audioState &&
+      (updates.audioState.isPlaying !== instance.audioState.isPlaying ||
+        updates.audioState.currentTime !== instance.audioState.currentTime)) {
+      updatedInstance.audioState = { ...instance.audioState, ...updates.audioState };
+      hasChanges = true;
+    }
+    if (updates.isReady !== undefined && updates.isReady !== instance.isReady) {
+      updatedInstance.isReady = updates.isReady;
+      hasChanges = true;
+    }
+    if (updates.metadata && updates.metadata !== instance.metadata) {
+      updatedInstance.metadata = updates.metadata;
+      hasChanges = true;
+    }
+    if (updates.samplePoints && updates.samplePoints !== instance.samplePoints) {
+      updatedInstance.samplePoints = updates.samplePoints;
+      hasChanges = true;
+    }
+    if (updates.src && updates.src !== instance.src) {
+      updatedInstance.src = updates.src;
+      hasChanges = true;
+    }
+    if (updates.waveformData && updates.waveformData !== instance.waveformData) {
+      updatedInstance.waveformData = updates.waveformData;
+      hasChanges = true;
+    }
+
+    // 只在真正有变化时才更新和触发事件
+    if (hasChanges) {
+      globalInstances.set(id, updatedInstance);
+      window.dispatchEvent(
+        new CustomEvent(AUDIO_EVENTS.INSTANCE_UPDATE, {
+          detail: { id, instance: updatedInstance, updates },
+        }),
+      );
+    }
   }
 }
 

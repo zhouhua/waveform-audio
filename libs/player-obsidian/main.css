@@ -1,0 +1,9 @@
+@import '@zhouhua-dev/waveform-player-react/index.css';
+
+.wa-player button {
+  box-shadow: none;
+  width: auto;
+  height: auto;
+  background-color: transparent;
+  padding: 0;
+}
