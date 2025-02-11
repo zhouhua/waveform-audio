@@ -29,17 +29,17 @@ Transform your audio player into an immersive experience with:
 
 ```bash
 # Using npm
-npm install @zhouhua-dev/waveform-player-react
+npm install @waveform-audio/player
 
 # Using pnpm
-pnpm add @zhouhua-dev/waveform-player-react
+pnpm add @waveform-audio/player
 ```
 
 ### Basic Usage
 
 ```tsx
-import { WaveformPlayer } from '@zhouhua-dev/waveform-player-react';
-import '@zhouhua-dev/waveform-player-react/index.css';
+import { WaveformPlayer } from '@waveform-audio/player';
+import '@waveform-audio/player/index.css';
 
 function App() {
   return (

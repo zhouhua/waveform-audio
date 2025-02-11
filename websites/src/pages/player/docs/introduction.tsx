@@ -1,7 +1,7 @@
 import { CodePreview } from '@/components/code-preview';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import Player, { useAudioPlayer } from '@zhouhua-dev/waveform-player-react';
+import Player, { useAudioPlayer } from '@waveform-audio/player';
 import { Copy, Terminal } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -41,13 +41,13 @@ function HookExample({ src }: { src: string }) {
 }
 
 const installCommands = {
-  npm: 'npm install @zhouhua-dev/waveform-player-react',
-  pnpm: 'pnpm add @zhouhua-dev/waveform-player-react',
-  yarn: 'yarn add @zhouhua-dev/waveform-player-react',
+  npm: 'npm install @waveform-audio/player',
+  pnpm: 'pnpm add @waveform-audio/player',
+  yarn: 'yarn add @waveform-audio/player',
 };
 
-const basicExample = `import Player from '@zhouhua-dev/waveform-player-react';
-import '@zhouhua-dev/waveform-player-react/index.css';
+const basicExample = `import Player from '@waveform-audio/player';
+import '@waveform-audio/player/index.css';
 
 export default function App() {
   return (
@@ -57,8 +57,8 @@ export default function App() {
   );
 }`;
 
-const customExample = `import Player from '@zhouhua-dev/waveform-player-react';
-import '@zhouhua-dev/waveform-player-react/index.css';
+const customExample = `import Player from '@waveform-audio/player';
+import '@waveform-audio/player/index.css';
 
 export default function App() {
   return (
@@ -78,7 +78,7 @@ export default function App() {
   );
 }`;
 
-const hookExample = `import { useAudioPlayer } from '@zhouhua-dev/waveform-player-react';
+const hookExample = `import { useAudioPlayer } from '@waveform-audio/player';
 
 export default function App() {
   const { controls, audioState } = useAudioPlayer({

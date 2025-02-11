@@ -1,9 +1,0 @@
-{
-  "id": "waveform-player",
-  "name": "Waveform Player",
-  "version": "1.0.0",
-  "minAppVersion": "1.7.7",
-  "description": "An Obsidian plugin that renders audio files as waveforms using @zhouhua-dev/waveform-player-react",
-  "author": "zhouhua",
-  "isDesktopOnly": false
-}

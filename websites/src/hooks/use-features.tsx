@@ -3,7 +3,7 @@ import type { LucideIcon } from 'lucide-react';
 import demoMusic from '@/assets/music.mp3';
 import { Button } from '@/components/ui/button';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
-import Player, { CurrentTimeDisplay, DownloadTrigger, DurationDisplay, formatTime, Metadata, Paused, PlaybackRateControl, PlayerRoot, Playing, PlayTrigger, ProgressIndicator, StopTrigger, Timeline, useAudioPlayer, useGlobalAudioManager, VolumeControl, Waveform, WithContext } from '@zhouhua-dev/waveform-player-react';
+import Player, { CurrentTimeDisplay, DownloadTrigger, DurationDisplay, formatTime, Metadata, Paused, PlaybackRateControl, PlayerRoot, Playing, PlayTrigger, ProgressIndicator, StopTrigger, Timeline, useAudioPlayer, useGlobalAudioManager, VolumeControl, Waveform, WithContext } from '@waveform-audio/player';
 import { AudioWaveform, Box, Layers, Palette, Pause, Play, Settings2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -32,7 +32,7 @@ export function useFeatures() {
   const context4Theme = useAudioPlayer({
     src: demoMusic,
   });
-  const { audioState, play, pause, seek } = useAudioPlayer({
+  const { audioState, pause, play, seek } = useAudioPlayer({
     src: demoMusic,
   });
   const { instances, stopAll } = useGlobalAudioManager();
@@ -103,7 +103,7 @@ export function useFeatures() {
       title: t('player.features.theme.title'),
     },
     {
-      code: `import { formatTime, useAudioPlayer } from '@zhouhua-dev/waveform-player-react';
+      code: `import { formatTime, useAudioPlayer } from '@waveform-audio/player';
 function CustomPlayer() {
   const { audioState, controls: { pause, play } } = useAudioPlayer({
     src: 'audio.mp3',
@@ -239,7 +239,7 @@ function CustomPlayer() {
       title: t('player.features.primitives.title'),
     },
     {
-      code: `import { useGlobalAudioManager } from '@zhouhua-dev/waveform-player-react';
+      code: `import { useGlobalAudioManager } from '@waveform-audio/player';
 
 function GlobalControl() {
   const { instances, stopAll } = useGlobalAudioManager();
@@ -266,20 +266,20 @@ function GlobalControl() {
       demo: (
         <div className="flex gap-6 justify-around">
           <div className="flex flex-col gap-2">
-            {instances.map(({ id, instance }) => (
-              <div className="opacity-50 text-sm text-right truncate" key={id}>
+            {instances.map(({ audioState, id }) => (
+              <div className="opacity-50 text-sm text-right truncate font-mono" key={id}>
                 {id}
                 {' '}
                 -
                 {' '}
-                {instance.audioState.isPlaying ? '正在播放' : '不在播放'}
+                {audioState.isPlaying ? '正在播放' : '不在播放'}
               </div>
             ))}
           </div>
           <div className="flex items-center justify-center">
             <Button
               onClick={stopAll}
-              disabled={instances.every(({ instance }) => !instance.audioState.isPlaying)}
+              disabled={instances.every(({ audioState }) => !audioState.isPlaying)}
             >
               停止所有
             </Button>

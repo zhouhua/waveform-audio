@@ -1,10 +1,10 @@
 import { CodePreview } from '@/components/code-preview';
-import Player, { useAudioPlayer } from '@zhouhua-dev/waveform-player-react';
+import Player, { useAudioPlayer } from '@waveform-audio/player';
 import { useTranslation } from 'react-i18next';
 import demoMusic from '../../../assets/music.mp3';
 
-const basicExample = `import Player from '@zhouhua-dev/waveform-player-react';
-import '@zhouhua-dev/waveform-player-react/index.css';
+const basicExample = `import Player from '@waveform-audio/player';
+import '@waveform-audio/player/index.css';
 
 export default function App() {
   return (
@@ -67,7 +67,7 @@ const anatomyExample = `<Player
   onEnded={(ctx) => {}}              // 播放结束事件
 />`;
 
-const eventHandlersExample = `import Player from '@zhouhua-dev/waveform-player-react';
+const eventHandlersExample = `import Player from '@waveform-audio/player';
 
 export default function App() {
   return (
@@ -92,7 +92,7 @@ export default function App() {
   );
 }`;
 
-const mutualExclusiveExample = `import Player from '@zhouhua-dev/waveform-player-react';
+const mutualExclusiveExample = `import Player from '@waveform-audio/player';
 
 export default function App() {
   return (

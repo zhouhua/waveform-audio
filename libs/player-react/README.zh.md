@@ -29,17 +29,17 @@
 
 ```bash
 # 使用 npm
-npm install @zhouhua-dev/waveform-player-react
+npm install @waveform-audio/player
 
 # 使用 pnpm
-pnpm add @zhouhua-dev/waveform-player-react
+pnpm add @waveform-audio/player
 ```
 
 ### 基础用法
 
 ```tsx
-import { WaveformPlayer } from '@zhouhua-dev/waveform-player-react';
-import '@zhouhua-dev/waveform-player-react/index.css';
+import { WaveformPlayer } from '@waveform-audio/player';
+import '@waveform-audio/player/index.css';
 
 function App() {
   return (

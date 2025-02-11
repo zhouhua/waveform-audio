@@ -1,8 +1,8 @@
 {
-  "name": "@waveform/inf",
+  "name": "@waveform-audio/inf",
   "type": "module",
   "version": "0.0.1",
-  "private": true,
+  "private": false,
   "exports": {
     "./eslint": "./eslint.config.js",
     "./tailwind": "./tailwind.config.js",

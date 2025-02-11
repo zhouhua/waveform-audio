@@ -1,8 +1,10 @@
 {
-  "extends": "@waveform/inf/tsconfig",
+  "extends": "@waveform-audio/inf/tsconfig",
   "compilerOptions": {
     "jsx": "react-jsx",
-    "types": ["@vitest/browser/providers/playwright"]
+    "types": [
+      "@vitest/browser/providers/playwright"
+    ]
   },
   "include": [
     "src"

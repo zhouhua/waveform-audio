@@ -1,8 +1,8 @@
 import { CodePreview } from '@/components/code-preview';
-import { DownloadTrigger as AudioDownloadButton, Metadata as AudioMetadata, PlaybackRateControl as AudioPlaybackRateControl, PlayTrigger as AudioPlayButton, RootProvider as AudioRoot, StopTrigger as AudioStopButton, Timeline as AudioTimeline, VolumeControl as AudioVolumeControl, Waveform as AudioWaveform } from '@zhouhua-dev/waveform-player-react';
+import { DownloadTrigger as AudioDownloadButton, Metadata as AudioMetadata, PlaybackRateControl as AudioPlaybackRateControl, PlayTrigger as AudioPlayButton, RootProvider as AudioRoot, StopTrigger as AudioStopButton, Timeline as AudioTimeline, VolumeControl as AudioVolumeControl, Waveform as AudioWaveform } from '@waveform-audio/player';
 import demoMusic from '../../../assets/music.mp3';
 
-const rootExample = `import { RootProvider } from '@zhouhua-dev/waveform-player-react';
+const rootExample = `import { RootProvider } from '@waveform-audio/player';
 
 function AudioPlayer() {
   return (
@@ -12,7 +12,7 @@ function AudioPlayer() {
   );
 }`;
 
-const metadataExample = `import { RootProvider, Metadata } from '@zhouhua-dev/waveform-player-react';
+const metadataExample = `import { RootProvider, Metadata } from '@waveform-audio/player';
 
 function AudioPlayer() {
   return (
@@ -22,7 +22,7 @@ function AudioPlayer() {
   );
 }`;
 
-const waveformExample = `import { RootProvider, Waveform } from '@zhouhua-dev/waveform-player-react';
+const waveformExample = `import { RootProvider, Waveform } from '@waveform-audio/player';
 
 function AudioPlayer() {
   return (
@@ -42,7 +42,7 @@ function AudioPlayer() {
   );
 }`;
 
-const controlsExample = `import { RootProvider, PlayTrigger, StopTrigger, VolumeControl, PlaybackRateControl } from '@zhouhua-dev/waveform-player-react';
+const controlsExample = `import { RootProvider, PlayTrigger, StopTrigger, VolumeControl, PlaybackRateControl } from '@waveform-audio/player';
 
 function AudioPlayer() {
   return (

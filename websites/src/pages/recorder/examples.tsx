@@ -1,6 +1,6 @@
 import * as TabsPrimitive from '@radix-ui/react-tabs';
+import Player, { ProgressIndicator, Primitives as WaveForm } from '@waveform-audio/player';
 import { Highlight, themes } from 'prism-react-renderer';
-import Player, { ProgressIndicator, Primitives as WaveForm } from '@zhouhua-dev/waveform-player-react';
 
 import demoMusic from '../assets/music.mp3';
 

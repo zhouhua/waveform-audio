@@ -11,7 +11,7 @@ import HomePage from './pages/home';
 import PlayerDocs from './pages/player/docs';
 import PlayerExamplesPage from './pages/player/examples';
 import PlayerHomePage from './pages/player/home';
-import '@zhouhua-dev/waveform-player-react/index.css';
+import '@waveform-audio/player/index.css';
 
 function Layout({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation();

@@ -1,10 +1,11 @@
-import { FC, useMemo } from 'react';
+import type { FC } from 'react';
+import { nanoid } from 'nanoid';
+import { useMemo } from 'react';
 import Player from '../../../components/player';
 import { useAudioPlayer } from '../../../hooks/use-audio-player';
 import { useGlobalAudioManager } from '../../../hooks/use-global-audio-manager';
-import '../../../index.css';
 import testAudio from '../../test.mp3';
-import { nanoid } from 'nanoid';
+import '../../../index.css';
 
 interface TestPlayerProps {
   showHeader?: boolean;
@@ -23,6 +24,7 @@ interface TestPlayerProps {
   customTitle?: string;
   mutualExclusive?: boolean;
   useContext?: boolean;
+  instanceId?: string;
   classes?: {
     root?: string;
     header?: string;
@@ -42,61 +44,55 @@ interface TestPlayerProps {
 }
 
 export const TestPlayer: FC<TestPlayerProps> = ({
-  showHeader = true,
-  showTitle = true,
-  showMetadata = true,
-  showControls = true,
-  showPlayButton = true,
-  showStopButton = true,
-  showDownloadButton = true,
-  showTimeDisplay = true,
-  showVolumeControl = true,
-  showPlaybackRateControl = true,
-  showWaveform = true,
-  showTimeline = true,
-  showProgressIndicator = true,
-  customTitle,
-  mutualExclusive,
-  useContext = false,
   classes,
+  customTitle,
+  instanceId = `test-audio-${nanoid()}`,
+  mutualExclusive,
+  showControls = true,
+  showDownloadButton = true,
+  showHeader = true,
+  showMetadata = true,
+  showPlaybackRateControl = true,
+  showPlayButton = true,
+  showProgressIndicator = true,
+  showStopButton = true,
+  showTimeDisplay = true,
+  showTimeline = true,
+  showTitle = true,
+  showVolumeControl = true,
+  showWaveform = true,
+  useContext = false,
 }) => {
-  // 生成唯一的实例ID
-  const id = useMemo(() => `test-audio-${nanoid()}`, []);
   const { instances } = useGlobalAudioManager();
 
   // 获取当前实例的状态
   const currentInstance = useMemo(() => {
-    return instances.find(instance => instance.id === id)?.instance;
-  }, [instances, id]);
-
+    return instances.find(instance => instance.id === instanceId);
+  }, [instances, instanceId]);
   const playerProps = {
-    src: testAudio,
-    showHeader,
-    showTitle,
-    showMetadata,
-    showControls,
-    showPlayButton,
-    showStopButton,
-    showDownloadButton,
-    showTimeDisplay,
-    showVolumeControl,
-    showPlaybackRateControl,
-    showWaveform,
-    showTimeline,
-    showProgressIndicator,
-    title: customTitle,
+    classes,
     mutualExclusive,
-    classes
+    showControls,
+    showDownloadButton,
+    showHeader,
+    showMetadata,
+    showPlaybackRateControl,
+    showPlayButton,
+    showProgressIndicator,
+    showStopButton,
+    showTimeDisplay,
+    showTimeline,
+    showTitle,
+    showVolumeControl,
+    showWaveform,
+    src: testAudio,
+    title: customTitle,
   };
-
   return (
     <div>
       <div className="wa-test-audio-state" data-testid="audio-state">
         <div className="wa-test-is-playing">
           {currentInstance?.audioState.isPlaying.toString()}
-        </div>
-        <div className="wa-test-is-stopped">
-          {currentInstance?.audioState.isStoped.toString()}
         </div>
         <div className="wa-test-current-time">
           {currentInstance?.audioState.currentTime.toString()}
@@ -106,20 +102,17 @@ export const TestPlayer: FC<TestPlayerProps> = ({
         </div>
       </div>
 
-      {useContext ? (
-        <WithContext {...playerProps} instanceId={id} />
-      ) : (
-        <Player {...playerProps} instanceId={id} />
-      )}
+      {useContext && <WithContext {...playerProps} instanceId={instanceId} />}
+      {!useContext && <Player {...playerProps} instanceId={instanceId} />}
     </div>
   );
 };
 
-function WithContext(props: TestPlayerProps & { instanceId: string }) {
+function WithContext({ instanceId, ...props }: { instanceId: string } & TestPlayerProps) {
   const context = useAudioPlayer({
+    instanceId,
     src: testAudio,
-    instanceId: props.instanceId,
   });
 
-  return <Player context={context} {...props as Omit<TestPlayerProps, 'src'>} />;
+  return <Player context={context} {...props} />;
 }

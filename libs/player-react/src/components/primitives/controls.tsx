@@ -56,7 +56,6 @@ export function PlayTrigger({
   ...props
 }: TriggerProps) {
   const context = usePlayerContext(propsContext);
-
   const handleClick = () => {
     if (context?.audioState.isPlaying) {
       context.pause();

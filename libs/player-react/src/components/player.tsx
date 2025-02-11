@@ -107,6 +107,7 @@ const Player: FC<PlayerProps> = ({
   classes = {},
   className = '',
   context,
+  instanceId,
   mutualExclusive = false,
   onEnded,
   onPause,
@@ -135,7 +136,6 @@ const Player: FC<PlayerProps> = ({
   title,
   type = 'mirror',
   volumeControlOptions = {},
-  instanceId,
 }) => {
   const fileName = (src || context?.src)?.split('/').pop()?.replace(/\?.*$/, '');
   const InnerPlayer = useMemo(() => (
@@ -286,7 +286,7 @@ const Player: FC<PlayerProps> = ({
 
   if (context) {
     return (
-      <RootContext.Provider value={context}>
+      <RootContext value={context}>
         <div
           className={cn(
             'wa-player wa-root wa-flex wa-flex-col wa-border wa-border-gray-700 wa-rounded-lg wa-bg-gray-900/50 wa-backdrop-blur wa-overflow-hidden',
@@ -297,7 +297,7 @@ const Player: FC<PlayerProps> = ({
         >
           {InnerPlayer}
         </div>
-      </RootContext.Provider>
+      </RootContext>
     );
   }
 

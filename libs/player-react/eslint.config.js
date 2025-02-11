@@ -1,3 +1,3 @@
-import baseConfig from '@waveform/inf/eslint';
+import baseConfig from '@waveform-audio/inf/eslint';
 
 export default baseConfig;

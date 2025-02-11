@@ -34,7 +34,7 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full backdrop-blur mx-auto">
-      <div className="=w-[720px] mx-auto border-gray-200">
+      <div className="w-[720px] mx-auto border-gray-200 px-8">
         <NavigationMenu className="flex h-16 items-center justify-between w-full max-w-[unset]">
           <div className="flex items-center">
             <Link to={isPlayerPage ? '/player' : '/recorder'} className="text-xl text-gray-900 dark:text-white flex items-center gap-2">

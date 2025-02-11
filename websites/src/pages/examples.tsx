@@ -1,5 +1,5 @@
 import AUDIO_URL from '@/assets/music.mp3';
-import Player, { PlayerRoot, useAudioPlayer } from '@zhouhua-dev/waveform-player-react';
+import Player, { PlayerRoot, useAudioPlayer } from '@waveform-audio/player';
 
 import React from 'react';
 

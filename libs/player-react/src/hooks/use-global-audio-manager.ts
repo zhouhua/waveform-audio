@@ -1,45 +1,122 @@
-import type { AudioPlayerContextValue } from './audio-player-context';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { AUDIO_EVENTS, globalInstances, pauseAll, stopAll, stopOthers } from './audio-store';
+import { useEffect, useMemo, useState } from 'react';
+import { getAudioInstances } from './use-register-audio';
 
-type AudioInstancesMap = Map<string, AudioPlayerContextValue>;
+interface AudioInstanceState {
+  isPlaying: boolean;
+  isStoped: boolean;
+  currentTime: number;
+  duration: number;
+  src: string;
+}
+
+interface GlobalAudioManager {
+  stopOthers: (currentInstanceId: string) => void;
+  stopAll: () => void;
+  instances: {
+    id: string;
+    audioState: AudioInstanceState;
+    controls: {
+      play: () => void;
+      pause: () => void;
+      stop: () => void;
+    };
+  }[];
+}
 
 // 全局音频管理 hook
-export function useGlobalAudioManager() {
-  const [instances, setInstances] = useState<AudioInstancesMap>(() => new Map(globalInstances));
-  const updateTimeoutRef = useRef<number | null>(null);
+export function useGlobalAudioManager(): GlobalAudioManager {
+  const [instances, setInstances] = useState(() => getAudioInstances());
 
   useEffect(() => {
-    const handleUpdate = () => {
-      // 使用防抖来避免频繁更新
-      if (updateTimeoutRef.current) {
-        window.clearTimeout(updateTimeoutRef.current);
-      }
-
-      updateTimeoutRef.current = window.setTimeout(() => {
-        setInstances(new Map(globalInstances));
-      }, 50); // 50ms 的防抖时间
+    const handleAudioStateChange = () => {
+      setInstances(getAudioInstances());
     };
 
-    // 初始同步
-    setInstances(new Map(globalInstances));
-
-    window.addEventListener(AUDIO_EVENTS.INSTANCES_CHANGE, handleUpdate);
-    window.addEventListener(AUDIO_EVENTS.INSTANCE_UPDATE, handleUpdate);
-
+    // 监听音频状态变化
+    window.addEventListener('audioStateChange', handleAudioStateChange);
     return () => {
-      if (updateTimeoutRef.current) {
-        window.clearTimeout(updateTimeoutRef.current);
-      }
-      window.removeEventListener(AUDIO_EVENTS.INSTANCES_CHANGE, handleUpdate);
-      window.removeEventListener(AUDIO_EVENTS.INSTANCE_UPDATE, handleUpdate);
+      window.removeEventListener('audioStateChange', handleAudioStateChange);
     };
   }, []);
 
-  return useMemo(() => ({
-    instances: Array.from(instances.entries()).map(([id, instance]) => ({ id, instance })),
-    pauseAll,
-    stopAll,
-    stopOthers,
-  }), [instances]);
+  const manager = useMemo(() => {
+    const stopOthers = (currentInstanceId: string) => {
+      const currentInstances = getAudioInstances();
+      for (const [instanceId, state] of currentInstances) {
+        if (instanceId !== currentInstanceId && state.isPlaying) {
+          window.dispatchEvent(new CustomEvent('stopAudioInstance', {
+            detail: { action: 'pause', instanceId },
+          }));
+        }
+      }
+    };
+
+    const stopAll = () => {
+      const currentInstances = getAudioInstances();
+      for (const [instanceId, state] of currentInstances) {
+        if (state.isPlaying) {
+          window.dispatchEvent(new CustomEvent('stopAudioInstance', {
+            detail: { action: 'stop', instanceId },
+          }));
+        }
+      }
+    };
+
+    return {
+      instances: instances.map(([id, audioState]) => ({
+        audioState,
+        controls: {
+          pause: () => {
+            window.dispatchEvent(new CustomEvent('stopAudioInstance', {
+              detail: { action: 'pause', instanceId: id },
+            }));
+          },
+          play: () => {
+            window.dispatchEvent(new CustomEvent('stopAudioInstance', {
+              detail: { action: 'play', instanceId: id },
+            }));
+          },
+          stop: () => {
+            window.dispatchEvent(new CustomEvent('stopAudioInstance', {
+              detail: { action: 'stop', instanceId: id },
+            }));
+          },
+        },
+        id,
+      })),
+      stopAll,
+      stopOthers,
+    };
+  }, [instances]);
+
+  return manager;
+}
+
+// 添加事件监听器 hook
+export function useAudioInstanceEvents(
+  instanceId: string,
+  controls: { play: () => void; pause: () => void; stop: () => void },
+) {
+  useEffect(() => {
+    const handleStopInstance = (event: CustomEvent<{ instanceId: string; action: 'pause' | 'play' | 'stop' }>) => {
+      if (event.detail.instanceId === instanceId) {
+        switch (event.detail.action) {
+          case 'pause':
+            controls.pause();
+            break;
+          case 'play':
+            controls.play();
+            break;
+          case 'stop':
+            controls.stop();
+            break;
+        }
+      }
+    };
+
+    window.addEventListener('stopAudioInstance', handleStopInstance as EventListener);
+    return () => {
+      window.removeEventListener('stopAudioInstance', handleStopInstance as EventListener);
+    };
+  }, [instanceId, controls]);
 }

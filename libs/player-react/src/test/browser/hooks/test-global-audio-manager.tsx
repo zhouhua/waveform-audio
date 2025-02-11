@@ -9,7 +9,7 @@ export default function TestGlobalAudioManager() {
   const { instances, stopAll } = useGlobalAudioManager();
   const { play } = useAudioPlayer({ src: audio });
 
-  const playingCount = instances.filter(({ instance }) => instance.audioState.isPlaying).length;
+  const playingCount = instances.filter(({ audioState }) => audioState.isPlaying).length;
 
   return (
     <div>

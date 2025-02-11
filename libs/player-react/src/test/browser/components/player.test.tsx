@@ -1,10 +1,10 @@
 import { userEvent } from '@vitest/browser/context';
 import { describe, expect, it } from 'vitest';
 import { render } from 'vitest-browser-react';
-import { TestPlayer } from './test-player';
 import { delay } from '../utils';
+import { TestPlayer } from './test-player';
 
-describe('Player 组件', () => {
+describe('player 组件', () => {
   it('基础渲染测试', async () => {
     const screen = render(<TestPlayer />);
     const root = screen.baseElement.querySelector('.wa-player')!;
@@ -38,21 +38,22 @@ describe('Player 组件', () => {
 
     // 测试播放/暂停
     await user.click(playButton);
-    await delay(20);
+    // 增加等待时间，确保状态更新
+    await delay(100);
 
     // 通过测试元素检查状态
     const isPlaying = screen.baseElement.querySelector('.wa-test-is-playing')!;
     expect(isPlaying.textContent).toBe('true');
 
     await user.click(playButton);
-    await delay(20);
+    await delay(100);
     expect(isPlaying.textContent).toBe('false');
 
     // 测试停止
     await user.click(playButton);
-    await delay(20);
+    await delay(100);
     await user.click(stopButton);
-    await delay(20);
+    await delay(100);
 
     const isStopped = screen.baseElement.querySelector('.wa-test-is-stopped')!;
     const currentTime = screen.baseElement.querySelector('.wa-test-current-time')!;
@@ -69,14 +70,14 @@ describe('Player 组件', () => {
     const user = userEvent.setup();
     const screen = render(
       <div>
-        <TestPlayer mutualExclusive={true} />
-        <TestPlayer mutualExclusive={true} />
-      </div>
+        <TestPlayer mutualExclusive />
+        <TestPlayer mutualExclusive />
+      </div>,
     );
 
     const players = screen.baseElement.querySelectorAll('.wa-player');
     const playButtons = Array.from(players).map(
-      player => player.querySelector('.wa-play-button') as HTMLButtonElement
+      player => player.querySelector('.wa-play-button') as HTMLButtonElement,
     );
 
     const isPlayingElements = screen.baseElement.querySelectorAll('.wa-test-is-playing');
@@ -96,24 +97,24 @@ describe('Player 组件', () => {
 
   it('样式定制测试', async () => {
     const customClasses = {
-      root: 'custom-root',
-      header: 'custom-header',
-      title: 'custom-title',
-      metadata: 'custom-metadata',
       controls: 'custom-controls',
-      playButton: 'custom-play-button',
-      stopButton: 'custom-stop-button',
       downloadButton: 'custom-download-button',
-      timeDisplay: 'custom-time-display',
-      volumeControl: 'custom-volume-control',
+      header: 'custom-header',
+      metadata: 'custom-metadata',
       playbackRateControl: 'custom-playback-rate-control',
-      waveform: 'custom-waveform',
+      playButton: 'custom-play-button',
+      progressIndicator: 'custom-progress-indicator',
+      root: 'custom-root',
+      stopButton: 'custom-stop-button',
+      timeDisplay: 'custom-time-display',
       timeline: 'custom-timeline',
-      progressIndicator: 'custom-progress-indicator'
+      title: 'custom-title',
+      volumeControl: 'custom-volume-control',
+      waveform: 'custom-waveform',
     };
 
     const screen = render(
-      <TestPlayer classes={customClasses} />
+      <TestPlayer classes={customClasses} />,
     );
 
     const root = screen.baseElement.querySelector('.wa-player');
@@ -149,7 +150,7 @@ describe('Player 组件', () => {
     // 播放一段时间后检查
     const playButton = root?.querySelector('.wa-play-button') as HTMLButtonElement;
     await user.click(playButton);
-    await delay(1000);  // 等待一秒
+    await delay(1000); // 等待一秒
     expect(Number(timeElement.textContent)).toBeGreaterThan(0);
   });
 
@@ -191,8 +192,8 @@ describe('Player 组件', () => {
     expect(title?.textContent).toBe(customTitle);
   });
 
-  it('Context模式事件测试', async () => {
-    const screen = render(<TestPlayer useContext={true} />);
+  it('context模式事件测试', async () => {
+    const screen = render(<TestPlayer useContext />);
     const root = screen.baseElement.querySelector('.wa-player');
     const playButton = root?.querySelector('.wa-play-button') as HTMLButtonElement;
     expect(playButton).toBeTruthy();
@@ -206,18 +207,18 @@ describe('Player 组件', () => {
     expect(isPlaying.textContent).toBe('true');
   });
 
-  it('Controls组件层级显示控制测试', async () => {
+  it('controls组件层级显示控制测试', async () => {
     // Case 1: controls为false时，所有子元素都不应该显示
     const screen1 = render(
       <TestPlayer
         showControls={false}
-        showPlayButton={true}
-        showStopButton={true}
-        showDownloadButton={true}
-        showTimeDisplay={true}
-        showVolumeControl={true}
-        showPlaybackRateControl={true}
-      />
+        showPlayButton
+        showStopButton
+        showDownloadButton
+        showTimeDisplay
+        showVolumeControl
+        showPlaybackRateControl
+      />,
     );
     const root1 = screen1.baseElement.querySelector('.wa-player');
     expect(root1?.querySelector('.wa-controls')).toBeFalsy();
@@ -231,14 +232,14 @@ describe('Player 组件', () => {
     // Case 2: controls为true时，子元素可以独立控制
     const screen2 = render(
       <TestPlayer
-        showControls={true}
-        showPlayButton={true}
+        showControls
+        showPlayButton
         showStopButton={false}
-        showDownloadButton={true}
+        showDownloadButton
         showTimeDisplay={false}
-        showVolumeControl={true}
+        showVolumeControl
         showPlaybackRateControl={false}
-      />
+      />,
     );
     const root2 = screen2.baseElement.querySelector('.wa-player');
     expect(root2?.querySelector('.wa-controls')).toBeTruthy();
@@ -255,9 +256,9 @@ describe('Player 组件', () => {
     const screen1 = render(
       <TestPlayer
         showWaveform={false}
-        showTimeline={true}
-        showProgressIndicator={true}
-      />
+        showTimeline
+        showProgressIndicator
+      />,
     );
     const root1 = screen1.baseElement.querySelector('.wa-player');
     expect(root1?.querySelector('.wa-waveform')).toBeFalsy();
@@ -267,10 +268,10 @@ describe('Player 组件', () => {
     // Case 2: waveform为true时，子元素可以独立控制
     const screen2 = render(
       <TestPlayer
-        showWaveform={true}
+        showWaveform
         showTimeline={false}
-        showProgressIndicator={true}
-      />
+        showProgressIndicator
+      />,
     );
     const root2 = screen2.baseElement.querySelector('.wa-player');
     expect(root2?.querySelector('.wa-waveform')).toBeTruthy();
@@ -280,14 +281,14 @@ describe('Player 组件', () => {
     // Case 3: 只显示timeline
     const screen3 = render(
       <TestPlayer
-        showWaveform={true}
-        showTimeline={true}
+        showWaveform
+        showTimeline
         showProgressIndicator={false}
-      />
+      />,
     );
     const root3 = screen3.baseElement.querySelector('.wa-player');
     expect(root3?.querySelector('.wa-waveform')).toBeTruthy();
     expect(root3?.querySelector('.wa-timeline')).toBeTruthy();
     expect(root3?.querySelector('.wa-progress-indicator')).toBeFalsy();
   });
-}); 
+});

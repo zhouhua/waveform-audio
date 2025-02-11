@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { useGlobalAudioManager } from '@zhouhua-dev/waveform-player-react';
+import { useGlobalAudioManager } from '@waveform-audio/player';
 import { Disc3 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
@@ -7,7 +7,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/t
 export function GlobalControl() {
   const { instances, stopAll } = useGlobalAudioManager();
   const { t } = useTranslation();
-  const playingInstances = instances.filter(({ instance }) => instance.audioState.isPlaying);
+  const playingInstances = instances.filter(({ audioState }) => audioState.isPlaying);
+  console.log(instances);
   return (
     <div
       className="fixed bottom-4 right-4 flex items-center justify-center size-10 bg-white shadow-lg rounded-full"

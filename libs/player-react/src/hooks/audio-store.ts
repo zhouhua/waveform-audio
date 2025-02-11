@@ -53,9 +53,10 @@ export function updateInstance(id: string, updates: Partial<AudioPlayerContextVa
       updatedInstance.audioRef = updates.audioRef;
       hasChanges = true;
     }
-    if (updates.audioState &&
-      (updates.audioState.isPlaying !== instance.audioState.isPlaying ||
-        updates.audioState.currentTime !== instance.audioState.currentTime)) {
+    if (updates.audioState && (
+      updates.audioState.isPlaying !== instance.audioState.isPlaying
+      || updates.audioState.currentTime !== instance.audioState.currentTime
+    )) {
       updatedInstance.audioState = { ...instance.audioState, ...updates.audioState };
       hasChanges = true;
     }

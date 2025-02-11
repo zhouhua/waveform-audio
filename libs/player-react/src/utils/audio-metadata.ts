@@ -12,40 +12,40 @@ export interface AudioMetadata {
 
 // 音频格式特征
 const AUDIO_FORMAT_SIGNATURES = {
-  mp3: {
-    signature: [0xFF, 0xFB], // MPEG-1 Layer 3
-    offset: 0,
-  },
-  wav: {
-    signature: [0x52, 0x49, 0x46, 0x46], // "RIFF"
-    offset: 0,
-  },
-  ogg: {
-    signature: [0x4F, 0x67, 0x67, 0x53], // "OggS"
-    offset: 0,
-  },
   flac: {
-    signature: [0x66, 0x4C, 0x61, 0x43], // "fLaC"
     offset: 0,
+    signature: [0x66, 0x4C, 0x61, 0x43], // "fLaC"
   },
   m4a: {
-    signature: [0x66, 0x74, 0x79, 0x70], // "ftyp"
     offset: 4,
+    signature: [0x66, 0x74, 0x79, 0x70], // "ftyp"
+  },
+  mp3: {
+    offset: 0,
+    signature: [0xFF, 0xFB], // MPEG-1 Layer 3
+  },
+  ogg: {
+    offset: 0,
+    signature: [0x4F, 0x67, 0x67, 0x53], // "OggS"
+  },
+  wav: {
+    offset: 0,
+    signature: [0x52, 0x49, 0x46, 0x46], // "RIFF"
   },
   wma: {
-    signature: [0x30, 0x26, 0xB2, 0x75], // WMA header GUID
     offset: 0,
+    signature: [0x30, 0x26, 0xB2, 0x75], // WMA header GUID
   },
 };
 
 // MP3 比特率表
 const BITRATE_TABLE = {
-  'v1l1': [0, 32, 64, 96, 128, 160, 192, 224, 256, 288, 320, 352, 384, 416, 448],
-  'v1l2': [0, 32, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320, 384],
-  'v1l3': [0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320],
-  'v2l1': [0, 32, 48, 56, 64, 80, 96, 112, 128, 144, 160, 176, 192, 224, 256],
-  'v2l2': [0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160],
-  'v2l3': [0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160],
+  v1l1: [0, 32, 64, 96, 128, 160, 192, 224, 256, 288, 320, 352, 384, 416, 448],
+  v1l2: [0, 32, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320, 384],
+  v1l3: [0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320],
+  v2l1: [0, 32, 48, 56, 64, 80, 96, 112, 128, 144, 160, 176, 192, 224, 256],
+  v2l2: [0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160],
+  v2l3: [0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160],
 } as const;
 
 // MP3 采样率表
@@ -71,11 +71,15 @@ function getSampleRate(version: number, sampleRateIndex: number): number {
 function detectAudioFormat(buffer: ArrayBuffer): string {
   const view = new Uint8Array(buffer);
 
-  for (const [format, { signature, offset }] of Object.entries(AUDIO_FORMAT_SIGNATURES)) {
-    if (view.length < offset + signature.length) continue;
+  for (const [format, { offset, signature }] of Object.entries(AUDIO_FORMAT_SIGNATURES)) {
+    if (view.length < offset + signature.length) {
+      continue;
+    }
 
     const matches = signature.every((byte, index) => view[offset + index] === byte);
-    if (matches) return format;
+    if (matches) {
+      return format;
+    }
   }
 
   return 'unknown';
@@ -85,10 +89,11 @@ function detectAudioFormat(buffer: ArrayBuffer): string {
 function parseWavHeader(buffer: ArrayBuffer): Partial<AudioMetadata> {
   const view = new DataView(buffer);
   const format = {
-    sampleRate: view.getUint32(24, true),
-    channels: view.getUint16(22, true),
     bitsPerSample: view.getUint16(34, true),
-    duration: (buffer.byteLength - 44) / (view.getUint32(24, true) * view.getUint16(22, true) * (view.getUint16(34, true) / 8)),
+    channels: view.getUint16(22, true),
+    duration:
+      (buffer.byteLength - 44) / (view.getUint32(24, true) * view.getUint16(22, true) * (view.getUint16(34, true) / 8)),
+    sampleRate: view.getUint32(24, true),
   };
   return format;
 }
@@ -103,10 +108,10 @@ function parseMp3Header(buffer: ArrayBuffer): Partial<AudioMetadata> {
     const id3v2Flags = view.getUint8(5);
     const footerSize = (id3v2Flags & 0x10) ? 10 : 0;
     const size = (
-      ((view.getUint8(6) & 0x7F) << 21) |
-      ((view.getUint8(7) & 0x7F) << 14) |
-      ((view.getUint8(8) & 0x7F) << 7) |
-      (view.getUint8(9) & 0x7F)
+      ((view.getUint8(6) & 0x7F) << 21)
+      | ((view.getUint8(7) & 0x7F) << 14)
+      | ((view.getUint8(8) & 0x7F) << 7)
+      | (view.getUint8(9) & 0x7F)
     );
     offset = 10 + size + footerSize;
   }
@@ -115,10 +120,10 @@ function parseMp3Header(buffer: ArrayBuffer): Partial<AudioMetadata> {
   while (offset < buffer.byteLength - 4) {
     if (view.getUint8(offset) === 0xFF && (view.getUint8(offset + 1) & 0xE0) === 0xE0) {
       const header = (
-        (view.getUint8(offset) << 24) |
-        (view.getUint8(offset + 1) << 16) |
-        (view.getUint8(offset + 2) << 8) |
-        view.getUint8(offset + 3)
+        (view.getUint8(offset) << 24)
+        | (view.getUint8(offset + 1) << 16)
+        | (view.getUint8(offset + 2) << 8)
+        | view.getUint8(offset + 3)
       );
 
       const version = (header >> 19) & 3;
@@ -133,9 +138,9 @@ function parseMp3Header(buffer: ArrayBuffer): Partial<AudioMetadata> {
 
       return {
         bitrate,
-        sampleRate,
         channels,
         codec: `MPEG-${version === 3 ? '1' : '2'} Layer ${4 - layer}`,
+        sampleRate,
       };
     }
     offset++;
@@ -147,19 +152,20 @@ function parseMp3Header(buffer: ArrayBuffer): Partial<AudioMetadata> {
 // 解析 Ogg 头部（完善版）
 function parseOggHeader(buffer: ArrayBuffer): Partial<AudioMetadata> {
   const view = new DataView(buffer);
-  if (buffer.byteLength < 58) return {}; // Ogg + Vorbis header minimum size
+  if (buffer.byteLength < 58) {
+    return {};
+  } // Ogg + Vorbis header minimum size
 
   let offset = 0;
   // 查找 Vorbis 头部
   while (offset < buffer.byteLength - 7) {
-    if (view.getUint8(offset) === 0x01 && // header type
-      view.getUint8(offset + 1) === 0x76 && // 'v'
-      view.getUint8(offset + 2) === 0x6f && // 'o'
-      view.getUint8(offset + 3) === 0x72 && // 'r'
-      view.getUint8(offset + 4) === 0x62 && // 'b'
-      view.getUint8(offset + 5) === 0x69 && // 'i'
-      view.getUint8(offset + 6) === 0x73) { // 's'
-
+    if (view.getUint8(offset) === 0x01 // header type
+      && view.getUint8(offset + 1) === 0x76 // 'v'
+      && view.getUint8(offset + 2) === 0x6F // 'o'
+      && view.getUint8(offset + 3) === 0x72 // 'r'
+      && view.getUint8(offset + 4) === 0x62 // 'b'
+      && view.getUint8(offset + 5) === 0x69 // 'i'
+      && view.getUint8(offset + 6) === 0x73) { // 's'
       offset += 7;
       const channels = view.getUint8(offset + 4);
       const sampleRate = view.getUint32(offset + 5, true);
@@ -168,10 +174,10 @@ function parseOggHeader(buffer: ArrayBuffer): Partial<AudioMetadata> {
       const minBitrate = view.getUint32(offset + 17, true);
 
       return {
-        codec: 'Vorbis',
-        channels,
-        sampleRate,
         bitrate: nominalBitrate > 0 ? nominalBitrate : Math.floor((maxBitrate + minBitrate) / 2),
+        channels,
+        codec: 'Vorbis',
+        sampleRate,
       };
     }
     offset++;
@@ -182,29 +188,33 @@ function parseOggHeader(buffer: ArrayBuffer): Partial<AudioMetadata> {
 // 解析 FLAC 头部
 function parseFlacHeader(buffer: ArrayBuffer): Partial<AudioMetadata> {
   const view = new DataView(buffer);
-  if (buffer.byteLength < 34) return {};
+  if (buffer.byteLength < 34) {
+    return {};
+  }
 
   const streamInfo = {
-    minBlockSize: view.getUint16(8, true),
-    maxBlockSize: view.getUint16(10, true),
-    minFrameSize: (view.getUint8(12) << 16) | (view.getUint8(13) << 8) | view.getUint8(14),
-    maxFrameSize: (view.getUint8(15) << 16) | (view.getUint8(16) << 8) | view.getUint8(17),
-    sampleRate: (view.getUint8(18) << 12) | (view.getUint8(19) << 4) | ((view.getUint8(20) & 0xF0) >> 4),
-    channels: ((view.getUint8(20) & 0x0E) >> 1) + 1,
     bitsPerSample: ((view.getUint8(20) & 0x01) << 4) | ((view.getUint8(21) & 0xF0) >> 4) + 1,
+    channels: ((view.getUint8(20) & 0x0E) >> 1) + 1,
+    maxBlockSize: view.getUint16(10, true),
+    maxFrameSize: (view.getUint8(15) << 16) | (view.getUint8(16) << 8) | view.getUint8(17),
+    minBlockSize: view.getUint16(8, true),
+    minFrameSize: (view.getUint8(12) << 16) | (view.getUint8(13) << 8) | view.getUint8(14),
+    sampleRate: (view.getUint8(18) << 12) | (view.getUint8(19) << 4) | ((view.getUint8(20) & 0xF0) >> 4),
   };
 
   return {
+    channels: streamInfo.channels,
     codec: 'FLAC',
     sampleRate: streamInfo.sampleRate,
-    channels: streamInfo.channels,
   };
 }
 
 // 解析 WMA 头部
 function parseWmaHeader(buffer: ArrayBuffer): Partial<AudioMetadata> {
   const view = new DataView(buffer);
-  if (buffer.byteLength < 70) return {}; // WMA header minimum size
+  if (buffer.byteLength < 70) {
+    return {};
+  } // WMA header minimum size
 
   try {
     // 跳过头部 GUID (16 bytes) 和文件大小 (8 bytes)
@@ -212,11 +222,11 @@ function parseWmaHeader(buffer: ArrayBuffer): Partial<AudioMetadata> {
 
     // 查找 ASF_Stream_Properties_Object GUID
     while (offset < buffer.byteLength - 24) {
-      const guidMatch =
-        view.getUint32(offset, true) === 0x91 &&
-        view.getUint32(offset + 4, true) === 0xF0 &&
-        view.getUint32(offset + 8, true) === 0x11CF &&
-        view.getUint32(offset + 12, true) === 0xD200;
+      const guidMatch
+        = view.getUint32(offset, true) === 0x91
+        && view.getUint32(offset + 4, true) === 0xF0
+        && view.getUint32(offset + 8, true) === 0x11CF
+        && view.getUint32(offset + 12, true) === 0xD200;
 
       if (guidMatch) {
         // 跳过 GUID (16 bytes) 和对象大小 (8 bytes)
@@ -238,17 +248,18 @@ function parseWmaHeader(buffer: ArrayBuffer): Partial<AudioMetadata> {
           const bitsPerSample = view.getUint16(offset + 14, true);
 
           return {
-            codec: 'WMA',
-            channels,
-            sampleRate: samplesPerSec,
             bitrate: avgBytesPerSec * 8,
             bitsPerSample,
+            channels,
+            codec: 'WMA',
+            sampleRate: samplesPerSec,
           };
         }
       }
       offset++;
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.warn('Error parsing WMA header:', error);
   }
 
@@ -271,8 +282,8 @@ export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
   // 根据格式选择相应的解析器
   let formatMetadata: Partial<AudioMetadata> = {};
   switch (format) {
-    case 'wav':
-      formatMetadata = parseWavHeader(arrayBuffer);
+    case 'flac':
+      formatMetadata = parseFlacHeader(arrayBuffer);
       break;
     case 'mp3':
       formatMetadata = parseMp3Header(arrayBuffer);
@@ -280,8 +291,8 @@ export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
     case 'ogg':
       formatMetadata = parseOggHeader(arrayBuffer);
       break;
-    case 'flac':
-      formatMetadata = parseFlacHeader(arrayBuffer);
+    case 'wav':
+      formatMetadata = parseWavHeader(arrayBuffer);
       break;
     case 'wma':
       formatMetadata = parseWmaHeader(arrayBuffer);
@@ -291,16 +302,17 @@ export async function extractAudioMetadata(file: File): Promise<AudioMetadata> {
   // 如果文件头解析失败，尝试使用 AudioContext
   if (!formatMetadata.duration) {
     try {
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const audioContext = new AudioContext();
       const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
       formatMetadata = {
         ...formatMetadata,
+        channels: audioBuffer.numberOfChannels,
         duration: audioBuffer.duration,
         sampleRate: audioBuffer.sampleRate,
-        channels: audioBuffer.numberOfChannels,
       };
-    } catch (error) {
+    }
+    catch (error) {
       console.warn('Cannot decode audio data:', error);
     }
   }

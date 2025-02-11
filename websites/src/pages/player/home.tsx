@@ -1,4 +1,4 @@
-import type { WaveformType } from '@zhouhua-dev/waveform-player-react';
+import type { WaveformType } from '@waveform-audio/player';
 import type { TFunction } from 'i18next';
 import { FeatureCard } from '@/components/feature-card';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,7 @@ import { useFeatures } from '@/hooks/use-features';
 import { cn } from '@/lib/utils';
 import { SiGithub, SiReact } from '@icons-pack/react-simple-icons';
 import { DropdownMenuRadioGroup } from '@radix-ui/react-dropdown-menu';
-import Player from '@zhouhua-dev/waveform-player-react';
+import Player from '@waveform-audio/player';
 import { Asterisk, BookOpenText, Code, Copy, Sparkles, Terminal, Upload } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -52,14 +52,14 @@ export default function PlayerHome() {
   };
 
   const installCommands = {
-    pnpm: 'pnpm add @zhouhua-dev/waveform-player-react',
+    pnpm: 'pnpm add @waveform-audio/player',
     // eslint-disable-next-line perfectionist/sort-objects
-    npm: 'npm install @zhouhua-dev/waveform-player-react',
-    yarn: 'yarn add @zhouhua-dev/waveform-player-react',
+    npm: 'npm install @waveform-audio/player',
+    yarn: 'yarn add @waveform-audio/player',
   };
 
-  const codeExample = `import Player from '@zhouhua-dev/waveform-player-react';
-import '@zhouhua-dev/waveform-player-react/index.css';
+  const codeExample = `import Player from '@waveform-audio/player';
+import '@waveform-audio/player/index.css';
 
 export default function App() {
   return (

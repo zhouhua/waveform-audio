@@ -1,5 +1,5 @@
 import { CodePreview } from '@/components/code-preview';
-import { useAudioPlayer } from '@zhouhua-dev/waveform-player-react';
+import { useAudioPlayer } from '@waveform-audio/player';
 import demoMusic from '../../../assets/music.mp3';
 
 function Example() {
@@ -144,7 +144,7 @@ function CustomControlsExample() {
   return <CustomControls />;
 }
 
-const basicExample = `import { useAudioPlayer } from '@zhouhua-dev/waveform-player-react';
+const basicExample = `import { useAudioPlayer } from '@waveform-audio/player';
 
 function Example() {
   const { controls, audioState } = useAudioPlayer({
@@ -177,7 +177,7 @@ function Example() {
   );
 }`;
 
-const customControlsExample = `import { useAudioPlayer } from '@zhouhua-dev/waveform-player-react';
+const customControlsExample = `import { useAudioPlayer } from '@waveform-audio/player';
 
 function CustomControls() {
   const { controls, audioState, metadata } = useAudioPlayer({

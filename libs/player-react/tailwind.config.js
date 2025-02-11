@@ -1,4 +1,4 @@
-import baseConfig from '@waveform/inf/tailwind';
+import baseConfig from '@waveform-audio/inf/tailwind';
 import tailwindcssAnimate from 'tailwindcss-animate';
 /** @type {import('tailwindcss').Config} */
 export default {

@@ -84,6 +84,7 @@ export function useCurrentPlayer() {
 export function RootProvider({
   children,
   className,
+  instanceId = `audio-${nanoid()}`,
   mutualExclusive = false,
   onEnded,
   onPause,
@@ -92,21 +93,21 @@ export function RootProvider({
   samplePoints = 200,
   src,
   style,
-  instanceId = `audio-${nanoid()}`,
 }: RootProviderProps) {
   // 使用 useAudioPlayer 作为底层实现
   const audioContext = useAudioPlayer({
-    src: src || '',
-    samplePoints,
-    onPlay,
-    onPause,
-    onTimeUpdate,
-    onEnded,
-    mutualExclusive,
     instanceId,
+    mutualExclusive,
+    onEnded,
+    onPause,
+    onPlay,
+    onTimeUpdate,
+    samplePoints,
+    src: src || '',
   });
 
   return (
+    // eslint-disable-next-line react/no-context-provider
     <RootContext.Provider value={audioContext}>
       <div className={cn('wa-root', className)} style={style}>
         {children}

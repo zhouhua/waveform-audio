@@ -7,7 +7,7 @@ export default function Footer() {
 
   return (
     <footer className="border-t border-gray-200 dark:border-gray-800 shrink-0 grow-0">
-      <div className="container py-8 flex justify-between items-center">
+      <div className="container w-[720px] py-8 flex justify-between items-center">
         <div className="text-gray-600 dark:text-gray-400">
           {t('footer.copyright')}
         </div>

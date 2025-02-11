@@ -20,7 +20,10 @@ export interface AudioPlayerContextValue {
   samplePoints: number;
   setSamplePoints: (points: number) => void;
   isReady: boolean;
-  updateInstance?: (updates: Partial<AudioPlayerContextValue>) => void;
+  isPlaying: boolean;
+  isStoped: boolean;
+  currentTime: number;
+  duration: number;
 }
 
 export const AudioPlayerContext = createContext<AudioPlayerContextValue | null>(null);
@@ -41,6 +44,7 @@ export function AudioPlayerProvider({
   value: AudioPlayerContextValue;
 }) {
   return (
+    // eslint-disable-next-line react/no-context-provider
     <AudioPlayerContext.Provider value={value}>
       {children}
     </AudioPlayerContext.Provider>
