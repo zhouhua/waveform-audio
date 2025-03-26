@@ -150,6 +150,7 @@ export function useAudioPlayer({
       setAudioState(prev => ({
         ...prev,
         isPlaying: false,
+        isStoped: false,
       }));
     }
     catch (error) {
@@ -163,6 +164,7 @@ export function useAudioPlayer({
       audioRef.current.currentTime = 0;
       setAudioState(prev => ({
         ...prev,
+        isPlaying: false,
         isStoped: true,
       }));
     }
@@ -219,6 +221,7 @@ export function useAudioPlayer({
   const contextState = useMemo(() => ({
     audioRef,
     audioState,
+    instanceId: instanceIdRef.current,
     isReady,
     metadata,
     samplePoints: currentSamplePoints,
@@ -231,6 +234,7 @@ export function useAudioPlayer({
     currentSamplePoints,
     src,
     waveformData,
+    instanceIdRef.current,
   ]);
 
   const contextValue = useMemo<AudioPlayerContextValue>(
@@ -239,6 +243,7 @@ export function useAudioPlayer({
       ...contextState,
       currentTime: audioState.currentTime,
       duration: audioState.duration,
+      instanceId: instanceIdRef.current,
       // 展开必要的 audioState 属性到顶层
       isPlaying: audioState.isPlaying,
       isStoped: audioState.isStoped,
@@ -504,13 +509,15 @@ export function useAudioPlayer({
       return;
     }
 
-    if (audioState.isPlaying && audio.paused) {
+    // 如果状态表示应该播放，但实际暂停了，且不是停止状态，则播放
+    if (audioState.isPlaying && audio.paused && !audioState.isStoped) {
       void play();
     }
+    // 如果状态表示不应该播放，但实际在播放，则暂停
     else if (!audioState.isPlaying && !audio.paused) {
-      pause();
+      audio.pause(); // 直接调用原生暂停，避免循环引用
     }
-  }, [audioState.isPlaying, play, pause]);
+  }, [audioState.isPlaying, audioState.isStoped, play]);
 
   useEffect(() => {
     syncPlaybackState();

@@ -10,6 +10,7 @@ export interface AudioPlayerContextValue {
     peaks: number[];
   };
   src: string;
+  instanceId: string;
   play: () => void;
   pause: () => void;
   stop: () => void;
@@ -44,7 +45,7 @@ export function AudioPlayerProvider({
   value: AudioPlayerContextValue;
 }) {
   return (
-    // eslint-disable-next-line react/no-context-provider
+
     <AudioPlayerContext.Provider value={value}>
       {children}
     </AudioPlayerContext.Provider>

@@ -286,7 +286,7 @@ const Player: FC<PlayerProps> = ({
 
   if (context) {
     return (
-      <RootContext value={context}>
+      <RootContext.Provider value={context}>
         <div
           className={cn(
             'wa-player wa-root wa-flex wa-flex-col wa-border wa-border-gray-700 wa-rounded-lg wa-bg-gray-900/50 wa-backdrop-blur wa-overflow-hidden',
@@ -297,7 +297,7 @@ const Player: FC<PlayerProps> = ({
         >
           {InnerPlayer}
         </div>
-      </RootContext>
+      </RootContext.Provider>
     );
   }
 
