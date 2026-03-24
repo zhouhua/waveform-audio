@@ -93,7 +93,7 @@ export interface AudioRecorderFileOptions {
 }
 
 export interface AudioRecorderFileOutput {
-  file?: File | null;
+  file: File;
   fileName: string;
   mimeType: string;
   toFile: (options?: AudioRecorderFileOptions) => File;
@@ -156,12 +156,12 @@ export interface AudioRecorderController {
   durationMs: number;
   blob: Blob | null;
   blobUrl: string | null;
-  file?: File | null;
+  file: File | null;
   error: AudioRecorderError | null;
   start: () => Promise<void>;
   stop: () => void;
   reset: () => void;
-  toFile?: (options?: AudioRecorderFileOptions) => File;
+  toFile: (options?: AudioRecorderFileOptions) => File;
 }
 
 export interface UseAudioRecorderOptions {

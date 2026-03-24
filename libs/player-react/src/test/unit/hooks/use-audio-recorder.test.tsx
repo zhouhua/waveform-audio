@@ -58,6 +58,16 @@ class MockMediaRecorder extends EventTarget implements Partial<MediaRecorder> {
     }, 0);
   });
 
+  emitChunk(blob: Blob) {
+    const dataEvent = new Event('dataavailable') as BlobEvent;
+    Object.defineProperty(dataEvent, 'data', {
+      configurable: true,
+      value: blob,
+    });
+    this.ondataavailable?.(dataEvent);
+    this.dispatchEvent(dataEvent);
+  }
+
   emitError() {
     const errorEvent = new Event('error');
     this.onerror?.(errorEvent);
@@ -191,6 +201,103 @@ describe('useAudioRecorder()', () => {
     expect(result.current.blobUrl).toMatch(/^blob:http:\/\/localhost\//);
   });
 
+  it('会按会话顺序发出 session/chunk/end/complete 事件，并暴露 file 与 toFile()', async () => {
+    const callbacks = {
+      onChunk: vi.fn(),
+      onRecordingComplete: vi.fn(),
+      onSessionEnd: vi.fn(),
+      onSessionStart: vi.fn(),
+    };
+
+    const { result } = renderHook(() => useAudioRecorder({ callbacks }));
+
+    await act(async () => {
+      await result.current.start();
+    });
+
+    await act(async () => {
+      result.current.stop();
+      await vi.runAllTimersAsync();
+    });
+
+    callbacks.onChunk.mockClear();
+    callbacks.onRecordingComplete.mockClear();
+    callbacks.onSessionEnd.mockClear();
+    callbacks.onSessionStart.mockClear();
+
+    await act(async () => {
+      await result.current.start();
+    });
+
+    expect(callbacks.onSessionStart).toHaveBeenCalledTimes(1);
+    expect(result.current.blob).toBeNull();
+    expect(result.current.blobUrl).toBeNull();
+    expect(result.current.file).toBeNull();
+    expect(result.current.durationMs).toBe(0);
+
+    const sessionStartPayload = callbacks.onSessionStart.mock.calls[0][0];
+    expect(sessionStartPayload).toMatchObject({
+      mimeType: 'audio/webm',
+      sessionId: expect.any(String),
+    });
+    expect(sessionStartPayload.startedAt).toBeInstanceOf(Date);
+
+    act(() => {
+      vi.advanceTimersByTime(250);
+      MockMediaRecorder.lastInstance?.emitChunk(new Blob(['chunk-1'], { type: 'audio/webm' }));
+      vi.advanceTimersByTime(250);
+    });
+
+    await act(async () => {
+      result.current.stop();
+      await vi.runAllTimersAsync();
+    });
+
+    expect(callbacks.onChunk).toHaveBeenCalledTimes(2);
+    expect(callbacks.onChunk).toHaveBeenNthCalledWith(1, expect.objectContaining({
+      durationMs: 250,
+      isFinal: false,
+      sequence: 1,
+      sessionId: sessionStartPayload.sessionId,
+    }));
+    expect(callbacks.onChunk).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      durationMs: 500,
+      isFinal: true,
+      sequence: 2,
+      sessionId: sessionStartPayload.sessionId,
+    }));
+    expect(callbacks.onSessionStart.mock.invocationCallOrder[0]).toBeLessThan(callbacks.onChunk.mock.invocationCallOrder[0]);
+
+    expect(callbacks.onSessionEnd).toHaveBeenCalledTimes(1);
+    expect(callbacks.onSessionEnd).toHaveBeenCalledWith(expect.objectContaining({
+      chunkCount: 2,
+      durationMs: 500,
+      mimeType: 'audio/webm',
+      sessionId: sessionStartPayload.sessionId,
+    }));
+    expect(callbacks.onSessionEnd.mock.calls[0][0].startedAt).toBeInstanceOf(Date);
+    expect(callbacks.onSessionEnd.mock.calls[0][0].endedAt).toBeInstanceOf(Date);
+
+    expect(callbacks.onRecordingComplete).toHaveBeenCalledTimes(1);
+    expect(callbacks.onRecordingComplete).toHaveBeenCalledWith(expect.objectContaining({
+      blob: expect.any(Blob),
+      blobUrl: expect.stringMatching(/^blob:http:\/\/localhost\//),
+      durationMs: 500,
+      fileName: expect.any(String),
+      mimeType: 'audio/webm',
+      sessionId: sessionStartPayload.sessionId,
+    }));
+    expect(callbacks.onRecordingComplete.mock.calls[0][0].file).toBeInstanceOf(File);
+    expect(callbacks.onRecordingComplete.mock.calls[0][0].toFile).toBeTypeOf('function');
+    expect(callbacks.onSessionEnd.mock.invocationCallOrder[0]).toBeLessThan(callbacks.onRecordingComplete.mock.invocationCallOrder[0]);
+
+    expect(result.current.file).toBeInstanceOf(File);
+    expect(result.current.toFile).toBeTypeOf('function');
+    expect(result.current.toFile?.()).toBeInstanceOf(File);
+    expect(result.current.file?.type).toBe('audio/webm');
+    expect(result.current.toFile?.().type).toBe('audio/webm');
+  });
+
   it('reset() 会清空上一次录音结果并回收 blob url', async () => {
     const { result } = renderHook(() => useAudioRecorder());
 
@@ -222,13 +329,17 @@ describe('useAudioRecorder()', () => {
   });
 
   it('在环境不支持时返回 unsupported 状态', async () => {
+    const callbacks = {
+      onError: vi.fn(),
+    };
+
     Object.defineProperty(globalThis, 'MediaRecorder', {
       configurable: true,
       value: undefined,
       writable: true,
     });
 
-    const { result } = renderHook(() => useAudioRecorder());
+    const { result } = renderHook(() => useAudioRecorder({ callbacks }));
 
     expect(result.current.status).toBe('unsupported');
 
@@ -237,12 +348,19 @@ describe('useAudioRecorder()', () => {
     });
 
     expect(result.current.error?.code).toBe('unsupported');
+    expect(callbacks.onError).toHaveBeenCalledWith(expect.objectContaining({
+      code: 'unsupported',
+    }));
     expect(getUserMediaMock).not.toHaveBeenCalled();
   });
 
   it('在权限拒绝时暴露明确错误', async () => {
+    const callbacks = {
+      onError: vi.fn(),
+    };
+
     getUserMediaMock.mockRejectedValueOnce(new DOMException('Permission denied', 'NotAllowedError'));
-    const { result } = renderHook(() => useAudioRecorder());
+    const { result } = renderHook(() => useAudioRecorder({ callbacks }));
 
     await act(async () => {
       await result.current.start();
@@ -254,10 +372,16 @@ describe('useAudioRecorder()', () => {
       code: 'permission-denied',
       message: expect.stringContaining('Permission'),
     });
+    expect(callbacks.onError).toHaveBeenCalledWith(expect.objectContaining({
+      code: 'permission-denied',
+    }));
   });
 
   it('录音器报错后即使后续 stop 事件到达，也应保持 error 状态', async () => {
-    const { result } = renderHook(() => useAudioRecorder());
+    const callbacks = {
+      onError: vi.fn(),
+    };
+    const { result } = renderHook(() => useAudioRecorder({ callbacks }));
 
     await act(async () => {
       await result.current.start();
@@ -276,6 +400,9 @@ describe('useAudioRecorder()', () => {
     expect(result.current.error?.code).toBe('recording-failed');
     expect(result.current.blob).toBeNull();
     expect(result.current.blobUrl).toBeNull();
+    expect(callbacks.onError).toHaveBeenCalledWith(expect.objectContaining({
+      code: 'recording-failed',
+    }));
   });
 
   it('连续调用 start() 只会申请一次麦克风权限', async () => {
@@ -290,7 +417,10 @@ describe('useAudioRecorder()', () => {
   });
 
   it('stop() 抛错时暴露 stop-failed 错误', async () => {
-    const { result } = renderHook(() => useAudioRecorder());
+    const callbacks = {
+      onError: vi.fn(),
+    };
+    const { result } = renderHook(() => useAudioRecorder({ callbacks }));
 
     await act(async () => {
       await result.current.start();
@@ -310,6 +440,9 @@ describe('useAudioRecorder()', () => {
     expect(result.current.error?.code).toBe('stop-failed');
     expect(result.current.blob).toBeNull();
     expect(result.current.blobUrl).toBeNull();
+    expect(callbacks.onError).toHaveBeenCalledWith(expect.objectContaining({
+      code: 'stop-failed',
+    }));
   });
 
   it('重新开始录音前若新会话尚未成功启动，应保留上一次结果', async () => {

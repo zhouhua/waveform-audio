@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type {
+  AudioRecorderChunkPayload,
+  AudioRecorderCompletionPayload,
   AudioRecorderController,
   AudioRecorderError,
+  AudioRecorderFileOptions,
+  AudioRecorderSessionStartPayload,
+  AudioRecorderSessionSummaryPayload,
   AudioRecorderStatus,
   UseAudioRecorderOptions,
 } from '../types';
@@ -55,8 +60,36 @@ function resolveRecorderOptions({
   return Object.keys(options).length > 0 ? options : undefined;
 }
 
+function inferRecorderFileExtension(mimeType: string) {
+  const normalizedMimeType = mimeType.split(';')[0]?.trim() || 'audio/webm';
+  const subtype = normalizedMimeType.split('/')[1]?.trim() || 'webm';
+
+  if (subtype === 'mpeg') {
+    return 'mp3';
+  }
+
+  return subtype || 'webm';
+}
+
+function createRecorderFileName(sessionId: string, mimeType: string) {
+  return `recording-${sessionId}.${inferRecorderFileExtension(mimeType)}`;
+}
+
+function createRecorderFile(
+  blob: Blob,
+  fileName: string,
+  mimeType: string,
+  lastModified = Date.now(),
+) {
+  return new File([blob], fileName, {
+    lastModified,
+    type: mimeType,
+  });
+}
+
 export function useAudioRecorder({
   audioConstraints,
+  callbacks,
   mimeType,
   recorderOptions,
   timeslice,
@@ -67,12 +100,17 @@ export function useAudioRecorder({
   const [durationMs, setDurationMs] = useState(0);
   const [blob, setBlob] = useState<Blob | null>(null);
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
+  const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<AudioRecorderError | null>(null);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const chunkSequenceRef = useRef(0);
   const startTimeRef = useRef<number | null>(null);
+  const sessionStartAtRef = useRef<Date | null>(null);
+  const sessionMimeTypeRef = useRef<string>(mimeType || 'audio/webm');
+  const sessionIdLabelRef = useRef('');
   const durationRef = useRef(0);
   const timerRef = useRef<number | null>(null);
   const blobUrlRef = useRef<string | null>(null);
@@ -85,6 +123,11 @@ export function useAudioRecorder({
     statusRef.current = nextStatus;
     setStatus(nextStatus);
   }, []);
+
+  const setRecorderError = useCallback((nextError: AudioRecorderError) => {
+    setError(nextError);
+    callbacks?.onError?.(nextError);
+  }, [callbacks]);
 
   const clearTimer = useCallback(() => {
     if (timerRef.current !== null) {
@@ -109,10 +152,23 @@ export function useAudioRecorder({
 
   const clearResult = useCallback(() => {
     chunksRef.current = [];
+    chunkSequenceRef.current = 0;
     updateDuration(0);
     setBlob(null);
+    setFile(null);
     revokeBlobUrl();
   }, [revokeBlobUrl, updateDuration]);
+
+  const toFile = useCallback((options?: AudioRecorderFileOptions) => {
+    const sourceBlob = blob ?? file ?? new Blob([], { type: sessionMimeTypeRef.current || mimeType || 'audio/webm' });
+    const resolvedMimeType = options?.type || sourceBlob.type || sessionMimeTypeRef.current || mimeType || 'audio/webm';
+    const resolvedFileName = options?.fileName
+      || file?.name
+      || createRecorderFileName(sessionIdLabelRef.current || String(sessionIdRef.current), resolvedMimeType);
+    const lastModified = options?.lastModified ?? Date.now();
+
+    return createRecorderFile(sourceBlob, resolvedFileName, resolvedMimeType, lastModified);
+  }, [blob, file, mimeType]);
 
   const startDurationTimer = useCallback(() => {
     clearTimer();
@@ -142,22 +198,58 @@ export function useAudioRecorder({
     const finalDuration = startTimeRef.current === null
       ? durationRef.current
       : Date.now() - startTimeRef.current;
+    const endedAt = new Date();
+    const startedAt = sessionStartAtRef.current ?? new Date(endedAt);
+    const sessionMimeType = sessionMimeTypeRef.current || mimeType || chunksRef.current[0]?.type || 'audio/webm';
+    const sessionIdLabel = sessionIdLabelRef.current || String(sessionId);
+    const chunkCount = chunkSequenceRef.current;
 
     startTimeRef.current = null;
     updateDuration(finalDuration);
 
     const nextBlob = new Blob(chunksRef.current, {
-      type: chunksRef.current[0]?.type || mimeType || 'audio/webm',
+      type: chunksRef.current[0]?.type || sessionMimeType,
     });
+    const nextFile = createRecorderFile(
+      nextBlob,
+      createRecorderFileName(sessionIdLabel, sessionMimeType),
+      sessionMimeType,
+      endedAt.getTime(),
+    );
 
     setBlob(nextBlob);
+    setFile(nextFile);
     revokeBlobUrl();
 
     const nextBlobUrl = URL.createObjectURL(nextBlob);
     blobUrlRef.current = nextBlobUrl;
     setBlobUrl(nextBlobUrl);
     setRecorderStatus(nextStatus);
-  }, [clearTimer, mimeType, revokeBlobUrl, setRecorderStatus, updateDuration]);
+
+    const completionPayload: AudioRecorderCompletionPayload = {
+      blob: nextBlob,
+      blobUrl: nextBlobUrl,
+      durationMs: finalDuration,
+      endedAt,
+      file: nextFile,
+      fileName: nextFile.name,
+      mimeType: sessionMimeType,
+      sessionId: sessionIdLabel,
+      startedAt,
+      toFile,
+    };
+    const sessionSummaryPayload: AudioRecorderSessionSummaryPayload = {
+      chunkCount,
+      durationMs: finalDuration,
+      endedAt,
+      mimeType: sessionMimeType,
+      sessionId: sessionIdLabel,
+      startedAt,
+    };
+
+    callbacks?.onSessionEnd?.(sessionSummaryPayload);
+    callbacks?.onRecordingComplete?.(completionPayload);
+  }, [callbacks, clearTimer, mimeType, revokeBlobUrl, setRecorderStatus, toFile, updateDuration]);
 
   const reset = useCallback(() => {
     sessionIdRef.current += 1;
@@ -166,6 +258,9 @@ export function useAudioRecorder({
 
     clearTimer();
     startTimeRef.current = null;
+    sessionStartAtRef.current = null;
+    sessionMimeTypeRef.current = mimeType || 'audio/webm';
+    sessionIdLabelRef.current = '';
 
     const recorder = mediaRecorderRef.current;
     if (recorder && recorder.state !== 'inactive') {
@@ -182,12 +277,12 @@ export function useAudioRecorder({
     clearResult();
     setError(null);
     setRecorderStatus(isRecorderSupported() ? 'idle' : 'unsupported');
-  }, [clearResult, clearTimer, setRecorderStatus]);
+  }, [clearResult, clearTimer, mimeType, setRecorderStatus]);
 
   const start = useCallback(async () => {
     if (!isRecorderSupported()) {
       setRecorderStatus('unsupported');
-      setError(createRecorderError('unsupported', 'This environment does not support audio recording.'));
+      setRecorderError(createRecorderError('unsupported', 'This environment does not support audio recording.'));
       return;
     }
 
@@ -226,12 +321,25 @@ export function useAudioRecorder({
         nextStream,
         resolveRecorderOptions({ mimeType, recorderOptions }),
       );
+      const resolvedMimeType = recorder.mimeType || mimeType || 'audio/webm';
+      const startedAt = new Date();
+      const sessionIdLabel = String(sessionId);
 
       const previousStream = streamRef.current;
 
       streamRef.current = nextStream;
       mediaRecorderRef.current = recorder;
       chunksRef.current = [];
+      chunkSequenceRef.current = 0;
+      sessionStartAtRef.current = startedAt;
+      sessionMimeTypeRef.current = resolvedMimeType;
+      sessionIdLabelRef.current = sessionIdLabel;
+
+      const sessionStartPayload: AudioRecorderSessionStartPayload = {
+        mimeType: resolvedMimeType,
+        sessionId: sessionIdLabel,
+        startedAt,
+      };
 
       recorder.addEventListener('dataavailable', (event) => {
         if (sessionId !== sessionIdRef.current) {
@@ -240,6 +348,22 @@ export function useAudioRecorder({
 
         if (event.data.size > 0) {
           chunksRef.current.push(event.data);
+
+          const duration = startTimeRef.current === null
+            ? durationRef.current
+            : Date.now() - startTimeRef.current;
+          const sequence = chunkSequenceRef.current + 1;
+          const chunkPayload: AudioRecorderChunkPayload = {
+            chunk: event.data,
+            durationMs: duration,
+            isFinal: recorder.state === 'inactive',
+            mimeType: event.data.type || resolvedMimeType,
+            sequence,
+            sessionId: sessionIdLabel,
+          };
+
+          chunkSequenceRef.current = sequence;
+          callbacks?.onChunk?.(chunkPayload);
         }
       });
 
@@ -255,7 +379,7 @@ export function useAudioRecorder({
         mediaRecorderRef.current = null;
         startTimeRef.current = null;
         setRecorderStatus('error');
-        setError(createRecorderError('recording-failed', 'Recording failed while capturing audio.', event));
+        setRecorderError(createRecorderError('recording-failed', 'Recording failed while capturing audio.', event));
       });
 
       recorder.addEventListener('stop', () => {
@@ -269,6 +393,7 @@ export function useAudioRecorder({
       updateDuration(0);
       startDurationTimer();
       setRecorderStatus('recording');
+      callbacks?.onSessionStart?.(sessionStartPayload);
     }
     catch (startError) {
       if (sessionId !== sessionIdRef.current) {
@@ -291,7 +416,7 @@ export function useAudioRecorder({
 
       const nextError = normalizeStartError(startError);
       setRecorderStatus(nextError.code === 'unsupported' ? 'unsupported' : 'error');
-      setError(nextError);
+      setRecorderError(nextError);
     }
     finally {
       if (sessionId === sessionIdRef.current) {
@@ -300,6 +425,7 @@ export function useAudioRecorder({
     }
   }, [
     audioConstraints,
+    callbacks,
     clearResult,
     clearTimer,
     finalizeRecording,
@@ -330,9 +456,9 @@ export function useAudioRecorder({
       mediaRecorderRef.current = null;
       startTimeRef.current = null;
       setRecorderStatus('error');
-      setError(createRecorderError('stop-failed', 'Failed to stop audio recording.', stopError));
+      setRecorderError(createRecorderError('stop-failed', 'Failed to stop audio recording.', stopError));
     }
-  }, [clearTimer, setRecorderStatus]);
+  }, [clearTimer, setRecorderError, setRecorderStatus]);
 
   useEffect(() => {
     return () => {
@@ -357,10 +483,12 @@ export function useAudioRecorder({
     blobUrl,
     durationMs,
     error,
+    file,
     isRecording: status === 'recording',
     reset,
     start,
     status,
     stop,
+    toFile,
   };
 }
