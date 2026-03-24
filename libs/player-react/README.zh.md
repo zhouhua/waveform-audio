@@ -1,75 +1,147 @@
-# 🎵 Waveform Player React
+# Waveform Audio React
 
-> 为您的 React 应用带来精美的音频可视化体验
->
-> [English Documentation](./README.md)
+面向 React 的音频播放与波形 UI 工具库。
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/zhouhua/waveform-audio/main/websites/public/favicon.svg" width="180" height="180" alt="Waveform Player Logo" />
-</p>
+[English Documentation](./README.md)
 
-<p align="center">
-  <a href="https://zhouhua.github.io/waveform-audio/player/examples">在线演示</a> •
-  <a href="https://zhouhua.github.io/waveform-audio/player/docs/introduction">文档</a> •
-  <a href="https://github.com/zhouhua/waveform-audio/issues">问题反馈</a>
-</p>
+## 项目定位
 
-## ✨ 特性
+`@waveform-audio/player` 是 Waveform Audio v2 产品家族的核心 React 库。
 
-为您的音频播放器注入新的活力：
+- `Player`：最快速接入的高层组件
+- `Recorder`：最小可用的高层录音组件
+- `PlayerRoot`：优先推荐的 primitives 根组件
+- `useAudioPlayer()`：适合高级编排和自定义逻辑的 hook API
+- `useAudioRecorder()`：适合录音流程编排的 hook API
 
-- 🎨 **精美波形可视化** - 实时渲染让音频跃然眼前
-- 🎮 **丰富播放控制** - 直观的播放、暂停、进度控制
-- 🎯 **精确音频分析** - 基于 Web Audio API 的高质量音频处理
-- 🎭 **可定制主题** - 灵活调整以匹配您的应用风格和场景
+`RootProvider` 仍然保留导出，但现在只是兼容性别名；后续公共叙事统一以 `PlayerRoot` 为主。
 
-## 🚀 快速开始
-
-### 安装
+## 安装
 
 ```bash
-# 使用 npm
-npm install @waveform-audio/player
-
-# 使用 pnpm
 pnpm add @waveform-audio/player
 ```
 
-### 基础用法
-
 ```tsx
-import { WaveformPlayer } from '@waveform-audio/player';
+import { Player } from '@waveform-audio/player';
 import '@waveform-audio/player/index.css';
 
-function App() {
+export function Demo() {
+  return <Player src="/audio/demo.mp3" />;
+}
+```
+
+## v2 三级 API 模型
+
+### Level 1：高层组件
+
+默认 UI 直接使用 `Player` 或 `Recorder`：
+
+```tsx
+import { Player, Recorder } from '@waveform-audio/player';
+
+<Player src="/audio/demo.mp3" />;
+<Recorder />;
+```
+
+### Level 2：Root + primitives
+
+需要自定义布局时，使用 `PlayerRoot` 和 primitives 组合：
+
+```tsx
+import { PlayerRoot, PlayTrigger, Timeline, Waveform } from '@waveform-audio/player';
+
+<PlayerRoot src="/audio/demo.mp3">
+  <PlayTrigger />
+  <Timeline />
+  <Waveform />
+</PlayerRoot>;
+```
+
+### Level 3：Hooks
+
+需要自己接管播放逻辑时，使用 `useAudioPlayer()`：
+
+```tsx
+import { useAudioPlayer } from '@waveform-audio/player';
+
+function CustomPlayer() {
+  const player = useAudioPlayer({ src: '/audio/demo.mp3' });
+
   return (
-    <WaveformPlayer 
-      src="https://example.com/awesome-track.mp3"
-      height={200}
-      width={800}
-      onPlay={() => console.log('音乐开始播放！')}
-    />
+    <button type="button" onClick={player.play}>
+      {player.audioState.isStopped ? '播放' : '继续'}
+    </button>
   );
 }
 ```
 
-## 📖 文档
+`useAudioPlayer()` 的公开返回值与 `AudioPlayerContextValue` 保持一致：顶层暴露控制方法，状态统一收口在 `audioState` 下。规范化后的停止状态请使用 `audioState.isStopped`；旧拼写 `audioState.isStoped` 被保留为兼容别名。
 
-深入了解 Waveform Player 的全部功能，请查看我们的[详细文档](https://zhouhua.github.io/waveform-audio/player/docs/introduction)。
+录音侧本轮提供的最小 v2 API 如下：
 
-## 🎯 示例
+```tsx
+import { useAudioRecorder } from '@waveform-audio/player';
 
-通过[交互式示例](https://zhouhua.github.io/waveform-audio/player/examples)体验 Waveform Player 的实际效果。
+function CustomRecorder() {
+  const recorder = useAudioRecorder();
 
-## 🤝 贡献
+  return (
+    <div>
+      <button type="button" onClick={() => void recorder.start()}>
+        开始录音
+      </button>
+      <button type="button" onClick={recorder.stop} disabled={!recorder.isRecording}>
+        停止
+      </button>
+      <button type="button" onClick={recorder.reset}>
+        重置
+      </button>
+      <p>状态：{recorder.status}</p>
+      <p>时长：{recorder.durationMs}ms</p>
+      {recorder.blobUrl && <audio controls src={recorder.blobUrl} />}
+    </div>
+  );
+}
+```
 
-我们欢迎各种形式的贡献：
+`useAudioRecorder()` 这次刻意只保留最小闭环：`start()`、`stop()`、`reset()`、`status`、`isRecording`、`durationMs`、`blob`、`blobUrl`，并对浏览器不支持、麦克风权限拒绝、录音过程失败和停止失败暴露明确错误状态。
 
-- 报告问题
-- 提交代码
-- 提议新功能
-- 分享示例
+## 全局音频管理
 
-## 📄 许可证
+多个播放器需要互斥或统一停止时，可以使用 `useGlobalAudioManager()`：
 
-MIT © [zhouhua](https://github.com/zhouhua) 
+```tsx
+import { useGlobalAudioManager } from '@waveform-audio/player';
+
+function GlobalControls() {
+  const { instances, stopAll } = useGlobalAudioManager();
+
+  return (
+    <button type="button" onClick={stopAll}>
+      停止 {instances.length} 个播放器
+    </button>
+  );
+}
+```
+
+每个实例会暴露：
+
+- `id`
+- `audioState`
+- `controls.play()`
+- `controls.pause()`
+- `controls.stop()`
+
+`stopOthers()` 当前的真实语义是“暂停其他正在播放的实例，让当前实例接管播放”；每个实例上的 `controls` 也是基于浏览器事件的命令包装器，不应被视为稳定引用的控制对象。
+
+## 文档入口
+
+- 产品文档：[waveform-audio player docs](https://zhouhua.github.io/waveform-audio/player/docs)
+- 示例：[waveform-audio examples](https://zhouhua.github.io/waveform-audio/examples)
+- AI / 重启设计资料：[`/docs/superpowers/specs`](../../docs/superpowers/specs) 与 [`/docs/superpowers/plans`](../../docs/superpowers/plans)
+
+## 说明
+
+- 默认导出仍然保留，但推荐优先使用 `Player` 这样的命名导入作为稳定 v2 入口。
+- 只从 `@waveform-audio/player` 导入，不要依赖内部源码路径。

@@ -6,16 +6,17 @@
   "exports": {
     "./eslint": "./eslint.config.js",
     "./tailwind": "./tailwind.config.js",
-    "./tsconfig": "./tsconfig.json"
+    "./tsconfig": "./tsconfig.json",
+    "./tsconfig.json": "./tsconfig.json"
   },
   "dependencies": {
-    "@antfu/eslint-config": "^3.12.1",
-    "tailwindcss": "^3.4.0",
-    "typescript": "^5.3.3"
+    "@antfu/eslint-config": "^3.16.0",
+    "tailwindcss": "^3.4.19",
+    "typescript": "^5.9.3"
   },
   "devDependencies": {
-    "@eslint-react/eslint-plugin": "^1.22.1",
-    "@types/node": "^22.10.2",
+    "@eslint-react/eslint-plugin": "^1.53.1",
+    "@types/node": "^22.19.15",
     "eslint-plugin-format": "^0.1.3"
   }
 }

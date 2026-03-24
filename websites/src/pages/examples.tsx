@@ -1,131 +1,70 @@
+import Player, { PlayerRoot, Recorder } from '@waveform-audio/player';
+import { useSiteContent } from '@/lib/site-content';
 import AUDIO_URL from '@/assets/music.mp3';
-import Player, { PlayerRoot, useAudioPlayer } from '@waveform-audio/player';
+import CodeBlock from '@/components/code-block';
 
-import React from 'react';
-
-// 1. 单一组件方式
-function SingleComponentExample() {
+function PlayerPrimitiveExample() {
   return (
-    <div className="example-section">
-      <h2 className="text-xl font-bold mb-4">1. 单一组件方式</h2>
-      <Player
-        src={AUDIO_URL}
-        className="w-full max-w-2xl"
-        onPlay={() => console.log('播放')}
-        onPause={() => console.log('暂停')}
-      />
-    </div>
-  );
-}
-
-// 2. Primitive 组件组合方式
-function PrimitiveComponentsExample() {
-  return (
-    <div className="example-section">
-      <h2 className="text-xl font-bold mb-4">2. Primitive 组件组合方式</h2>
-      <PlayerRoot
-        src={AUDIO_URL}
-        className="w-full max-w-2xl p-4 flex flex-col gap-4"
-        onPlay={() => console.log('播放')}
-        onPause={() => console.log('暂停')}
-      >
-        <div className="flex items-center gap-4">
-          <PlayerRoot.PlayButton className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center hover:bg-primary/90">
-            {({ isPlaying }: { isPlaying: boolean }) => (
-              <span className="text-lg">{isPlaying ? '⏸' : '▶'}</span>
-            )}
-          </PlayerRoot.PlayButton>
-          <div className="flex-1">
-            <PlayerRoot.Progress
-              className="cursor-pointer"
-              color="rgb(var(--primary))"
-              height={6}
-              onClick={(time) => {
-                // 处理进度条点击
-                console.log('进度条点击', time);
-              }}
-            />
-          </div>
-          <PlayerRoot.Time className="text-sm text-gray-500" format="current" />
-        </div>
-        <PlayerRoot.Waveform
-          className="cursor-pointer"
-          height={60}
-          color="rgb(var(--primary-foreground))"
-          progressColor="rgb(var(--primary))"
-          onClick={(time) => {
-            // 处理波形图点击
-            console.log('波形图点击', time);
-          }}
-        />
-      </PlayerRoot>
-    </div>
-  );
-}
-
-// 3. 无头组件方式
-function HeadlessExample() {
-  const {
-    components: { Audio, PlayButton, Progress, Time, VolumeControl, Waveform },
-  } = useAudioPlayer({
-    onPause: () => console.log('暂停'),
-    onPlay: () => console.log('播放'),
-    src: AUDIO_URL,
-  });
-
-  return (
-    <div className="example-section">
-      <h2 className="text-xl font-bold mb-4">3. 无头组件方式</h2>
-      <div className="w-full max-w-2xl bg-black/20 backdrop-blur rounded-xl p-6">
-        <Audio />
-        <div className="space-y-6">
-          {/* 自定义播放控制区域 */}
-          <div className="flex items-center gap-4">
-            <PlayButton className="w-12 h-12 rounded-xl bg-white/10 hover:bg-white/20 transition-colors">
-              {({ isPlaying }: { isPlaying: boolean }) => (
-                <span className="text-2xl">{isPlaying ? '⏸' : '▶'}</span>
-              )}
-            </PlayButton>
-            <div className="flex-1 space-y-1">
-              <Progress
-                className="cursor-pointer"
-                color="white"
-                height={3}
-              />
-              <div className="flex justify-between text-sm text-gray-400">
-                <Time format="current" />
-                <Time format="remaining" />
-              </div>
-            </div>
-            <VolumeControl
-              className="w-24"
-              color="white"
-              height={3}
-            />
-          </div>
-
-          {/* 自定义波形图 */}
-          <Waveform
-            className="cursor-pointer"
-            height={80}
-            color="rgba(255,255,255,0.2)"
-            progressColor="rgba(255,255,255,0.8)"
-          />
+    <PlayerRoot src={AUDIO_URL} className="flex flex-col gap-4 rounded-[1.25rem] border border-black/10 bg-white p-5">
+      <div className="flex items-center gap-4">
+        <PlayerRoot.PlayButton className="inline-flex h-11 min-w-24 items-center justify-center rounded-full bg-stone-950 px-4 text-white">
+          Play / Pause
+        </PlayerRoot.PlayButton>
+        <div className="flex-1">
+          <PlayerRoot.Progress color="#1c1917" />
         </div>
       </div>
-    </div>
+      <PlayerRoot.Waveform height={72} type="bars" color="#d6d3d1" progressColor="#1c1917" />
+    </PlayerRoot>
   );
 }
 
 export default function ExamplesPage() {
+  const site = useSiteContent();
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-background/50 p-8">
-      <div className="max-w-5xl mx-auto space-y-12">
-        <h1 className="text-3xl font-bold mb-8">音频播放器示例</h1>
-        <SingleComponentExample />
-        <PrimitiveComponentsExample />
-        <HeadlessExample />
+    <div className="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 sm:py-16">
+      <div className="max-w-3xl space-y-4">
+        <p className="text-sm uppercase tracking-[0.18em] text-stone-500">{site.examples.title}</p>
+        <h1 className="font-display text-5xl text-stone-950">{site.examples.description}</h1>
       </div>
+
+      <section className="mt-12 grid gap-6 lg:grid-cols-2">
+        <div className="site-panel overflow-hidden">
+          <div className="border-b border-black/10 px-6 py-5">
+            <h2 className="text-2xl font-semibold text-stone-950">{site.examples.playerTitle}</h2>
+          </div>
+          <div className="space-y-6 p-6">
+            <div className="space-y-4">
+              <Player src={AUDIO_URL} />
+              <CodeBlock
+                code={`import { Player } from '@waveform-audio/player';\n\n<Player src="/audio/example.mp3" />`}
+                language="tsx"
+              />
+            </div>
+            <PlayerPrimitiveExample />
+            <div className="rounded-[1.25rem] border border-dashed border-black/15 bg-[#faf7f1] p-5 text-sm leading-7 text-stone-650">
+              Drop to `PlayerRoot` when your product needs custom layout. For deeper orchestration, use the public hooks from `@waveform-audio/player` instead of reaching into internal source paths.
+            </div>
+          </div>
+        </div>
+
+        <div className="site-panel overflow-hidden">
+          <div className="border-b border-black/10 px-6 py-5">
+            <h2 className="text-2xl font-semibold text-stone-950">{site.examples.recorderTitle}</h2>
+          </div>
+          <div className="space-y-6 p-6">
+            <Recorder />
+            <CodeBlock
+              code={`import { Recorder } from '@waveform-audio/player';\n\n<Recorder />`}
+              language="tsx"
+            />
+            <div className="rounded-[1.25rem] border border-dashed border-black/15 bg-[#faf7f1] p-5 text-sm leading-7 text-stone-650">
+              Pair `Recorder` with `Player` when you need an immediate review flow after capture, or switch to `useAudioRecorder()` when the product owns the layout and upload pipeline.
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

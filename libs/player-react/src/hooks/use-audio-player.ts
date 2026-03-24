@@ -1,4 +1,5 @@
 import type { AudioMetadata } from '../utils/audio-metadata';
+import type { AudioState } from '../types';
 import type { AudioPlayerContextValue } from './audio-player-context';
 import { nanoid } from 'nanoid';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -10,13 +11,31 @@ import { useRegisterAudioInstance } from './use-register-audio';
 // URL 映射存储
 const urlMap = new Map<string, string>();
 
-export interface AudioState {
-  currentTime: number;
-  duration: number;
-  volume: number;
-  playbackRate: number;
-  isPlaying: boolean;
-  isStoped: boolean;
+type AudioStatePatch = Partial<Omit<AudioState, 'isStopped' | 'isStoped'>> & {
+  isStopped?: boolean;
+  isStoped?: boolean;
+};
+
+function withStoppedCompatibility(
+  state: Omit<AudioState, 'isStopped' | 'isStoped'> & {
+    isStopped?: boolean;
+    isStoped?: boolean;
+  },
+): AudioState {
+  const isStopped = state.isStopped ?? state.isStoped ?? true;
+
+  return {
+    ...state,
+    isStopped,
+    isStoped: isStopped,
+  };
+}
+
+function mergeAudioState(currentState: AudioState, patch: AudioStatePatch): AudioState {
+  return withStoppedCompatibility({
+    ...currentState,
+    ...patch,
+  });
 }
 
 export interface UseAudioPlayerProps {
@@ -44,14 +63,14 @@ export function useAudioPlayer({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const originalSrcRef = useRef<string>(src);
   const playLockRef = useRef<boolean>(false);
-  const [audioState, setAudioState] = useState<AudioState>({
+  const [audioState, setAudioState] = useState<AudioState>(withStoppedCompatibility({
     currentTime: 0,
     duration: 0,
     isPlaying: false,
-    isStoped: true,
+    isStopped: true,
     playbackRate: 1,
     volume: 1,
-  });
+  }));
   const [waveformData, setWaveformData] = useState<{ peaks: number[] }>();
   const [currentSamplePoints, setCurrentSamplePoints] = useState(samplePoints);
   const [metadata, setMetadata] = useState<AudioMetadata>();
@@ -120,18 +139,16 @@ export function useAudioPlayer({
       }
 
       await audio.play();
-      setAudioState(prev => ({
-        ...prev,
+      setAudioState(prev => mergeAudioState(prev, {
         isPlaying: true,
-        isStoped: false,
+        isStopped: false,
       }));
     }
     catch (error) {
       console.error('Failed to play audio:', error);
-      setAudioState(prev => ({
-        ...prev,
+      setAudioState(prev => mergeAudioState(prev, {
         isPlaying: false,
-        isStoped: true,
+        isStopped: true,
       }));
     }
     finally {
@@ -147,10 +164,9 @@ export function useAudioPlayer({
 
     try {
       audio.pause();
-      setAudioState(prev => ({
-        ...prev,
+      setAudioState(prev => mergeAudioState(prev, {
         isPlaying: false,
-        isStoped: false,
+        isStopped: false,
       }));
     }
     catch (error) {
@@ -162,10 +178,9 @@ export function useAudioPlayer({
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
-      setAudioState(prev => ({
-        ...prev,
+      setAudioState(prev => mergeAudioState(prev, {
         isPlaying: false,
-        isStoped: true,
+        isStopped: true,
       }));
     }
   }, []);
@@ -241,14 +256,9 @@ export function useAudioPlayer({
     () => ({
       ...contextMethods,
       ...contextState,
-      currentTime: audioState.currentTime,
-      duration: audioState.duration,
       instanceId: instanceIdRef.current,
-      // 展开必要的 audioState 属性到顶层
-      isPlaying: audioState.isPlaying,
-      isStoped: audioState.isStoped,
     }),
-    [contextMethods, contextState, audioState],
+    [contextMethods, contextState],
   );
 
   // 注册到全局音频管理器
@@ -260,12 +270,14 @@ export function useAudioPlayer({
       currentTime: audioState.currentTime,
       duration: audioState.duration,
       isPlaying: audioState.isPlaying,
+      isStopped: audioState.isStopped,
       isStoped: audioState.isStoped,
       src,
     });
   }, [
     updateInstance,
     audioState.isPlaying,
+    audioState.isStopped,
     audioState.isStoped,
     audioState.currentTime,
     audioState.duration,
@@ -304,10 +316,7 @@ export function useAudioPlayer({
             || newState.playbackRate !== audioState.playbackRate
             || newState.volume !== audioState.volume
           ) {
-            setAudioState(prev => ({
-              ...prev,
-              ...newState,
-            }));
+            setAudioState(prev => mergeAudioState(prev, newState));
           }
         });
       };
@@ -318,11 +327,10 @@ export function useAudioPlayer({
             if (prev.isPlaying) {
               return prev;
             }
-            return {
-              ...prev,
+            return mergeAudioState(prev, {
               isPlaying: true,
-              isStoped: false,
-            };
+              isStopped: false,
+            });
           });
         });
       };
@@ -333,10 +341,9 @@ export function useAudioPlayer({
             if (!prev.isPlaying) {
               return prev;
             }
-            return {
-              ...prev,
+            return mergeAudioState(prev, {
               isPlaying: false,
-            };
+            });
           });
         });
       };
@@ -344,15 +351,14 @@ export function useAudioPlayer({
       const handleEnded = () => {
         requestAnimationFrame(() => {
           setAudioState((prev) => {
-            if (prev.isStoped) {
+            if (prev.isStopped) {
               return prev;
             }
-            return {
-              ...prev,
+            return mergeAudioState(prev, {
               currentTime: audio.duration || 0,
               isPlaying: false,
-              isStoped: true,
-            };
+              isStopped: true,
+            });
           });
         });
       };
@@ -364,10 +370,9 @@ export function useAudioPlayer({
             if (prev.playbackRate === newRate) {
               return prev;
             }
-            return {
-              ...prev,
+            return mergeAudioState(prev, {
               playbackRate: newRate,
-            };
+            });
           });
         });
       };
@@ -379,10 +384,9 @@ export function useAudioPlayer({
             if (prev.volume === newVolume) {
               return prev;
             }
-            return {
-              ...prev,
+            return mergeAudioState(prev, {
               volume: newVolume,
-            };
+            });
           });
         });
       };
@@ -510,14 +514,14 @@ export function useAudioPlayer({
     }
 
     // 如果状态表示应该播放，但实际暂停了，且不是停止状态，则播放
-    if (audioState.isPlaying && audio.paused && !audioState.isStoped) {
+    if (audioState.isPlaying && audio.paused && !audioState.isStopped) {
       void play();
     }
     // 如果状态表示不应该播放，但实际在播放，则暂停
     else if (!audioState.isPlaying && !audio.paused) {
       audio.pause(); // 直接调用原生暂停，避免循环引用
     }
-  }, [audioState.isPlaying, audioState.isStoped, play]);
+  }, [audioState.isPlaying, audioState.isStopped, play]);
 
   useEffect(() => {
     syncPlaybackState();

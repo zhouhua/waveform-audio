@@ -1,17 +1,10 @@
+import type { GlobalAudioManagerAudioState } from '../types';
 import { useCallback, useEffect } from 'react';
-
-interface AudioInstanceState {
-  isPlaying: boolean;
-  isStoped: boolean;
-  currentTime: number;
-  duration: number;
-  src: string;
-}
 
 // 使用单例模式保持实例状态
 class AudioInstanceManager {
   private static instance: AudioInstanceManager;
-  private instances = new Map<string, AudioInstanceState>();
+  private instances = new Map<string, GlobalAudioManagerAudioState>();
 
   private constructor() {
   }
@@ -27,7 +20,7 @@ class AudioInstanceManager {
     return Array.from(this.instances.entries());
   }
 
-  registerInstance(instanceId: string, initialState: AudioInstanceState) {
+  registerInstance(instanceId: string, initialState: GlobalAudioManagerAudioState) {
     if (!this.instances.has(instanceId)) {
       this.instances.set(instanceId, initialState);
       this.notifyStateChange();
@@ -41,10 +34,11 @@ class AudioInstanceManager {
     }
   }
 
-  updateInstance(instanceId: string, state: AudioInstanceState) {
+  updateInstance(instanceId: string, state: GlobalAudioManagerAudioState) {
     const currentState = this.instances.get(instanceId);
     if (!currentState
       || currentState.isPlaying !== state.isPlaying
+      || currentState.isStopped !== state.isStopped
       || currentState.isStoped !== state.isStoped
       || currentState.currentTime !== state.currentTime
       || currentState.duration !== state.duration
@@ -69,6 +63,7 @@ export function useRegisterAudioInstance(instanceId: string) {
       currentTime: 0,
       duration: 0,
       isPlaying: false,
+      isStopped: true,
       isStoped: true,
       src: '',
     });
@@ -78,7 +73,7 @@ export function useRegisterAudioInstance(instanceId: string) {
     };
   }, [instanceId]);
 
-  const updateState = useCallback((state: AudioInstanceState) => {
+  const updateState = useCallback((state: GlobalAudioManagerAudioState) => {
     audioManager.updateInstance(instanceId, state);
   }, [instanceId]);
 

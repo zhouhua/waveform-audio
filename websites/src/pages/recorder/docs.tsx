@@ -1,65 +1,70 @@
-import { useTranslation } from 'react-i18next';
-import { Link, Outlet } from 'react-router-dom';
+import { Link } from 'react-router';
+import CodeBlock from '@/components/code-block';
+import { useSiteContent } from '@/lib/site-content';
 
-export default function DocsPage() {
-  const { t } = useTranslation();
+const code = `import { Recorder } from '@waveform-audio/player';
+import '@waveform-audio/player/index.css';
 
-  const sidebarItems = [
-    {
-      title: t('docs.gettingStarted.title'),
-      items: [
-        { path: '/docs/getting-started', title: t('docs.gettingStarted.title') },
-        { path: '/docs/installation', title: t('docs.gettingStarted.installation.title') },
-      ],
-    },
-    {
-      title: t('docs.props.basicConfig.title'),
-      items: [
-        { path: '/docs/basic-player', title: t('docs.props.basicConfig.title') },
-        { path: '/docs/custom-controls', title: t('docs.props.styleConfig.title') },
-        { path: '/docs/waveform-renderers', title: t('docs.props.callbacks.title') },
-      ],
-    },
-    {
-      title: 'API 参考',
-      items: [
-        { path: '/docs/props', title: t('docs.props.title') },
-        { path: '/docs/hooks', title: t('docs.hooks.title') },
-        { path: '/docs/types', title: t('docs.props.basicConfig.title') },
-      ],
-    },
-  ];
+export default function App() {
+  return <Recorder />;
+}`;
+
+export default function RecorderDocs() {
+  const site = useSiteContent();
 
   return (
-    <div className="min-h-screen flex">
-      {/* Sidebar */}
-      <div className="w-64 bg-gray-100 dark:bg-gray-800 p-6 flex-shrink-0">
-        <nav>
-          {sidebarItems.map(section => (
-            <div key={section.title} className="mb-6">
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">
-                {section.title}
-              </h3>
-              <ul className="space-y-2">
-                {section.items.map(item => (
-                  <li key={item.path}>
-                    <Link
-                      to={item.path}
-                      className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white block py-1"
-                    >
-                      {item.title}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </nav>
-      </div>
+    <div className="mx-auto w-full max-w-6xl px-4 py-14 sm:px-6 sm:py-16">
+      <div className="grid gap-10 lg:grid-cols-[0.75fr_1.25fr]">
+        <aside className="space-y-6">
+          <div className="site-panel p-6">
+            <p className="text-sm uppercase tracking-[0.18em] text-stone-500">{site.docs.recorder.title}</p>
+            <h1 className="mt-4 font-display text-4xl text-stone-950">{site.docs.recorder.title}</h1>
+            <p className="mt-4 text-base leading-7 text-stone-650">{site.docs.recorder.intro}</p>
+          </div>
+          <div className="site-panel p-6">
+            <p className="text-sm uppercase tracking-[0.18em] text-stone-500">{site.docs.common.conceptsTitle}</p>
+            <ul className="mt-4 space-y-3 text-sm leading-7 text-stone-650">
+              {site.docs.common.concepts.map(item => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        </aside>
 
-      {/* Content */}
-      <div className="flex-1 p-8">
-        <Outlet />
+        <div className="space-y-6">
+          <section id="quickstart" className="site-panel overflow-hidden">
+            <div className="border-b border-black/10 px-6 py-5">
+              <p className="text-sm uppercase tracking-[0.18em] text-stone-500">{site.docs.recorder.quickstartTitle}</p>
+            </div>
+            <div className="bg-[#111111] p-1">
+              <CodeBlock code={code} language="tsx" />
+            </div>
+          </section>
+
+          <section className="grid gap-6">
+            {site.docs.recorder.sections.map(section => (
+              <div
+                key={section.title}
+                id={section.title.includes('hook') || section.title.includes('hook') || section.title.includes('useAudioRecorder') ? 'hook' : section.title.includes('结果') || section.title.includes('Output') ? 'output-model' : undefined}
+                className="site-panel p-6"
+              >
+                <h2 className="text-2xl font-semibold text-stone-950">{section.title}</h2>
+                <p className="mt-4 text-base leading-7 text-stone-650">{section.description}</p>
+              </div>
+            ))}
+          </section>
+
+          <section className="site-panel p-6">
+            <p className="text-sm uppercase tracking-[0.18em] text-stone-500">{site.docs.common.linksTitle}</p>
+            <div className="mt-4 flex flex-wrap gap-3">
+              {site.docs.common.links.map(link => (
+                <Link key={link.href} to={link.href} className="rounded-full border border-black/10 bg-white px-4 py-2 text-sm text-stone-700 transition-colors hover:border-black/20 hover:text-stone-950">
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </section>
+        </div>
       </div>
     </div>
   );

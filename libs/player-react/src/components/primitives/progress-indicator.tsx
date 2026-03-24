@@ -181,7 +181,7 @@ export function ProgressIndicator({
     width: `${width}px`,
   };
 
-  if (context.audioState.isStoped) {
+  if (context.audioState.isStopped) {
     return null;
   }
   return (

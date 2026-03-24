@@ -126,7 +126,7 @@ class MockAudioContext {
           const totalSamples = totalFrames * samplesPerFrame;
 
           // 创建音频数据
-          const generateChannelData = (channel: number) => {
+          const generateChannelData = (_channel: number) => {
             const samples = new Float32Array(totalSamples);
             let frameOffset = offset;
 
@@ -284,7 +284,7 @@ class MockAudio extends EventTarget {
     });
   }
 
-  private async _loadAudio(src: string) {
+  private async _loadAudio(_src: string) {
     try {
       // 如果是测试音频文件
       const audioBuffer = readFileSync(resolve(__dirname, '../test.mp3'));

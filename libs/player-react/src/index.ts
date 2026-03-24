@@ -1,22 +1,33 @@
 import type { WaveformType } from './components/primitives/waveform-renderers';
 import Player from './components/player';
-import { PlayerRoot } from './components/primitives';
+import Recorder from './components/recorder';
+import { PlayerRoot, RootProvider } from './components/primitives';
 import './index.css';
 
+export { Player };
+export { Recorder };
 export default Player;
 export type { PlayerProps } from './components/player';
-export { PlayerRoot };
+export type { RecorderProps } from './components/recorder';
+export { PlayerRoot, RootProvider };
 export * from './components/primitives';
 export type { WaveformType };
 export type {
-  AudioState,
   PlayButtonProps,
-  RootProviderProps as PlayerRootProps,
+  PlayerRootProps,
   ProgressIndicatorProps,
+  RootProviderProps,
   TimelineProps,
   VolumeControlProps,
   WaveformProps,
 } from './components/primitives';
+export type {
+  AudioRecorderController,
+  AudioRecorderError,
+  AudioRecorderStatus,
+  AudioState,
+  UseAudioRecorderOptions,
+} from './types';
 export {
   useCurrentPlayer,
   useCurrentPlayerControls,
@@ -25,7 +36,14 @@ export {
 } from './components/primitives';
 export type { AudioPlayerContextValue } from './hooks/audio-player-context';
 export { useAudioPlayer } from './hooks/use-audio-player';
+export { useAudioRecorder } from './hooks/use-audio-recorder';
 export type { UseAudioPlayerProps } from './hooks/use-audio-player';
 export { useGlobalAudioManager } from './hooks/use-global-audio-manager';
+export type {
+  GlobalAudioManager,
+  GlobalAudioManagerAudioState,
+  GlobalAudioManagerControls,
+  GlobalAudioManagerInstance,
+} from './types';
 
 export { formatTime } from './utils/time-format';

@@ -18,8 +18,8 @@ function abstractComponentFactory(name: string, check: (context: AudioPlayerCont
 
 export const Playing = abstractComponentFactory('Playing', context => context.audioState.isPlaying);
 export const Paused = abstractComponentFactory('Paused', context => !context.audioState.isPlaying);
-export const Stopped = abstractComponentFactory('Stopped', context => context.audioState.isStoped);
-export const NotStopped = abstractComponentFactory('NotStopped', context => !context.audioState.isStoped);
+export const Stopped = abstractComponentFactory('Stopped', context => context.audioState.isStopped);
+export const NotStopped = abstractComponentFactory('NotStopped', context => !context.audioState.isStopped);
 export const Loading = abstractComponentFactory('Loading', context => !context.isReady);
 export const NotLoading = abstractComponentFactory('NotLoading', context => context.isReady);
 

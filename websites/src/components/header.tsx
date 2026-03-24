@@ -1,77 +1,120 @@
 import { SiGithub } from '@icons-pack/react-simple-icons';
-import { AudioLines, CassetteTape } from 'lucide-react';
-import { useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
+import { AudioLines, Bot, CassetteTape, Menu, Sparkles, X } from 'lucide-react';
+import { useState } from 'react';
 import { Link, useLocation } from 'react-router';
+import { useSiteContent } from '@/lib/site-content';
+import { cn } from '@/lib/utils';
 import LanguageSwitcher from './language-switcher';
-import { NavigationMenu, NavigationMenuItem, NavigationMenuList } from './ui/navigation-menu';
+
+const navItems = [
+  { href: '/', key: 'home', match: (pathname: string) => pathname === '/' },
+  { href: '/player', key: 'player', match: (pathname: string) => pathname.startsWith('/player') },
+  { href: '/recorder', key: 'recorder', match: (pathname: string) => pathname.startsWith('/recorder') },
+  { href: '/examples', key: 'examples', match: (pathname: string) => pathname.startsWith('/examples') },
+  { href: '/docs/ai', key: 'ai', match: (pathname: string) => pathname.startsWith('/docs/ai') },
+] as const;
 
 export default function Header() {
-  const { t } = useTranslation();
   const { pathname } = useLocation();
-  const isPlayerPage = useMemo(() => pathname.startsWith('/player'), [pathname]);
+  const site = useSiteContent();
+  const isHome = pathname === '/';
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  if (pathname === '/') {
-    return (
-      <div className="fixed top-0 right-0 p-6">
-        <LanguageSwitcher />
-      </div>
-    );
-  }
-
-  const Icon = isPlayerPage ? AudioLines : CassetteTape;
-
-  const menus = [
-    {
-      href: isPlayerPage ? '/player/docs/introduction' : '/recorder/docs/introduction',
-      title: isPlayerPage ? 'player.nav.docs' : 'recorder.nav.docs',
-    },
-    {
-      href: isPlayerPage ? '/player/examples' : '/recorder/examples',
-      title: isPlayerPage ? 'player.nav.examples' : 'recorder.nav.examples',
-    },
-  ];
+  const docsHref = pathname.startsWith('/recorder') ? '/recorder/docs' : '/player/docs';
 
   return (
-    <header className="sticky top-0 z-50 w-full backdrop-blur mx-auto">
-      <div className="w-[720px] mx-auto border-gray-200 px-8">
-        <NavigationMenu className="flex h-16 items-center justify-between w-full max-w-[unset]">
-          <div className="flex items-center">
-            <Link to={isPlayerPage ? '/player' : '/recorder'} className="text-xl text-gray-900 dark:text-white flex items-center gap-2">
-              <Icon className="w-6 h-6" />
-              Waveform
-              {' '}
-              {isPlayerPage ? 'Player' : 'Recorder'}
-            </Link>
+    <header className="sticky top-0 z-50 border-b border-black/5 bg-[rgba(249,247,242,0.82)] backdrop-blur-xl">
+      <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-6 px-4 sm:px-6">
+        <Link to="/" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 text-sm font-medium tracking-[0.16em] text-stone-900 uppercase">
+          <div className="flex size-9 items-center justify-center rounded-full border border-black/10 bg-white shadow-[0_6px_20px_rgba(15,23,42,0.08)]">
+            <Sparkles className="size-4" />
           </div>
+          <span className="hidden sm:inline">Waveform Audio</span>
+        </Link>
 
-          <NavigationMenuList className="flex items-center gap-4">
-            {menus.map(menu => (
-              <NavigationMenuItem key={menu.title}>
-                <Link
-                  to={menu.href}
-                  className="text-gray-600 hover:bg-black/10 hover:text-gray-900  rounded-md p-2 cursor-pointer transition-colors duration-200"
-                >
-                  {t(menu.title)}
-                </Link>
-              </NavigationMenuItem>
-            ))}
-            <NavigationMenuItem>
-              <a
-                href="https://github.com/zhouhua/waveform-audio"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-600 hover:bg-black/10 hover:text-gray-900  rounded-md p-2 cursor-pointer transition-colors duration-200 block"
+        <nav className="hidden items-center gap-2 md:flex">
+          {navItems.map(item => {
+            const isActive = item.match(pathname);
+            const Icon = item.key === 'player'
+              ? AudioLines
+              : item.key === 'recorder'
+                ? CassetteTape
+                : item.key === 'ai'
+                  ? Bot
+                  : undefined;
+
+            return (
+              <Link
+                key={item.href}
+                to={item.href}
+                className={cn(
+                  'inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm transition-colors',
+                  isActive
+                    ? 'bg-stone-900 text-stone-50'
+                    : 'text-stone-600 hover:bg-black/5 hover:text-stone-900',
+                )}
               >
-                <SiGithub className="w-5 h-5" />
-              </a>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <LanguageSwitcher />
-            </NavigationMenuItem>
-          </NavigationMenuList>
-        </NavigationMenu>
+                {Icon && <Icon className="size-4" />}
+                {site.nav[item.key]}
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="flex items-center gap-2">
+          {!isHome && (
+            <Link
+              to={docsHref}
+              className="hidden rounded-full border border-black/10 bg-white px-3 py-2 text-sm text-stone-700 transition-colors hover:border-black/20 hover:text-stone-950 sm:inline-flex"
+            >
+              {pathname.startsWith('/recorder') ? site.recorder.docsCta : site.player.docsCta}
+            </Link>
+          )}
+          <a
+            href="https://github.com/zhouhua/waveform-audio"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex size-10 items-center justify-center rounded-full border border-black/10 bg-white text-stone-700 transition-colors hover:border-black/20 hover:text-stone-950"
+            aria-label="GitHub"
+          >
+            <SiGithub className="size-4" />
+          </a>
+          <button
+            type="button"
+            onClick={() => setMobileOpen(current => !current)}
+            className="inline-flex size-10 items-center justify-center rounded-full border border-black/10 bg-white text-stone-700 md:hidden"
+            aria-label="Toggle navigation"
+          >
+            {mobileOpen ? <X className="size-4" /> : <Menu className="size-4" />}
+          </button>
+          <LanguageSwitcher />
+        </div>
       </div>
+      {mobileOpen && (
+        <div className="border-t border-black/5 bg-[rgba(249,247,242,0.96)] px-4 py-4 md:hidden">
+          <nav className="mx-auto flex max-w-7xl flex-col gap-2">
+            {navItems.map(item => (
+              <Link
+                key={item.href}
+                to={item.href}
+                onClick={() => setMobileOpen(false)}
+                className="rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm text-stone-800"
+              >
+                {site.nav[item.key]}
+              </Link>
+            ))}
+            {!isHome && (
+              <Link
+                to={docsHref}
+                onClick={() => setMobileOpen(false)}
+                className="rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm text-stone-800"
+              >
+                {pathname.startsWith('/recorder') ? site.recorder.docsCta : site.player.docsCta}
+              </Link>
+            )}
+          </nav>
+        </div>
+      )}
     </header>
   );
 }

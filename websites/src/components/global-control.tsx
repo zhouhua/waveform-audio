@@ -8,10 +8,14 @@ export function GlobalControl() {
   const { instances, stopAll } = useGlobalAudioManager();
   const { t } = useTranslation();
   const playingInstances = instances.filter(({ audioState }) => audioState.isPlaying);
-  console.log(instances);
+
+  if (instances.length === 0) {
+    return null;
+  }
+
   return (
     <div
-      className="fixed bottom-4 right-4 flex items-center justify-center size-10 bg-white shadow-lg rounded-full"
+      className="fixed bottom-4 right-4 z-40 flex size-11 items-center justify-center rounded-full border border-black/10 bg-white/90 shadow-[0_18px_45px_rgba(15,23,42,0.18)] backdrop-blur"
       onClick={stopAll}
     >
       <TooltipProvider>

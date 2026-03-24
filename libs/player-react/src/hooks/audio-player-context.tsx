@@ -1,5 +1,5 @@
 import type { AudioMetadata } from '../utils/audio-metadata';
-import type { AudioState } from './use-audio-player';
+import type { AudioState } from '../types';
 import React, { createContext, useContext } from 'react';
 
 export interface AudioPlayerContextValue {
@@ -21,10 +21,6 @@ export interface AudioPlayerContextValue {
   samplePoints: number;
   setSamplePoints: (points: number) => void;
   isReady: boolean;
-  isPlaying: boolean;
-  isStoped: boolean;
-  currentTime: number;
-  duration: number;
 }
 
 export const AudioPlayerContext = createContext<AudioPlayerContextValue | null>(null);

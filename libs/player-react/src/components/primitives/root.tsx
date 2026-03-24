@@ -8,18 +8,9 @@ import React, { createContext, useContext } from 'react';
 import { useAudioPlayer } from '../../hooks/use-audio-player';
 import { cn } from '../../utils/cn';
 
-export interface AudioState {
-  currentTime: number;
-  duration: number;
-  volume: number;
-  playbackRate: number;
-  isPlaying: boolean;
-  isStoped: boolean;
-}
-
 export const RootContext = createContext<AudioPlayerContextValue | undefined>(undefined);
 
-export interface RootProviderProps {
+export interface PlayerRootProps {
   children: React.ReactNode;
   src?: string;
   samplePoints?: number;
@@ -33,7 +24,12 @@ export interface RootProviderProps {
   instanceId?: string;
 }
 
-export interface RootComponent extends React.FC<RootProviderProps> {
+/**
+ * @deprecated Use `PlayerRootProps` instead.
+ */
+export type RootProviderProps = PlayerRootProps;
+
+export interface RootComponent extends React.FC<PlayerRootProps> {
   PlayButton: typeof PlayTrigger;
   Progress: typeof ProgressIndicator;
   Time: typeof Timeline;
@@ -44,7 +40,7 @@ export interface RootComponent extends React.FC<RootProviderProps> {
 export function useCurrentPlayerState() {
   const context = useContext(RootContext);
   if (!context) {
-    throw new Error('useCurrentPlayerState must be used within a RootProvider');
+    throw new Error('useCurrentPlayerState must be used within PlayerRoot or RootProvider');
   }
   return context.audioState;
 }
@@ -52,7 +48,7 @@ export function useCurrentPlayerState() {
 export function useCurrentPlayerControls() {
   const context = useContext(RootContext);
   if (!context) {
-    throw new Error('useCurrentPlayerControls must be used within a RootProvider');
+    throw new Error('useCurrentPlayerControls must be used within PlayerRoot or RootProvider');
   }
   return {
     pause: context.pause,
@@ -67,7 +63,7 @@ export function useCurrentPlayerControls() {
 export function useCurrentPlayerWaveform() {
   const context = useContext(RootContext);
   if (!context) {
-    throw new Error('useCurrentPlayerWaveform must be used within a RootProvider');
+    throw new Error('useCurrentPlayerWaveform must be used within PlayerRoot or RootProvider');
   }
   return context.waveformData;
 }
@@ -75,12 +71,15 @@ export function useCurrentPlayerWaveform() {
 export function useCurrentPlayer() {
   const context = useContext(RootContext);
   if (!context) {
-    throw new Error('useCurrentPlayer must be used within a RootProvider');
+    throw new Error('useCurrentPlayer must be used within PlayerRoot or RootProvider');
   }
   return context;
 }
 
 // 主组件
+/**
+ * @deprecated Use `PlayerRoot` instead.
+ */
 export function RootProvider({
   children,
   className,
@@ -93,7 +92,7 @@ export function RootProvider({
   samplePoints = 200,
   src,
   style,
-}: RootProviderProps) {
+}: PlayerRootProps) {
   // 使用 useAudioPlayer 作为底层实现
   const audioContext = useAudioPlayer({
     instanceId,

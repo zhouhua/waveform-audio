@@ -1,27 +1,6 @@
+import type { GlobalAudioManager } from '../types';
 import { useEffect, useMemo, useState } from 'react';
 import { getAudioInstances } from './use-register-audio';
-
-interface AudioInstanceState {
-  isPlaying: boolean;
-  isStoped: boolean;
-  currentTime: number;
-  duration: number;
-  src: string;
-}
-
-interface GlobalAudioManager {
-  stopOthers: (currentInstanceId: string) => void;
-  stopAll: () => void;
-  instances: {
-    id: string;
-    audioState: AudioInstanceState;
-    controls: {
-      play: () => void;
-      pause: () => void;
-      stop: () => void;
-    };
-  }[];
-}
 
 // 全局音频管理 hook
 export function useGlobalAudioManager(): GlobalAudioManager {

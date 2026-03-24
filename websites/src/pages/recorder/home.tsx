@@ -1,71 +1,80 @@
-import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
-import Player from '../../../../libs/player-react/src';
-import demoMusic from '../assets/music.mp3';
+import { Link } from 'react-router';
+import { Recorder } from '@waveform-audio/player';
+import { ArrowRight, Mic, ShieldAlert, Terminal, UploadCloud } from 'lucide-react';
+import CodeBlock from '@/components/code-block';
+import { useSiteContent } from '@/lib/site-content';
 
-export default function HomePage() {
-  const { t } = useTranslation();
+const code = `import { Recorder } from '@waveform-audio/player';
+import '@waveform-audio/player/index.css';
+
+export default function App() {
+  return <Recorder />;
+}`;
+
+export default function RecorderHomePage() {
+  const site = useSiteContent();
 
   return (
-    <div className="min-h-screen">
-      <div className="max-w-6xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
-        {/* Hero Section */}
-        <div className="text-center mb-16">
-          <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-6">
-            {t('home.title')}
-          </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
-            {t('home.description')}
-          </p>
-          <div className="flex justify-center gap-4">
-            <Link
-              to="/docs/getting-started"
-              className="bg-teal-600 text-white px-6 py-3 rounded-lg hover:bg-teal-700 transition-colors"
-            >
-              {t('home.getStarted')}
+    <div className="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 sm:py-16">
+      <section className="grid gap-10 lg:grid-cols-[0.96fr_1.04fr] lg:items-center">
+        <div className="space-y-6">
+          <p className="text-sm uppercase tracking-[0.18em] text-stone-500">{site.recorder.eyebrow}</p>
+          <h1 className="font-display text-5xl leading-[0.98] text-stone-950 sm:text-6xl">{site.recorder.title}</h1>
+          <p className="max-w-2xl text-lg leading-8 text-stone-650">{site.recorder.description}</p>
+          <div className="flex flex-wrap gap-3">
+            <Link to="/recorder/docs" className="inline-flex items-center gap-2 rounded-full bg-stone-950 px-5 py-3 text-sm font-medium text-stone-50">
+              {site.recorder.docsCta}
+              <ArrowRight className="size-4" />
             </Link>
-            <Link
-              to="/examples"
-              className="bg-gray-800 text-white px-6 py-3 rounded-lg hover:bg-gray-900 transition-colors"
-            >
-              {t('home.viewExamples')}
+            <Link to="/examples" className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-5 py-3 text-sm font-medium text-stone-700">
+              {site.recorder.examplesCta}
             </Link>
+          </div>
+          <div className="inline-flex items-center gap-3 rounded-full border border-black/10 bg-white px-4 py-3 text-sm text-stone-700">
+            <Terminal className="size-4" />
+            <span className="font-medium uppercase tracking-[0.16em] text-stone-500">{site.recorder.installLabel}</span>
+            <code className="font-mono text-[13px] text-stone-950">pnpm add @waveform-audio/player</code>
           </div>
         </div>
 
-        {/* Demo Section */}
-        <div className="mb-16">
-          <Player
-            src={demoMusic}
-            samplePoints={500}
-          />
+        <div className="site-panel space-y-5 p-5 sm:p-6">
+          <div>
+            <p className="text-xs uppercase tracking-[0.18em] text-stone-500">{site.labels.livePreview}</p>
+            <p className="mt-2 text-2xl font-semibold text-stone-950">Recorder</p>
+          </div>
+          <div className="rounded-[1.5rem] border border-black/10 bg-white p-4">
+            <Recorder />
+          </div>
+          <div className="rounded-[1.5rem] border border-black/10 bg-[#121212] p-1">
+            <CodeBlock code={code} language="tsx" />
+          </div>
         </div>
+      </section>
 
-        {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-          <FeatureCard
-            title={t('home.features.waveform')}
-            description={t('home.features.playback')}
-          />
-          <FeatureCard
-            title={t('home.features.customization')}
-            description={t('home.features.responsive')}
-          />
-          <FeatureCard
-            title={t('home.features.typescript')}
-            description={t('home.features.events')}
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
+      <section className="mt-16 grid gap-px overflow-hidden rounded-[2rem] border border-black/10 bg-black/10 lg:grid-cols-3">
+        {site.recorder.highlights.map((item, index) => (
+          <div key={item} className="bg-[#fbf8f2] p-8">
+            <div className="flex items-center gap-3 text-stone-900">
+              {index === 0 ? <Mic className="size-5" /> : index === 1 ? <UploadCloud className="size-5" /> : <ShieldAlert className="size-5" />}
+              <span className="text-sm uppercase tracking-[0.18em] text-stone-500">
+                {site.labels.highlight}
+                {' '}
+                {index + 1}
+              </span>
+            </div>
+            <p className="mt-5 text-base leading-7 text-stone-700">{item}</p>
+          </div>
+        ))}
+      </section>
 
-function FeatureCard({ title, description }: { title: string; description: string }) {
-  return (
-    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
-      <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">{title}</h3>
-      <p className="text-gray-600 dark:text-gray-300">{description}</p>
+      <section className="mt-16 grid gap-6 lg:grid-cols-3">
+        {site.recorder.sections.map(section => (
+          <div key={section.title} className="site-panel p-6">
+            <p className="text-sm uppercase tracking-[0.18em] text-stone-500">{section.title}</p>
+            <p className="mt-4 text-base leading-7 text-stone-700">{section.description}</p>
+          </div>
+        ))}
+      </section>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { scan } from "react-scan";
+import { scan } from 'react-scan';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router';
@@ -7,12 +7,12 @@ import './i18n';
 import './index.css';
 
 scan({
-  enabled: true,
+  enabled: import.meta.env.DEV,
 });
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <App />
     </BrowserRouter>
   </React.StrictMode>,

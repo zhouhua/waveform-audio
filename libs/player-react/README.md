@@ -1,76 +1,147 @@
-# 🎵 Waveform Player React
+# Waveform Audio React
 
-> Beautiful audio visualization for your React applications
->
-> [中文文档](./README.zh.md)
+React audio toolkit for building waveform-based playback experiences.
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/zhouhua/waveform-audio/main/websites/public/favicon.svg" width="180" height="180" alt="Waveform Player Logo" />
-</p>
+[中文文档](./README.zh.md)
 
-<p align="center">
-  <a href="https://zhouhua.github.io/waveform-audio/player/examples">Live Demo</a> •
-  <a href="https://zhouhua.github.io/waveform-audio/player/docs/introduction">Documentation</a> •
-  <a href="https://github.com/zhouhua/waveform-audio/issues">Issues</a>
-</p>
+## Positioning
 
-## ✨ Features
+`@waveform-audio/player` is the core React library for the Waveform Audio v2 product family.
 
-Transform your audio player into an immersive experience with:
+- `Player`: the high-level component for fast integration
+- `Recorder`: the high-level component for microphone capture
+- `PlayerRoot`: the preferred primitive root for custom UI composition
+- `useAudioPlayer()`: the hook-level API for advanced workflows
+- `useAudioRecorder()`: the hook-level API for recording flows
 
-- 🎨 **Beautiful Waveform Visualization** - See your audio come to life with real-time waveform rendering
-- 🎮 **Rich Playback Controls** - Play, pause, seek, and more with an intuitive interface
-- 🎯 **Precise Audio Analysis** - High-quality audio processing with Web Audio API
-- 🎭 **Themeable Design** - Customize every aspect to match your application style and scenario
+`RootProvider` is still exported as a compatibility alias, but `PlayerRoot` is the primary public name going forward.
 
-## 🚀 Quick Start
-
-### Installation
+## Installation
 
 ```bash
-# Using npm
-npm install @waveform-audio/player
-
-# Using pnpm
 pnpm add @waveform-audio/player
 ```
 
-### Basic Usage
-
 ```tsx
-import { WaveformPlayer } from '@waveform-audio/player';
+import { Player } from '@waveform-audio/player';
 import '@waveform-audio/player/index.css';
 
-function App() {
+export function Demo() {
+  return <Player src="/audio/demo.mp3" />;
+}
+```
+
+## v2 API Layers
+
+### Level 1: Components
+
+Use this when you want the default player or recorder UI.
+
+```tsx
+import { Player, Recorder } from '@waveform-audio/player';
+
+<Player src="/audio/demo.mp3" />;
+<Recorder />;
+```
+
+### Level 2: Root + primitives
+
+Use this when you want to compose your own player interface.
+
+```tsx
+import { PlayerRoot, PlayTrigger, Timeline, Waveform } from '@waveform-audio/player';
+
+<PlayerRoot src="/audio/demo.mp3">
+  <PlayTrigger />
+  <Timeline />
+  <Waveform />
+</PlayerRoot>;
+```
+
+### Level 3: Hooks
+
+Use this when you need custom business logic or orchestration.
+
+```tsx
+import { useAudioPlayer } from '@waveform-audio/player';
+
+function CustomPlayer() {
+  const player = useAudioPlayer({ src: '/audio/demo.mp3' });
+
   return (
-    <WaveformPlayer 
-      src="https://example.com/awesome-track.mp3"
-      height={200}
-      width={800}
-      onPlay={() => console.log('Music starts playing!')}
-    />
+    <button type="button" onClick={player.play}>
+      {player.audioState.isStopped ? 'Play' : 'Resume'}
+    </button>
   );
 }
 ```
 
-## 📖 Documentation
+`useAudioPlayer()` returns the same public shape as `AudioPlayerContextValue`: top-level controls plus state grouped under `audioState`. The normalized `isStopped` flag lives on `audioState.isStopped`; the legacy `audioState.isStoped` field is kept as a compatibility alias.
 
-Dive deeper into Waveform Player's capabilities in our [comprehensive documentation](https://zhouhua.github.io/waveform-audio/player/docs/introduction).
+For recording, the minimal v2 surface is:
 
-## 🎯 Examples
+```tsx
+import { useAudioRecorder } from '@waveform-audio/player';
 
-See Waveform Player in action with our [interactive examples](https://zhouhua.github.io/waveform-audio/player/examples).
+function CustomRecorder() {
+  const recorder = useAudioRecorder();
 
-## 🤝 Contributing
+  return (
+    <div>
+      <button type="button" onClick={() => void recorder.start()}>
+        Start
+      </button>
+      <button type="button" onClick={recorder.stop} disabled={!recorder.isRecording}>
+        Stop
+      </button>
+      <button type="button" onClick={recorder.reset}>
+        Reset
+      </button>
+      <p>Status: {recorder.status}</p>
+      <p>Duration: {recorder.durationMs}ms</p>
+      {recorder.blobUrl && <audio controls src={recorder.blobUrl} />}
+    </div>
+  );
+}
+```
 
-We love your input! Whether it's:
+`useAudioRecorder()` intentionally stays minimal in this release: `start()`, `stop()`, `reset()`, `status`, `isRecording`, `durationMs`, `blob`, `blobUrl`, and explicit error states for unsupported environments, denied microphone permission, recording failures, and stop failures.
 
-- Reporting a bug
-- Submitting a fix
-- Proposing new features
-- Sharing examples
+## Global Audio Management
 
+Use `useGlobalAudioManager()` when multiple players should coordinate:
 
-## 📄 License
+```tsx
+import { useGlobalAudioManager } from '@waveform-audio/player';
 
-MIT © [zhouhua](https://github.com/zhouhua)
+function GlobalControls() {
+  const { instances, stopAll } = useGlobalAudioManager();
+
+  return (
+    <button type="button" onClick={stopAll}>
+      Stop {instances.length} players
+    </button>
+  );
+}
+```
+
+Each instance exposes:
+
+- `id`
+- `audioState`
+- `controls.play()`
+- `controls.pause()`
+- `controls.stop()`
+
+`stopOthers()` currently pauses other playing instances so the current one can take over. The per-instance `controls` methods are event-driven wrappers, so treat them as command helpers rather than stable bound controller objects.
+
+## Docs
+
+- Package docs: [waveform-audio player docs](https://zhouhua.github.io/waveform-audio/player/docs)
+- Examples: [waveform-audio examples](https://zhouhua.github.io/waveform-audio/examples)
+- AI-first design and restart docs: [`/docs/superpowers/specs`](../../docs/superpowers/specs) and [`/docs/superpowers/plans`](../../docs/superpowers/plans)
+
+## Notes
+
+- Default export is still available, but named imports such as `Player` are the recommended stable v2 entry.
+- Import from `@waveform-audio/player` only. Do not rely on internal source paths.
