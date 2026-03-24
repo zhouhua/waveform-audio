@@ -6,8 +6,18 @@ import PlayerDefault, {
   Recorder,
   RootProvider,
   type AudioPlayerContextValue,
+  type AudioRecorderChunkPayload,
+  type AudioRecorderCompletionPayload,
   type AudioRecorderController,
+  type AudioRecorderError,
+  type AudioRecorderEventCallbacks,
+  type AudioRecorderFileOptions,
+  type AudioRecorderFileOutput,
+  type AudioRecorderSessionStartPayload,
+  type AudioRecorderSessionSummaryPayload,
   type AudioRecorderStatus,
+  type AudioRecorderWaveformPayload,
+  type UseAudioRecorderOptions,
   useAudioPlayer,
   useAudioRecorder,
   useGlobalAudioManager,
@@ -35,6 +45,90 @@ describe('public v2 api', () => {
     expectTypeOf<PublicRecorderController['durationMs']>().toEqualTypeOf<number>();
     expectTypeOf<PublicRecorderController['blob']>().toEqualTypeOf<Blob | null>();
     expectTypeOf<PublicRecorderController['blobUrl']>().toEqualTypeOf<string | null>();
+    expectTypeOf<PublicRecorderController['file']>().toEqualTypeOf<File | null | undefined>();
+    expectTypeOf<PublicRecorderController['toFile']>().toEqualTypeOf<((options?: AudioRecorderFileOptions) => File) | undefined>();
+  });
+
+  it('正式导出 ASR 友好的 recorder payload 类型', () => {
+    expectTypeOf<AudioRecorderChunkPayload>().toMatchTypeOf<{
+      chunk: Blob;
+      durationMs: number;
+      isFinal: boolean;
+      mimeType?: string;
+      sequence: number;
+      sessionId: string;
+    }>();
+
+    expectTypeOf<AudioRecorderCompletionPayload>().toMatchTypeOf<{
+      blob: Blob;
+      blobUrl: string;
+      durationMs: number;
+      endedAt: Date;
+      fileName: string;
+      mimeType: string;
+      sessionId: string;
+      startedAt: Date;
+    }>();
+
+    expectTypeOf<AudioRecorderSessionSummaryPayload>().toMatchTypeOf<{
+      chunkCount: number;
+      durationMs: number;
+      endedAt: Date;
+      mimeType: string;
+      sessionId: string;
+      startedAt: Date;
+    }>();
+
+    expectTypeOf<AudioRecorderSessionStartPayload>().toMatchTypeOf<{
+      mimeType: string;
+      sessionId: string;
+      startedAt: Date;
+    }>();
+
+    expectTypeOf<AudioRecorderWaveformPayload>().toMatchTypeOf<{
+      currentLevel: number;
+      durationMs: number;
+      isLive: boolean;
+      sampleCount: number;
+      samples: number[];
+    }>();
+  });
+
+  it('为 file / toFile 暴露稳定的公共类型形状', () => {
+    expectTypeOf<AudioRecorderFileOptions>().toMatchTypeOf<{
+      fileName?: string;
+      lastModified?: number;
+      type?: string;
+    }>();
+
+    expectTypeOf<AudioRecorderFileOutput>().toMatchTypeOf<{
+      file?: File | null;
+      fileName: string;
+      mimeType: string;
+      toFile: (options?: AudioRecorderFileOptions) => File;
+    }>();
+
+    expectTypeOf<AudioRecorderCompletionPayload>().toMatchTypeOf<AudioRecorderFileOutput>();
+  });
+
+  it('让 recorder callback options 成为正式公共契约', () => {
+    expectTypeOf<AudioRecorderEventCallbacks>().toMatchTypeOf<{
+      onChunk?: (payload: AudioRecorderChunkPayload) => void;
+      onError?: (error: AudioRecorderError) => void;
+      onRecordingComplete?: (payload: AudioRecorderCompletionPayload) => void;
+      onSessionEnd?: (payload: AudioRecorderSessionSummaryPayload) => void;
+      onSessionStart?: (payload: AudioRecorderSessionStartPayload) => void;
+    }>();
+  });
+
+  it('让 UseAudioRecorderOptions 正式暴露 recorder callback options 入口', () => {
+    expectTypeOf<UseAudioRecorderOptions>().toMatchTypeOf<{
+      audioConstraints?: MediaTrackConstraints;
+      callbacks?: AudioRecorderEventCallbacks;
+      mimeType?: string;
+      recorderOptions?: Omit<MediaRecorderOptions, 'mimeType'>;
+      timeslice?: number;
+    }>();
   });
 
   it('让 useAudioPlayer() 的公开返回值与 AudioPlayerContextValue 保持一致', () => {

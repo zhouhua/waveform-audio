@@ -22,9 +22,17 @@ export type {
   WaveformProps,
 } from './components/primitives';
 export type {
+  AudioRecorderChunkPayload,
+  AudioRecorderCompletionPayload,
   AudioRecorderController,
   AudioRecorderError,
+  AudioRecorderEventCallbacks,
+  AudioRecorderFileOptions,
+  AudioRecorderFileOutput,
+  AudioRecorderSessionStartPayload,
+  AudioRecorderSessionSummaryPayload,
   AudioRecorderStatus,
+  AudioRecorderWaveformPayload,
   AudioState,
   UseAudioRecorderOptions,
 } from './types';
