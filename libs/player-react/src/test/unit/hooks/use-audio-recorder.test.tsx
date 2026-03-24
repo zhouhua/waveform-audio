@@ -649,12 +649,16 @@ describe('Recorder', () => {
   it('提供最小默认 UI 来开始、停止并预览录音结果', async () => {
     render(<Recorder />);
 
+    expect(screen.getByTestId('wa-recorder-waveform')).toHaveAttribute('data-live', 'false');
+    expect(screen.getAllByTestId('wa-recorder-waveform-bar').length).toBeGreaterThan(0);
+
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: /start recording/i }));
       await Promise.resolve();
     });
 
     expect(screen.getByTestId('wa-recorder-status')).toHaveTextContent('recording');
+    expect(screen.getByTestId('wa-recorder-waveform')).toHaveAttribute('data-live', 'true');
 
     act(() => {
       vi.advanceTimersByTime(500);
@@ -665,7 +669,9 @@ describe('Recorder', () => {
       await vi.runAllTimersAsync();
     });
 
+    expect(screen.getByTestId('wa-recorder-waveform')).toHaveAttribute('data-live', 'false');
+    expect(screen.getByTestId('wa-recorder-review')).toBeInTheDocument();
     expect(screen.getByTestId('wa-recorder-audio')).toBeInTheDocument();
-    expect(screen.getByTestId('wa-recorder-duration')).toHaveTextContent('500');
+    expect(screen.getByTestId('wa-recorder-duration')).toHaveTextContent('00:00.5');
   });
 });
