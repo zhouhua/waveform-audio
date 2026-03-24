@@ -78,7 +78,7 @@ function CustomPlayer() {
 
 `useAudioPlayer()` 的公开返回值与 `AudioPlayerContextValue` 保持一致：顶层暴露控制方法，状态统一收口在 `audioState` 下。规范化后的停止状态请使用 `audioState.isStopped`；旧拼写 `audioState.isStoped` 被保留为兼容别名。
 
-录音侧本轮提供的最小 v2 API 如下：
+录音侧现在的公开 v2 API 同时覆盖文件级结果和流式事件：
 
 ```tsx
 import { useAudioRecorder } from '@waveform-audio/player';
@@ -99,13 +99,29 @@ function CustomRecorder() {
       </button>
       <p>状态：{recorder.status}</p>
       <p>时长：{recorder.durationMs}ms</p>
+      <p>会话：{recorder.sessionId}</p>
+      <p>电平：{Math.round(recorder.level * 100)}%</p>
       {recorder.blobUrl && <audio controls src={recorder.blobUrl} />}
     </div>
   );
 }
 ```
 
-`useAudioRecorder()` 这次刻意只保留最小闭环：`start()`、`stop()`、`reset()`、`status`、`isRecording`、`durationMs`、`blob`、`blobUrl`，并对浏览器不支持、麦克风权限拒绝、录音过程失败和停止失败暴露明确错误状态。
+`useAudioRecorder()` 公开了这些能力：
+
+- 控制方法：`start()`、`stop()`、`reset()`
+- 会话状态：`status`、`isRecording`、`durationMs`、`sessionId`、`startedAt`、`mimeType`
+- 波形状态：`level`、`waveformData`
+- 输出结果：`blob`、`blobUrl`、`file`、`toFile()`
+- 明确错误状态：浏览器不支持、权限拒绝、录音失败、停止失败
+
+录音事件模型面向 ASR 集成：
+
+- `onSessionStart`
+- `onChunk`
+- `onSessionEnd`
+- `onRecordingComplete`
+- `onError`
 
 ## 全局音频管理
 
@@ -137,8 +153,9 @@ function GlobalControls() {
 
 ## 文档入口
 
-- 产品文档：[waveform-audio player docs](https://zhouhua.github.io/waveform-audio/player/docs)
-- 示例：[waveform-audio examples](https://zhouhua.github.io/waveform-audio/examples)
+- 产品文档总入口：[waveform-audio docs](https://zhouhua.github.io/waveform-audio/docs)
+- Player 产品页：[waveform-audio player](https://zhouhua.github.io/waveform-audio/player)
+- Recorder 产品页：[waveform-audio recorder](https://zhouhua.github.io/waveform-audio/recorder)
 - AI / 重启设计资料：[`/docs/superpowers/specs`](../../docs/superpowers/specs) 与 [`/docs/superpowers/plans`](../../docs/superpowers/plans)
 
 ## 说明

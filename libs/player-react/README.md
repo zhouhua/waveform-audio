@@ -78,7 +78,7 @@ function CustomPlayer() {
 
 `useAudioPlayer()` returns the same public shape as `AudioPlayerContextValue`: top-level controls plus state grouped under `audioState`. The normalized `isStopped` flag lives on `audioState.isStopped`; the legacy `audioState.isStoped` field is kept as a compatibility alias.
 
-For recording, the minimal v2 surface is:
+For recording, the public v2 surface now covers both file-level and streaming-friendly flows:
 
 ```tsx
 import { useAudioRecorder } from '@waveform-audio/player';
@@ -99,13 +99,29 @@ function CustomRecorder() {
       </button>
       <p>Status: {recorder.status}</p>
       <p>Duration: {recorder.durationMs}ms</p>
+      <p>Session: {recorder.sessionId}</p>
+      <p>Level: {Math.round(recorder.level * 100)}%</p>
       {recorder.blobUrl && <audio controls src={recorder.blobUrl} />}
     </div>
   );
 }
 ```
 
-`useAudioRecorder()` intentionally stays minimal in this release: `start()`, `stop()`, `reset()`, `status`, `isRecording`, `durationMs`, `blob`, `blobUrl`, and explicit error states for unsupported environments, denied microphone permission, recording failures, and stop failures.
+`useAudioRecorder()` exposes:
+
+- controls: `start()`, `stop()`, `reset()`
+- session state: `status`, `isRecording`, `durationMs`, `sessionId`, `startedAt`, `mimeType`
+- waveform state: `level`, `waveformData`
+- output state: `blob`, `blobUrl`, `file`, `toFile()`
+- explicit error states for unsupported environments, denied microphone permission, recording failures, and stop failures
+
+The recorder event model is designed for ASR handoff:
+
+- `onSessionStart`
+- `onChunk`
+- `onSessionEnd`
+- `onRecordingComplete`
+- `onError`
 
 ## Global Audio Management
 
@@ -137,8 +153,9 @@ Each instance exposes:
 
 ## Docs
 
-- Package docs: [waveform-audio player docs](https://zhouhua.github.io/waveform-audio/player/docs)
-- Examples: [waveform-audio examples](https://zhouhua.github.io/waveform-audio/examples)
+- Product docs index: [waveform-audio docs](https://zhouhua.github.io/waveform-audio/docs)
+- Player page: [waveform-audio player](https://zhouhua.github.io/waveform-audio/player)
+- Recorder page: [waveform-audio recorder](https://zhouhua.github.io/waveform-audio/recorder)
 - AI-first design and restart docs: [`/docs/superpowers/specs`](../../docs/superpowers/specs) and [`/docs/superpowers/plans`](../../docs/superpowers/plans)
 
 ## Notes

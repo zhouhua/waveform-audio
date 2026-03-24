@@ -33,9 +33,24 @@ The current public surface focuses on:
 - `status`
 - `isRecording`
 - `durationMs`
+- `sessionId`
+- `startedAt`
+- `mimeType`
+- `level`
+- `waveformData`
 - `blob`
 - `blobUrl`
+- `file`
+- `toFile()`
 - explicit error states
+
+The public event model is:
+
+- `onSessionStart`
+- `onChunk`
+- `onSessionEnd`
+- `onRecordingComplete`
+- `onError`
 
 ## Error Model
 
@@ -51,10 +66,50 @@ Agents should branch on the public error codes instead of guessing failure text:
 
 - Keep the first generated version minimal
 - Show upload or replay flow only after recording succeeds
-- Prefer `blobUrl` for local preview and `blob` for persistence/upload
+- Prefer `blobUrl` for local preview and `file` / `blob` for persistence or upload
+- Use `onRecordingComplete` for file-level ASR backends
+- Use `onChunk` plus `timeslice` for streaming ASR backends
+- Reuse `waveformData` for recorder UI instead of building a separate waveform analyzer
+
+## ASR Patterns
+
+File-level ASR:
+
+```tsx
+useAudioRecorder({
+  callbacks: {
+    async onRecordingComplete({ file }) {
+      const body = new FormData();
+      body.append('file', file);
+      await fetch('/api/asr/file', { method: 'POST', body });
+    },
+  },
+});
+```
+
+Streaming ASR:
+
+```tsx
+useAudioRecorder({
+  timeslice: 400,
+  callbacks: {
+    onSessionStart({ sessionId }) {
+      socket.send(JSON.stringify({ type: 'start', sessionId }));
+    },
+    onChunk({ chunk, sequence, isFinal }) {
+      socket.send(chunk);
+      socket.send(JSON.stringify({ type: 'meta', sequence, isFinal }));
+    },
+    onSessionEnd({ sessionId }) {
+      socket.send(JSON.stringify({ type: 'end', sessionId }));
+    },
+  },
+});
+```
 
 ## Avoid
 
 - using unpublished media-recorder internals
 - assuming every browser supports recording
 - clearing previous successful output before a new session actually starts
+- importing recorder files from repository internals instead of `@waveform-audio/player`

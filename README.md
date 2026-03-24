@@ -56,6 +56,32 @@ export function Demo() {
 }
 ```
 
+For recording and ASR-oriented flows:
+
+```tsx
+import { useAudioRecorder } from '@waveform-audio/player';
+
+export function RecorderDemo() {
+  const recorder = useAudioRecorder({
+    timeslice: 400,
+    callbacks: {
+      onChunk({ chunk, sessionId }) {
+        console.log('stream chunk', sessionId, chunk.size);
+      },
+      onRecordingComplete({ file }) {
+        console.log('final file', file.name);
+      },
+    },
+  });
+
+  return (
+    <button type="button" onClick={() => void recorder.start()}>
+      Start streaming capture
+    </button>
+  );
+}
+```
+
 ## Local Development
 
 ```bash
@@ -71,6 +97,9 @@ pnpm --filter websites dev
 ## Docs
 
 - Package docs: [Waveform Audio website](https://zhouhua.github.io/waveform-audio/)
+- Canonical docs index: [website docs](https://zhouhua.github.io/waveform-audio/docs)
+- Player product page: [website player](https://zhouhua.github.io/waveform-audio/player)
+- Recorder product page: [website recorder](https://zhouhua.github.io/waveform-audio/recorder)
 - Package-level README: [libs/player-react/README.md](/Users/zhouhua/Documents/GitHub/waveform-audio/libs/player-react/README.md)
 - Chinese package README: [libs/player-react/README.zh.md](/Users/zhouhua/Documents/GitHub/waveform-audio/libs/player-react/README.zh.md)
 - AI guidance: [docs/ai/overview.md](/Users/zhouhua/Documents/GitHub/waveform-audio/docs/ai/overview.md)
@@ -87,4 +116,7 @@ Remaining outdated packages are mostly major-version migrations such as React 19
 - Import from `@waveform-audio/player` only.
 - Do not depend on repository source paths such as `libs/player-react/src/*`.
 - Prefer `Player` / `Recorder` first, then move down to primitives and hooks only when needed.
+- For file-level ASR, rely on `onRecordingComplete({ file, blob, blobUrl })`.
+- For streaming ASR, rely on `onSessionStart`, `onChunk`, and `onSessionEnd`.
+- Use `level` and `waveformData` for recorder waveform UI instead of inventing a second analysis layer.
 - Treat deprecated aliases as migration support, not the default public API.
