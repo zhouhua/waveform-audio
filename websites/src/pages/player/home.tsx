@@ -1,6 +1,6 @@
 import { Link } from 'react-router';
 import Player, { type WaveformType } from '@waveform-audio/player';
-import { ArrowRight, Layers3, Terminal, WandSparkles } from 'lucide-react';
+import { ArrowRight, Bot, Layers3, Orbit, Terminal, WandSparkles } from 'lucide-react';
 import { useState } from 'react';
 import demoMusic from '@/assets/music.mp3';
 import CodeBlock from '@/components/code-block';
@@ -12,6 +12,29 @@ import '@waveform-audio/player/index.css';
 export default function App() {
   return <Player src="/audio/example.mp3" />;
 }`;
+
+const multiInstanceCode = `import { Player, useGlobalAudioManager } from '@waveform-audio/player';
+
+function Library() {
+  const { instances, stopAll } = useGlobalAudioManager();
+
+  return (
+    <>
+      <Player src="/audio/intro.mp3" />
+      <Player src="/audio/interview.mp3" />
+      <button onClick={stopAll}>
+        Stop {instances.length} players
+      </button>
+    </>
+  );
+}`;
+
+const aiPrompt = `Use @waveform-audio/player only.
+
+- Use <Player /> for the default UI.
+- Use PlayerRoot primitives for custom layout.
+- Use useAudioPlayer() and useGlobalAudioManager() when multiple instances must coordinate.
+- Never import from src/* or dist internals.`;
 
 const waveformTypes: WaveformType[] = ['mirror', 'wave', 'bars'];
 
@@ -84,6 +107,47 @@ export default function PlayerHomePage() {
             <p className="mt-5 text-base leading-7 text-stone-700">{item}</p>
           </div>
         ))}
+      </section>
+
+      <section className="mt-16 grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+        <div className="site-panel overflow-hidden">
+          <div className="border-b border-black/10 px-6 py-5">
+            <div className="flex items-center gap-3">
+              <Orbit className="size-5 text-stone-900" />
+              <div>
+                <p className="text-sm uppercase tracking-[0.18em] text-stone-500">Multi-instance orchestration</p>
+                <p className="mt-1 text-2xl font-semibold text-stone-950">Coordinate more than one player without custom plumbing.</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-[#111111] p-1">
+            <CodeBlock code={multiInstanceCode} language="tsx" />
+          </div>
+        </div>
+
+        <div className="site-panel overflow-hidden">
+          <div className="border-b border-black/10 px-6 py-5">
+            <div className="flex items-center gap-3">
+              <Bot className="size-5 text-stone-900" />
+              <div>
+                <p className="text-sm uppercase tracking-[0.18em] text-stone-500">AI guidance</p>
+                <p className="mt-1 text-2xl font-semibold text-stone-950">Tell AI which layer to use before it generates code.</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-[#111111] p-1">
+            <CodeBlock code={aiPrompt} language="md" />
+          </div>
+          <div className="space-y-3 px-6 py-5 text-sm leading-7 text-stone-650">
+            {site.player.sections.map(section => (
+              <p key={section.title}>
+                <span className="font-medium text-stone-900">{section.title}:</span>
+                {' '}
+                {section.description}
+              </p>
+            ))}
+          </div>
+        </div>
       </section>
 
       <section className="mt-16 grid gap-6 lg:grid-cols-3">

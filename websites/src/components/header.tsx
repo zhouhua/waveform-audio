@@ -1,5 +1,5 @@
 import { SiGithub } from '@icons-pack/react-simple-icons';
-import { AudioLines, BookOpen, CassetteTape, Menu, Sparkles, X } from 'lucide-react';
+import { AudioLines, BookOpen, CassetteTape, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router';
 import { useSiteContent } from '@/lib/site-content';
@@ -39,7 +39,7 @@ export default function Header() {
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-6 px-4 sm:px-6">
         <Link to="/" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 text-sm font-medium tracking-[0.16em] text-stone-900 uppercase">
           <div className="flex size-9 items-center justify-center rounded-full border border-black/10 bg-white shadow-[0_6px_20px_rgba(15,23,42,0.08)]">
-            <Sparkles className="size-4" />
+            <img src="/favicon.svg" alt="Waveform Audio" className="size-5" />
           </div>
           <span className="hidden sm:inline">Waveform Audio</span>
         </Link>

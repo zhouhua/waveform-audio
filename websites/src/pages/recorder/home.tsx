@@ -1,6 +1,6 @@
 import { Link } from 'react-router';
 import { Recorder } from '@waveform-audio/player';
-import { ArrowRight, Mic, ShieldAlert, Terminal, UploadCloud } from 'lucide-react';
+import { ArrowRight, Bot, Mic, Radio, ShieldAlert, Terminal, UploadCloud } from 'lucide-react';
 import CodeBlock from '@/components/code-block';
 import { useSiteContent } from '@/lib/site-content';
 
@@ -10,6 +10,53 @@ import '@waveform-audio/player/index.css';
 export default function App() {
   return <Recorder />;
 }`;
+
+const fileAsrCode = `import { Recorder } from '@waveform-audio/player';
+
+function VoiceMemo() {
+  return (
+    <Recorder
+      callbacks={{
+        async onRecordingComplete({ file, mimeType }) {
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('mimeType', mimeType);
+          await fetch('/api/asr/file', { method: 'POST', body: formData });
+        },
+      }}
+    />
+  );
+}`;
+
+const streamAsrCode = `import { useAudioRecorder } from '@waveform-audio/player';
+
+function StreamingAsr() {
+  const recorder = useAudioRecorder({
+    timeslice: 400,
+    callbacks: {
+      onSessionStart({ sessionId }) {
+        socket.send(JSON.stringify({ type: 'start', sessionId }));
+      },
+      onChunk({ chunk, sequence, sessionId, isFinal }) {
+        socket.send(chunk);
+        socket.send(JSON.stringify({ type: 'meta', sessionId, sequence, isFinal }));
+      },
+      onSessionEnd({ sessionId, durationMs }) {
+        socket.send(JSON.stringify({ type: 'end', sessionId, durationMs }));
+      },
+    },
+  });
+
+  return <Recorder {...recorder} />;
+}`;
+
+const aiPrompt = `Use @waveform-audio/player only.
+
+- Prefer <Recorder /> for the default waveform UI.
+- Use useAudioRecorder() when the app owns upload or ASR session logic.
+- For file ASR, read onRecordingComplete({ file, blob, blobUrl }).
+- For streaming ASR, read onSessionStart / onChunk / onSessionEnd.
+- Never import internal recorder files from the repo.`;
 
 export default function RecorderHomePage() {
   const site = useSiteContent();
@@ -67,13 +114,66 @@ export default function RecorderHomePage() {
         ))}
       </section>
 
-      <section className="mt-16 grid gap-6 lg:grid-cols-3">
-        {site.recorder.sections.map(section => (
-          <div key={section.title} className="site-panel p-6">
-            <p className="text-sm uppercase tracking-[0.18em] text-stone-500">{section.title}</p>
-            <p className="mt-4 text-base leading-7 text-stone-700">{section.description}</p>
+      <section className="mt-16 grid gap-6 lg:grid-cols-2">
+        <div className="site-panel overflow-hidden">
+          <div className="border-b border-black/10 px-6 py-5">
+            <div className="flex items-center gap-3">
+              <UploadCloud className="size-5 text-stone-900" />
+              <div>
+                <p className="text-sm uppercase tracking-[0.18em] text-stone-500">File-level ASR</p>
+                <p className="mt-1 text-2xl font-semibold text-stone-950">Upload the completed file when accuracy matters more than latency.</p>
+              </div>
+            </div>
           </div>
-        ))}
+          <div className="bg-[#111111] p-1">
+            <CodeBlock code={fileAsrCode} language="tsx" />
+          </div>
+        </div>
+
+        <div className="site-panel overflow-hidden">
+          <div className="border-b border-black/10 px-6 py-5">
+            <div className="flex items-center gap-3">
+              <Radio className="size-5 text-stone-900" />
+              <div>
+                <p className="text-sm uppercase tracking-[0.18em] text-stone-500">Streaming ASR</p>
+                <p className="mt-1 text-2xl font-semibold text-stone-950">Drive realtime transcription with session events and chunk payloads.</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-[#111111] p-1">
+            <CodeBlock code={streamAsrCode} language="tsx" />
+          </div>
+        </div>
+      </section>
+
+      <section className="mt-16 grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+        <div className="site-panel p-6">
+          <p className="text-sm uppercase tracking-[0.18em] text-stone-500">Why this recorder is AI-friendly</p>
+          <div className="mt-4 space-y-4 text-base leading-7 text-stone-700">
+            {site.recorder.sections.map(section => (
+              <p key={section.title}>
+                <span className="font-medium text-stone-950">{section.title}:</span>
+                {' '}
+                {section.description}
+              </p>
+            ))}
+          </div>
+        </div>
+
+        <div className="site-panel overflow-hidden">
+          <div className="border-b border-black/10 px-6 py-5">
+            <div className="flex items-center gap-3">
+              <Bot className="size-5 text-stone-900" />
+              <div>
+                <p className="text-sm uppercase tracking-[0.18em] text-stone-500">AI prompt starter</p>
+                <p className="mt-1 text-2xl font-semibold text-stone-950">Give agents the recorder surface you actually publish.</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-[#111111] p-1">
+            <CodeBlock code={aiPrompt} language="md" />
+          </div>
+        </div>
       </section>
     </div>
   );
