@@ -38,11 +38,11 @@ export default function HomePage() {
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-3">
-              <Link to="/player/docs" className="inline-flex items-center gap-2 rounded-full bg-stone-950 px-5 py-3 text-sm font-medium text-stone-50 transition-transform hover:-translate-y-0.5">
+              <Link to="/docs/player" className="inline-flex items-center gap-2 rounded-full bg-stone-950 px-5 py-3 text-sm font-medium text-stone-50 transition-transform hover:-translate-y-0.5">
                 {site.home.primaryCta}
                 <ArrowRight className="size-4" />
               </Link>
-              <Link to="/examples" className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-5 py-3 text-sm font-medium text-stone-700 transition-colors hover:border-black/20 hover:text-stone-950">
+              <Link to="/docs" className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-5 py-3 text-sm font-medium text-stone-700 transition-colors hover:border-black/20 hover:text-stone-950">
                 {site.home.secondaryCta}
               </Link>
             </div>

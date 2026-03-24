@@ -1,5 +1,5 @@
 import { SiGithub } from '@icons-pack/react-simple-icons';
-import { AudioLines, Bot, CassetteTape, Menu, Sparkles, X } from 'lucide-react';
+import { AudioLines, BookOpen, CassetteTape, Menu, Sparkles, X } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router';
 import { useSiteContent } from '@/lib/site-content';
@@ -10,17 +10,29 @@ const navItems = [
   { href: '/', key: 'home', match: (pathname: string) => pathname === '/' },
   { href: '/player', key: 'player', match: (pathname: string) => pathname.startsWith('/player') },
   { href: '/recorder', key: 'recorder', match: (pathname: string) => pathname.startsWith('/recorder') },
-  { href: '/examples', key: 'examples', match: (pathname: string) => pathname.startsWith('/examples') },
-  { href: '/docs/ai', key: 'ai', match: (pathname: string) => pathname.startsWith('/docs/ai') },
+  {
+    href: '/docs',
+    key: 'docs',
+    match: (pathname: string) => (
+      pathname.startsWith('/docs')
+      || pathname.startsWith('/player/docs')
+      || pathname.startsWith('/recorder/docs')
+    ),
+  },
 ] as const;
 
 export default function Header() {
   const { pathname } = useLocation();
   const site = useSiteContent();
   const isHome = pathname === '/';
+  const isDocs = pathname.startsWith('/docs') || pathname.startsWith('/player/docs') || pathname.startsWith('/recorder/docs');
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const docsHref = pathname.startsWith('/recorder') ? '/recorder/docs' : '/player/docs';
+  const docsHref = pathname.startsWith('/recorder')
+    ? '/docs/recorder'
+    : pathname.startsWith('/player')
+      ? '/docs/player'
+      : '/docs';
 
   return (
     <header className="sticky top-0 z-50 border-b border-black/5 bg-[rgba(249,247,242,0.82)] backdrop-blur-xl">
@@ -39,8 +51,8 @@ export default function Header() {
               ? AudioLines
               : item.key === 'recorder'
                 ? CassetteTape
-                : item.key === 'ai'
-                  ? Bot
+                : item.key === 'docs'
+                  ? BookOpen
                   : undefined;
 
             return (
@@ -53,10 +65,10 @@ export default function Header() {
                     ? 'bg-stone-900 text-stone-50'
                     : 'text-stone-600 hover:bg-black/5 hover:text-stone-900',
                 )}
-              >
-                {Icon && <Icon className="size-4" />}
-                {site.nav[item.key]}
-              </Link>
+                >
+                  {Icon && <Icon className="size-4" />}
+                  {site.nav[item.key]}
+                </Link>
             );
           })}
         </nav>
@@ -67,7 +79,7 @@ export default function Header() {
               to={docsHref}
               className="hidden rounded-full border border-black/10 bg-white px-3 py-2 text-sm text-stone-700 transition-colors hover:border-black/20 hover:text-stone-950 sm:inline-flex"
             >
-              {pathname.startsWith('/recorder') ? site.recorder.docsCta : site.player.docsCta}
+              {isDocs ? site.nav.docs : pathname.startsWith('/recorder') ? site.recorder.docsCta : site.player.docsCta}
             </Link>
           )}
           <a
@@ -109,7 +121,7 @@ export default function Header() {
                 onClick={() => setMobileOpen(false)}
                 className="rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm text-stone-800"
               >
-                {pathname.startsWith('/recorder') ? site.recorder.docsCta : site.player.docsCta}
+                {isDocs ? site.nav.docs : pathname.startsWith('/recorder') ? site.recorder.docsCta : site.player.docsCta}
               </Link>
             )}
           </nav>

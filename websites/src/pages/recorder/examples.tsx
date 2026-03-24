@@ -1,5 +1,5 @@
-import ExamplesPage from '@/pages/examples';
+import { Navigate } from 'react-router';
 
 export default function RecorderExamplesPage() {
-  return <ExamplesPage />;
+  return <Navigate replace to="/recorder" />;
 }

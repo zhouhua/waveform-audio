@@ -22,11 +22,11 @@ export default function RecorderHomePage() {
           <h1 className="font-display text-5xl leading-[0.98] text-stone-950 sm:text-6xl">{site.recorder.title}</h1>
           <p className="max-w-2xl text-lg leading-8 text-stone-650">{site.recorder.description}</p>
           <div className="flex flex-wrap gap-3">
-            <Link to="/recorder/docs" className="inline-flex items-center gap-2 rounded-full bg-stone-950 px-5 py-3 text-sm font-medium text-stone-50">
+            <Link to="/docs/recorder" className="inline-flex items-center gap-2 rounded-full bg-stone-950 px-5 py-3 text-sm font-medium text-stone-50">
               {site.recorder.docsCta}
               <ArrowRight className="size-4" />
             </Link>
-            <Link to="/examples" className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-5 py-3 text-sm font-medium text-stone-700">
+            <Link to="/docs/ai" className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-5 py-3 text-sm font-medium text-stone-700">
               {site.recorder.examplesCta}
             </Link>
           </div>

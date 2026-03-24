@@ -3,8 +3,7 @@ import { useTranslation } from 'react-i18next';
 const content = {
   en: {
     nav: {
-      ai: 'AI Docs',
-      examples: 'Examples',
+      docs: 'Docs',
       home: 'Home',
       player: 'Player',
       recorder: 'Recorder',
@@ -14,7 +13,7 @@ const content = {
       title: 'Build waveform players and recorders that feel like product, not a demo.',
       description: 'Waveform Audio gives React teams a fast path to shippable audio UX, with stable public APIs, composable primitives, and docs that AI tools can follow without guessing internal paths.',
       primaryCta: 'Read the docs',
-      secondaryCta: 'View examples',
+      secondaryCta: 'Browse docs',
       installLabel: 'Install',
       productsTitle: 'Two products, one design system',
       productsDescription: 'Ship a playback surface, a recording flow, or both, without splitting your stack.',
@@ -58,7 +57,7 @@ const content = {
       title: 'A React audio player that scales from install-and-go to headless composition.',
       description: 'Use the default `Player` for fast shipping, or move down to `PlayerRoot` and hooks when your product needs a custom control surface.',
       docsCta: 'Player docs',
-      examplesCta: 'Player examples',
+      examplesCta: 'AI guidance',
       installLabel: 'Quick install',
       codeTitle: 'Recommended v2 entry',
       highlights: [
@@ -86,7 +85,7 @@ const content = {
       title: 'A browser recorder with a small API surface and a clean handoff to playback.',
       description: 'Capture audio in React, preview it immediately, and keep the integration legible for product engineers and AI tools.',
       docsCta: 'Recorder docs',
-      examplesCta: 'Examples',
+      examplesCta: 'ASR guidance',
       installLabel: 'Quick install',
       codeTitle: 'Minimal recording loop',
       highlights: [
@@ -110,6 +109,11 @@ const content = {
       ],
     },
     docs: {
+      index: {
+        eyebrow: 'Documentation hub',
+        title: 'Find the right entry point fast.',
+        intro: 'Start with Player or Recorder docs, then open the AI guidance when you need agent-friendly integration details.',
+      },
       player: {
         title: 'Player docs',
         intro: 'Waveform Player is organized as three layers so teams can move from speed to control without changing packages.',
@@ -157,7 +161,8 @@ const content = {
         ],
         linksTitle: 'Next steps',
         links: [
-          { href: '/examples', label: 'Browse examples' },
+          { href: '/docs/player', label: 'Open Player docs' },
+          { href: '/docs/recorder', label: 'Open Recorder docs' },
           { href: '/docs/ai', label: 'Read AI integration guidance' },
         ],
       },
@@ -206,8 +211,7 @@ const content = {
   },
   zh: {
     nav: {
-      ai: 'AI 文档',
-      examples: '示例',
+      docs: '文档',
       home: '首页',
       player: '播放器',
       recorder: '录音器',
@@ -217,7 +221,7 @@ const content = {
       title: '做真正能上线的波形播放器与录音器，而不是一个 demo。',
       description: 'Waveform Audio 提供稳定的公开 API、可组合 primitives，以及能被 AI 正确消费的文档结构，让 React 团队在不碰内部源码路径的前提下快速交付音频体验。',
       primaryCta: '阅读文档',
-      secondaryCta: '查看示例',
+      secondaryCta: '浏览文档',
       installLabel: '安装',
       productsTitle: '两个产品，一套设计语言',
       productsDescription: '无论你要做播放、录音，还是从录音回放到上传，都可以在同一套 API 体系里完成。',
@@ -261,7 +265,7 @@ const content = {
       title: '一个能从快速接入一路扩展到无头组合的 React 音频播放器。',
       description: '默认用 `Player` 迅速上线；当产品需要更强的控制力时，再切换到 `PlayerRoot` 与 hooks 组合自己的 UI。',
       docsCta: '播放器文档',
-      examplesCta: '播放器示例',
+      examplesCta: 'AI 指南',
       installLabel: '快速安装',
       codeTitle: '推荐的 v2 入口',
       highlights: [
@@ -289,7 +293,7 @@ const content = {
       title: '一个 API 面积克制、可自然衔接回放流程的浏览器录音器。',
       description: '在 React 中完成音频采集、即时预览与结果导出，同时保持实现足够清晰，便于工程师与 AI 正确集成。',
       docsCta: '录音器文档',
-      examplesCta: '示例',
+      examplesCta: 'ASR 指南',
       installLabel: '快速安装',
       codeTitle: '最小录音闭环',
       highlights: [
@@ -313,6 +317,11 @@ const content = {
       ],
     },
     docs: {
+      index: {
+        eyebrow: '文档中心',
+        title: '快速找到正确的入口。',
+        intro: '先从播放器或录音器文档开始，需要 AI 友好接入说明时再打开 AI 指南。',
+      },
       player: {
         title: '播放器文档',
         intro: 'Waveform Player 采用三层 API 组织方式，让团队可以从“尽快接入”平滑过渡到“深度定制”。',
@@ -360,7 +369,8 @@ const content = {
         ],
         linksTitle: '下一步',
         links: [
-          { href: '/examples', label: '查看示例' },
+          { href: '/docs/player', label: '打开播放器文档' },
+          { href: '/docs/recorder', label: '打开录音器文档' },
           { href: '/docs/ai', label: '阅读 AI 集成说明' },
         ],
       },
