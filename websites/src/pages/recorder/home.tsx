@@ -1,7 +1,8 @@
 import { Link } from 'react-router';
 import { Recorder } from '@waveform-audio/player';
-import { ArrowRight, Bot, Mic, Radio, ShieldAlert, Terminal, UploadCloud } from 'lucide-react';
+import { ArrowRight, Mic, Radio, ShieldAlert, Terminal, UploadCloud } from 'lucide-react';
 import CodeBlock from '@/components/code-block';
+import { QuickStartAiModule } from '@/components/quickstart-ai-module';
 import { useSiteContent } from '@/lib/site-content';
 
 const code = `import { Recorder } from '@waveform-audio/player';
@@ -50,16 +51,9 @@ function StreamingAsr() {
   return <Recorder {...recorder} />;
 }`;
 
-const aiPrompt = `Use @waveform-audio/player only.
-
-- Prefer <Recorder /> for the default waveform UI.
-- Use useAudioRecorder() when the app owns upload or ASR session logic.
-- For file ASR, read onRecordingComplete({ file, blob, blobUrl }).
-- For streaming ASR, read onSessionStart / onChunk / onSessionEnd.
-- Never import internal recorder files from the repo.`;
-
 export default function RecorderHomePage() {
   const site = useSiteContent();
+  const quickStartAi = site.recorder.quickStartAi;
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 sm:py-16">
@@ -92,11 +86,26 @@ export default function RecorderHomePage() {
           <div className="rounded-[1.5rem] border border-black/10 bg-white p-4">
             <Recorder />
           </div>
-          <div className="rounded-[1.5rem] border border-black/10 bg-[#121212] p-1">
-            <CodeBlock code={code} language="tsx" />
-          </div>
         </div>
       </section>
+
+      <QuickStartAiModule
+        advancedBullets={quickStartAi.advancedBullets}
+        advancedDescription={quickStartAi.advancedDescription}
+        advancedTitle={quickStartAi.advancedTitle}
+        code={code}
+        codeLabel={quickStartAi.codeLabel}
+        docsLinks={quickStartAi.docsLinks}
+        eyebrow={quickStartAi.eyebrow}
+        installCommand="pnpm add @waveform-audio/player"
+        installLabel={site.recorder.installLabel}
+        intro={quickStartAi.intro}
+        prompt={quickStartAi.prompt}
+        promptLabel={quickStartAi.promptLabel}
+        promptNote={quickStartAi.promptNote}
+        resourcesLabel={quickStartAi.resourcesLabel}
+        title={quickStartAi.title}
+      />
 
       <section className="mt-16 grid gap-px overflow-hidden rounded-[2rem] border border-black/10 bg-black/10 lg:grid-cols-3">
         {site.recorder.highlights.map((item, index) => (
@@ -142,36 +151,6 @@ export default function RecorderHomePage() {
           </div>
           <div className="bg-[#111111] p-1">
             <CodeBlock code={streamAsrCode} language="tsx" />
-          </div>
-        </div>
-      </section>
-
-      <section className="mt-16 grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-        <div className="site-panel p-6">
-          <p className="text-sm uppercase tracking-[0.18em] text-stone-500">Why this recorder is AI-friendly</p>
-          <div className="mt-4 space-y-4 text-base leading-7 text-stone-700">
-            {site.recorder.sections.map(section => (
-              <p key={section.title}>
-                <span className="font-medium text-stone-950">{section.title}:</span>
-                {' '}
-                {section.description}
-              </p>
-            ))}
-          </div>
-        </div>
-
-        <div className="site-panel overflow-hidden">
-          <div className="border-b border-black/10 px-6 py-5">
-            <div className="flex items-center gap-3">
-              <Bot className="size-5 text-stone-900" />
-              <div>
-                <p className="text-sm uppercase tracking-[0.18em] text-stone-500">AI prompt starter</p>
-                <p className="mt-1 text-2xl font-semibold text-stone-950">Give agents the recorder surface you actually publish.</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-[#111111] p-1">
-            <CodeBlock code={aiPrompt} language="md" />
           </div>
         </div>
       </section>
