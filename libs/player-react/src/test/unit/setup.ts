@@ -56,6 +56,33 @@ class MockAudioContext {
     };
   }
 
+  createMediaStreamSource() {
+    return {
+      connect: () => {
+      },
+      disconnect: () => {
+      },
+    };
+  }
+
+  createAnalyser() {
+    return {
+      connect: () => {
+      },
+      disconnect: () => {
+      },
+      fftSize: 256,
+      frequencyBinCount: 128,
+      getByteTimeDomainData: (array: Uint8Array) => {
+        const pattern = [128, 160, 96, 176, 80, 168, 88, 152];
+
+        for (let index = 0; index < array.length; index += 1) {
+          array[index] = pattern[index % pattern.length];
+        }
+      },
+    };
+  }
+
   private _getUint24(view: DataView, offset: number): number {
     return (
       (view.getUint8(offset) << 16) |
@@ -206,6 +233,10 @@ class MockAudioContext {
   }
 
   suspend() {
+    return Promise.resolve();
+  }
+
+  close() {
     return Promise.resolve();
   }
 

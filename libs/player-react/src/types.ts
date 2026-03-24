@@ -154,6 +154,11 @@ export interface AudioRecorderController {
   status: AudioRecorderStatus;
   isRecording: boolean;
   durationMs: number;
+  sessionId: string | null;
+  startedAt: Date | null;
+  mimeType: string | null;
+  level: number;
+  waveformData: AudioRecorderWaveformPayload | null;
   blob: Blob | null;
   blobUrl: string | null;
   file: File | null;

@@ -43,6 +43,11 @@ describe('public v2 api', () => {
     expectTypeOf<PublicRecorderController['status']>().toEqualTypeOf<AudioRecorderStatus>();
     expectTypeOf<PublicRecorderController['isRecording']>().toEqualTypeOf<boolean>();
     expectTypeOf<PublicRecorderController['durationMs']>().toEqualTypeOf<number>();
+    expectTypeOf<PublicRecorderController['sessionId']>().toEqualTypeOf<string | null>();
+    expectTypeOf<PublicRecorderController['startedAt']>().toEqualTypeOf<Date | null>();
+    expectTypeOf<PublicRecorderController['mimeType']>().toEqualTypeOf<string | null>();
+    expectTypeOf<PublicRecorderController['level']>().toEqualTypeOf<number>();
+    expectTypeOf<PublicRecorderController['waveformData']>().toEqualTypeOf<AudioRecorderWaveformPayload | null>();
     expectTypeOf<PublicRecorderController['blob']>().toEqualTypeOf<Blob | null>();
     expectTypeOf<PublicRecorderController['blobUrl']>().toEqualTypeOf<string | null>();
     expectTypeOf<PublicRecorderController['file']>().toEqualTypeOf<File | null>();

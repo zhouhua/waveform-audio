@@ -202,9 +202,12 @@ describe('useAudioRecorder()', () => {
   });
 
   it('会按会话顺序发出 session/chunk/end/complete 事件，并暴露 file 与 toFile()', async () => {
+    let completionFileFromCallback: File | undefined;
     const callbacks = {
       onChunk: vi.fn(),
-      onRecordingComplete: vi.fn(),
+      onRecordingComplete: vi.fn(payload => {
+        completionFileFromCallback = payload.toFile();
+      }),
       onSessionEnd: vi.fn(),
       onSessionStart: vi.fn(),
     };
@@ -289,13 +292,93 @@ describe('useAudioRecorder()', () => {
     }));
     expect(callbacks.onRecordingComplete.mock.calls[0][0].file).toBeInstanceOf(File);
     expect(callbacks.onRecordingComplete.mock.calls[0][0].toFile).toBeTypeOf('function');
+    expect(completionFileFromCallback).toBeInstanceOf(File);
+    if (!completionFileFromCallback) {
+      throw new Error('Expected completion callback to expose a file.');
+    }
+
+    const stableCompletionFile = completionFileFromCallback;
+    expect(stableCompletionFile.size).toBe(callbacks.onRecordingComplete.mock.calls[0][0].blob.size);
+    expect(stableCompletionFile.type).toBe('audio/webm');
     expect(callbacks.onSessionEnd.mock.invocationCallOrder[0]).toBeLessThan(callbacks.onRecordingComplete.mock.invocationCallOrder[0]);
 
     expect(result.current.file).toBeInstanceOf(File);
     expect(result.current.toFile).toBeTypeOf('function');
-    expect(result.current.toFile?.()).toBeInstanceOf(File);
+    expect(result.current.toFile()).toBeInstanceOf(File);
     expect(result.current.file?.type).toBe('audio/webm');
-    expect(result.current.toFile?.().type).toBe('audio/webm');
+    expect(result.current.toFile().type).toBe('audio/webm');
+  });
+
+  it('录音时会暴露 live level 与 waveformData，并在停止后保留最终波形用于预览', async () => {
+    const { result } = renderHook(() => useAudioRecorder());
+
+    expect(result.current.level).toBe(0);
+    expect(result.current.waveformData).toBeNull();
+    expect(result.current.sessionId).toBeNull();
+    expect(result.current.startedAt).toBeNull();
+
+    await act(async () => {
+      await result.current.start();
+    });
+
+    expect(result.current.sessionId).toEqual(expect.any(String));
+    expect(result.current.startedAt).toBeInstanceOf(Date);
+    expect(result.current.mimeType).toBe('audio/webm');
+
+    act(() => {
+      vi.advanceTimersByTime(200);
+    });
+
+    expect(result.current.level).toBeGreaterThan(0);
+    expect(result.current.waveformData).toMatchObject({
+      currentLevel: expect.any(Number),
+      durationMs: 200,
+      isLive: true,
+      sampleCount: expect.any(Number),
+      samples: expect.any(Array),
+    });
+    expect(result.current.waveformData?.sampleCount).toBeGreaterThan(0);
+    expect(result.current.waveformData?.samples[0]).toBeGreaterThan(0);
+
+    await act(async () => {
+      result.current.stop();
+      await vi.runAllTimersAsync();
+    });
+
+    expect(result.current.level).toBe(0);
+    expect(result.current.waveformData).toMatchObject({
+      currentLevel: 0,
+      durationMs: 200,
+      isLive: false,
+      sampleCount: expect.any(Number),
+      samples: expect.any(Array),
+    });
+    expect(result.current.waveformData?.samples[0]).toBeGreaterThan(0);
+  });
+
+  it('reset() 会清空录音会话元数据与 live waveform 状态', async () => {
+    const { result } = renderHook(() => useAudioRecorder());
+
+    await act(async () => {
+      await result.current.start();
+    });
+
+    act(() => {
+      vi.advanceTimersByTime(200);
+    });
+
+    expect(result.current.waveformData?.isLive).toBe(true);
+    expect(result.current.sessionId).toEqual(expect.any(String));
+
+    act(() => {
+      result.current.reset();
+    });
+
+    expect(result.current.level).toBe(0);
+    expect(result.current.waveformData).toBeNull();
+    expect(result.current.sessionId).toBeNull();
+    expect(result.current.startedAt).toBeNull();
+    expect(result.current.mimeType).toBeNull();
   });
 
   it('reset() 会清空上一次录音结果并回收 blob url', async () => {
