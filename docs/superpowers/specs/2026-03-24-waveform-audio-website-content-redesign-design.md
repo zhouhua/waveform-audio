@@ -100,6 +100,8 @@ The `Player` page becomes a true product page and the main place where users und
 2. Quick Start + AI Start
    - minimal developer setup
    - short AI prompt
+   - copyable install command
+   - copyable minimal example code
    - prompt copy button
    - `llms.txt` / AI doc pointers
    - no large AI essay in this section
@@ -156,6 +158,8 @@ The `Recorder` page mirrors the Player page structurally, but focuses on recordi
 2. Quick Start + AI Start
    - minimal recorder setup
    - short AI prompt
+   - copyable install command
+   - copyable minimal example code
    - prompt copy button
    - `llms.txt` / AI doc pointers
 
@@ -242,6 +246,20 @@ Add repository-level AI entry files:
 - `/llms.txt`
 - `/llms-full.txt`
 
+Deployment-safe copies must also be shipped through the website static asset pipeline so they are reachable from the published GitHub Pages site.
+
+Required delivery shape:
+
+- canonical source files at repository root:
+  - `/llms.txt`
+  - `/llms-full.txt`
+- deployable public copies:
+  - `/Users/zhouhua/Documents/GitHub/waveform-audio/websites/public/llms.txt`
+  - `/Users/zhouhua/Documents/GitHub/waveform-audio/websites/public/llms-full.txt`
+
+Page links must resolve correctly under the website basename and published GitHub Pages subpath.
+In other words, the implementation must ensure these files are reachable from the deployed site under the project base path, not only present in the repository tree.
+
 #### `llms.txt`
 
 Short version containing:
@@ -252,6 +270,8 @@ Short version containing:
 - common supported scenarios
 - forbidden internal paths
 - references to deeper AI docs
+- explicit instruction to prefer public APIs before hooks or primitives
+- explicit instruction that deprecated compatibility aliases are not the default recommendation
 
 #### `llms-full.txt`
 
@@ -265,6 +285,10 @@ Long version containing:
 - customization model
 - error and status semantics
 - prompt templates
+- browser support and permission assumptions
+- recorder error-code semantics
+- `timeslice` + `onChunk` guidance for streaming flows
+- “do not import internal paths” rules repeated in executable wording
 
 ### Tool Integration Strategy
 
@@ -273,10 +297,31 @@ First iteration:
 - `Copy prompt`
 - `Open llms.txt`
 - `Open full AI guide`
+- `Copy install command`
+- `Copy minimal example`
 
 Later iterations may add tool-specific launch buttons only if the target tool has a stable, official, publicly documented deep-link or launcher contract.
 
 The redesign should not fake “Open in Cursor / Claude Code / Codex” behavior when those integrations are not stable or documented.
+
+### Non-Negotiable AI Constraints
+
+The redesign must preserve these rules from the current repository AI docs in stronger, more explicit form:
+
+- use `@waveform-audio/player` only
+- never import from `libs/player-react/src/*`, repo-relative source paths, or unpublished internals
+- prefer the highest-level public API that fits the task
+- do not recommend deprecated aliases as the primary path
+- for recorder flows, branch on public error codes rather than message text
+- do not assume recording support or microphone permission
+- for streaming recorder flows, use `timeslice` together with `onChunk`
+
+These rules must appear in:
+
+- `llms.txt`
+- `llms-full.txt`
+- relevant `docs/ai/*` pages
+- short product-page AI modules in condensed form
 
 ## Content Strategy
 
@@ -349,6 +394,33 @@ The current route reorganization should remain aligned with this content redesig
 - `/examples` remains a compatibility redirect
 - `/docs/ai` remains available, but AI guidance is not treated as a top-level marketing product
 
+### Required Compatibility Routes
+
+The redesign must preserve compatibility for the currently published or historically linked routes below.
+It is acceptable for them to redirect, but the redirect targets must remain intentional and testable.
+
+Required compatibility coverage:
+
+- `/examples` -> `/player`
+- `/player/examples` -> `/player`
+- `/recorder/examples` -> `/recorder`
+- `/player/docs` -> `/docs/player`
+- `/player/docs/introduction` -> `/docs/player#quickstart`
+- `/player/docs/player` -> `/docs/player#layer-1`
+- `/player/docs/primitives` -> `/docs/player#layer-2`
+- `/player/docs/hooks` -> `/docs/player#layer-3`
+- `/player/docs/use-audio-player` -> `/docs/player#layer-3`
+- `/player/docs/examples` -> `/player`
+- `/player/docs/utils` -> `/docs/ai`
+- `/player/docs/*` -> `/docs/player`
+- `/recorder/docs` -> `/docs/recorder`
+- `/recorder/docs/getting-started` -> `/docs/recorder#quickstart`
+- `/recorder/docs/hooks` -> `/docs/recorder#hook`
+- `/recorder/docs/props` -> `/docs/recorder#output-model`
+- `/recorder/docs/*` -> `/docs/recorder`
+
+If the route tree changes further during implementation, this compatibility list must be updated rather than assumed.
+
 ## Documentation Updates Required
 
 This redesign requires synchronized updates to:
@@ -371,6 +443,8 @@ At minimum, validate:
 - key routes still resolve
 - old compatibility routes redirect correctly
 - prompt-copy modules render correctly
+- deployed `llms.txt` and `llms-full.txt` are reachable under the website base path
+- product-page AI modules link to basename-safe AI resources
 - product pages remain readable on mobile and desktop
 
 ## Acceptance Criteria
