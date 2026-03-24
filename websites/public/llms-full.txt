@@ -1,0 +1,6 @@
+Waveform Audio
+
+Placeholder full AI resource for the website redesign task.
+This file will be replaced with the final machine-readable guidance in a later task.
+
+Published path: /waveform-audio/llms-full.txt

@@ -5,6 +5,7 @@ import { BrowserRouter } from 'react-router';
 import App from './app';
 import './i18n';
 import './index.css';
+import { normalizeBasePath } from './lib/public-path';
 
 scan({
   enabled: import.meta.env.DEV,
@@ -12,7 +13,7 @@ scan({
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <BrowserRouter basename={import.meta.env.BASE_URL}>
+    <BrowserRouter basename={normalizeBasePath()}>
       <App />
     </BrowserRouter>
   </React.StrictMode>,

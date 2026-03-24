@@ -15,6 +15,15 @@ import RecorderDocs from './pages/recorder/docs';
 import RecorderHomePage from './pages/recorder/home';
 import '@waveform-audio/player/index.css';
 
+const ROUTES = {
+  aiDocs: '/docs/ai',
+  docs: '/docs',
+  docsPlayer: '/docs/player',
+  docsRecorder: '/docs/recorder',
+  player: '/player',
+  recorder: '/recorder',
+} as const;
+
 function Layout({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation();
 
@@ -37,30 +46,30 @@ export default function App() {
       <Layout>
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/examples" element={<Navigate replace to="/player" />} />
-          <Route path="/docs" element={<DocsHomePage />} />
-          <Route path="/docs/player" element={<PlayerDocs />} />
-          <Route path="/docs/recorder" element={<RecorderDocs />} />
-          <Route path="/docs/ai" element={<AiDocsPage />} />
-          <Route path="/docs/*" element={<Navigate replace to="/docs" />} />
-          <Route path="/player" element={<PlayerHomePage />} />
-          <Route path="/player/docs" element={<Navigate replace to="/docs/player" />} />
-          <Route path="/player/docs/introduction" element={<Navigate replace to="/docs/player#quickstart" />} />
-          <Route path="/player/docs/player" element={<Navigate replace to="/docs/player#layer-1" />} />
-          <Route path="/player/docs/primitives" element={<Navigate replace to="/docs/player#layer-2" />} />
-          <Route path="/player/docs/hooks" element={<Navigate replace to="/docs/player#layer-3" />} />
-          <Route path="/player/docs/use-audio-player" element={<Navigate replace to="/docs/player#layer-3" />} />
-          <Route path="/player/docs/examples" element={<Navigate replace to="/player" />} />
-          <Route path="/player/docs/utils" element={<Navigate replace to="/docs/ai" />} />
-          <Route path="/player/docs/*" element={<Navigate replace to="/docs/player" />} />
-          <Route path="/player/examples" element={<Navigate replace to="/player" />} />
-          <Route path="/recorder" element={<RecorderHomePage />} />
-          <Route path="/recorder/docs" element={<Navigate replace to="/docs/recorder" />} />
-          <Route path="/recorder/docs/getting-started" element={<Navigate replace to="/docs/recorder#quickstart" />} />
-          <Route path="/recorder/docs/hooks" element={<Navigate replace to="/docs/recorder#hook" />} />
-          <Route path="/recorder/docs/props" element={<Navigate replace to="/docs/recorder#output-model" />} />
-          <Route path="/recorder/docs/*" element={<Navigate replace to="/docs/recorder" />} />
-          <Route path="/recorder/examples" element={<Navigate replace to="/recorder" />} />
+          <Route path="/examples" element={<Navigate replace to={ROUTES.player} />} />
+          <Route path={ROUTES.docs} element={<DocsHomePage />} />
+          <Route path={ROUTES.docsPlayer} element={<PlayerDocs />} />
+          <Route path={ROUTES.docsRecorder} element={<RecorderDocs />} />
+          <Route path={ROUTES.aiDocs} element={<AiDocsPage />} />
+          <Route path="/docs/*" element={<Navigate replace to={ROUTES.docs} />} />
+          <Route path={ROUTES.player} element={<PlayerHomePage />} />
+          <Route path="/player/docs" element={<Navigate replace to={ROUTES.docsPlayer} />} />
+          <Route path="/player/docs/introduction" element={<Navigate replace to={`${ROUTES.docsPlayer}#quickstart`} />} />
+          <Route path="/player/docs/player" element={<Navigate replace to={`${ROUTES.docsPlayer}#layer-1`} />} />
+          <Route path="/player/docs/primitives" element={<Navigate replace to={`${ROUTES.docsPlayer}#layer-2`} />} />
+          <Route path="/player/docs/hooks" element={<Navigate replace to={`${ROUTES.docsPlayer}#layer-3`} />} />
+          <Route path="/player/docs/use-audio-player" element={<Navigate replace to={`${ROUTES.docsPlayer}#layer-3`} />} />
+          <Route path="/player/docs/examples" element={<Navigate replace to={ROUTES.player} />} />
+          <Route path="/player/docs/utils" element={<Navigate replace to={ROUTES.aiDocs} />} />
+          <Route path="/player/docs/*" element={<Navigate replace to={ROUTES.docsPlayer} />} />
+          <Route path="/player/examples" element={<Navigate replace to={ROUTES.player} />} />
+          <Route path={ROUTES.recorder} element={<RecorderHomePage />} />
+          <Route path="/recorder/docs" element={<Navigate replace to={ROUTES.docsRecorder} />} />
+          <Route path="/recorder/docs/getting-started" element={<Navigate replace to={`${ROUTES.docsRecorder}#quickstart`} />} />
+          <Route path="/recorder/docs/hooks" element={<Navigate replace to={`${ROUTES.docsRecorder}#hook`} />} />
+          <Route path="/recorder/docs/props" element={<Navigate replace to={`${ROUTES.docsRecorder}#output-model`} />} />
+          <Route path="/recorder/docs/*" element={<Navigate replace to={ROUTES.docsRecorder} />} />
+          <Route path="/recorder/examples" element={<Navigate replace to={ROUTES.recorder} />} />
         </Routes>
       </Layout>
     </I18nextProvider>
