@@ -30,9 +30,6 @@
 - Modify: `/Users/zhouhua/Documents/GitHub/waveform-audio/websites/src/pages/player/docs/index.tsx`
 - Modify: `/Users/zhouhua/Documents/GitHub/waveform-audio/websites/src/pages/recorder/docs.tsx`
 - Modify: `/Users/zhouhua/Documents/GitHub/waveform-audio/websites/src/pages/docs/ai.tsx`
-- Modify: `/Users/zhouhua/Documents/GitHub/waveform-audio/websites/src/pages/examples.tsx`
-- Modify: `/Users/zhouhua/Documents/GitHub/waveform-audio/websites/src/pages/player/examples/index.tsx`
-- Modify: `/Users/zhouhua/Documents/GitHub/waveform-audio/websites/src/pages/recorder/examples.tsx`
 
 ### Reusable Website Components
 
@@ -97,19 +94,32 @@ Ensure `app.tsx` preserves the compatibility targets from the spec and that all 
 - `/player`
 - `/recorder`
 
-- [ ] **Step 3: Confirm AI resource links can be built under the website base path**
+- [ ] **Step 3: Add basename-safe AI resource link helpers before any page links are introduced**
 
-Verify the site has one reliable way to link to `/llms.txt` and `/llms-full.txt` under GitHub Pages base path.
+Create or confirm a single shared path strategy for:
+- `llms.txt`
+- `llms-full.txt`
 
-- [ ] **Step 4: Run website typecheck**
+This must work under the website basename and GitHub Pages subpath.
+Do not hardcode raw `"/llms.txt"` links in product pages.
+
+- [ ] **Step 4: Create placeholder deployable `llms` files early**
+
+Add minimal placeholder files to:
+- `/Users/zhouhua/Documents/GitHub/waveform-audio/websites/public/llms.txt`
+- `/Users/zhouhua/Documents/GitHub/waveform-audio/websites/public/llms-full.txt`
+
+These can be replaced with final content in Task 8, but the deployable path must exist before product pages link to them.
+
+- [ ] **Step 5: Run website typecheck**
 
 Run: `pnpm --filter websites typecheck`
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
-git add websites/src/app.tsx websites/src/main.tsx websites/vite.config.ts
+git add websites/src/app.tsx websites/src/main.tsx websites/vite.config.ts websites/public/llms.txt websites/public/llms-full.txt
 git commit -m "feat: lock website compatibility routes"
 ```
 
@@ -322,12 +332,20 @@ Show:
 - `level`
 - `waveformData`
 
-- [ ] **Step 4: Run website build**
+- [ ] **Step 4: Add the Recorder docs-links block required by the spec**
+
+The Recorder page must end with explicit links to:
+- recorder docs
+- hooks
+- AI guide
+- migration
+
+- [ ] **Step 5: Run website build**
 
 Run: `pnpm --filter websites build`
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
 git add websites/src/pages/recorder/home.tsx websites/src/components/example-section.tsx websites/src/lib/site-content.ts
@@ -423,7 +441,7 @@ Include:
 
 - [ ] **Step 3: Copy the machine-readable files into `websites/public`**
 
-Ensure the deployed site serves basename-safe copies.
+Replace the Task 1 placeholders with final versions and ensure the deployed site serves basename-safe copies.
 
 - [ ] **Step 4: Sync repository docs**
 
@@ -477,12 +495,24 @@ Expected: PASS
 
 - [ ] **Step 3: Smoke-check compatibility routes and AI resources**
 
-Verify at minimum:
-- `/examples`
-- `/player/examples`
-- `/recorder/examples`
-- `/player/docs/*`
-- `/recorder/docs/*`
+Verify exact redirect targets at minimum:
+- `/examples` -> `/player`
+- `/player/examples` -> `/player`
+- `/recorder/examples` -> `/recorder`
+- `/player/docs` -> `/docs/player`
+- `/player/docs/introduction` -> `/docs/player#quickstart`
+- `/player/docs/player` -> `/docs/player#layer-1`
+- `/player/docs/primitives` -> `/docs/player#layer-2`
+- `/player/docs/hooks` -> `/docs/player#layer-3`
+- `/player/docs/use-audio-player` -> `/docs/player#layer-3`
+- `/player/docs/examples` -> `/player`
+- `/player/docs/utils` -> `/docs/ai`
+- `/recorder/docs` -> `/docs/recorder`
+- `/recorder/docs/getting-started` -> `/docs/recorder#quickstart`
+- `/recorder/docs/hooks` -> `/docs/recorder#hook`
+- `/recorder/docs/props` -> `/docs/recorder#output-model`
+
+Also verify the deployed-resource paths resolve under the website base path:
 - `/llms.txt`
 - `/llms-full.txt`
 
