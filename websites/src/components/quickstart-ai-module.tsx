@@ -43,8 +43,8 @@ export function QuickStartAiModule({
   title,
 }: QuickStartAiModuleProps) {
   return (
-    <section id="quick-start-ai" className="mt-16 site-panel overflow-hidden">
-      <div className="border-b border-black/10 px-6 py-5 sm:px-8">
+    <section id="quick-start-ai" className="mt-16 border-t border-black/10 pt-10">
+      <div>
         <p className="text-sm uppercase tracking-[0.18em] text-stone-500">{eyebrow}</p>
         <div className="mt-3 grid gap-3 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
           <div>
@@ -54,9 +54,9 @@ export function QuickStartAiModule({
         </div>
       </div>
 
-      <div className="grid gap-px bg-black/10 lg:grid-cols-[1.1fr_0.9fr]">
-        <div className="space-y-px bg-[#fbf8f2] p-4 sm:p-6">
-          <div className="rounded-[1.5rem] border border-black/10 bg-white p-4 sm:p-5">
+      <div className="mt-8 grid gap-10 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="space-y-8">
+          <div className="border-t border-black/10 pt-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className="text-xs uppercase tracking-[0.18em] text-stone-500">{installLabel}</p>
@@ -64,27 +64,27 @@ export function QuickStartAiModule({
               </div>
               <CopyButton label={installLabel} text={installCommand} />
             </div>
-            <code className="mt-4 block rounded-2xl bg-stone-950 px-4 py-3 font-mono text-[13px] leading-7 text-stone-100">
+            <code className="mt-4 block bg-stone-950 px-4 py-3 font-mono text-[13px] leading-7 text-stone-100">
               {installCommand}
             </code>
           </div>
 
-          <div className="overflow-hidden rounded-[1.5rem] border border-black/10 bg-white">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-black/10 px-4 py-3 sm:px-5">
+          <div className="border-t border-black/10 pt-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className="text-xs uppercase tracking-[0.18em] text-stone-500">{codeLabel}</p>
                 <p className="mt-1 text-sm text-stone-650">Start with the smallest working player.</p>
               </div>
               <CopyButton label={codeLabel} text={code} />
             </div>
-            <div className="bg-[#111111] p-1">
+            <div className="mt-4 bg-[#111111]">
               <CodeBlock code={code} language="tsx" />
             </div>
           </div>
         </div>
 
-        <div className="space-y-4 bg-[#f6f1e8] p-4 sm:p-6">
-          <div className="rounded-[1.5rem] border border-black/10 bg-white p-4 sm:p-5">
+        <div className="space-y-8">
+          <div className="border-t border-black/10 pt-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className="text-xs uppercase tracking-[0.18em] text-stone-500">{promptLabel}</p>
@@ -92,13 +92,13 @@ export function QuickStartAiModule({
               </div>
               <CopyButton label={promptLabel} text={prompt} />
             </div>
-            <p className="mt-4 whitespace-pre-wrap rounded-2xl bg-[#f8f4ed] px-4 py-3 font-mono text-[13px] leading-7 text-stone-800">
+            <p className="mt-4 whitespace-pre-wrap bg-[#f8f4ed] px-4 py-3 font-mono text-[13px] leading-7 text-stone-800">
               {prompt}
             </p>
             <p className="mt-3 text-sm leading-7 text-stone-650">{promptNote}</p>
           </div>
 
-          <details className="rounded-[1.5rem] border border-black/10 bg-white px-4 py-4 sm:px-5">
+          <details className="border-t border-black/10 pt-5">
             <summary className="cursor-pointer list-none text-sm font-medium text-stone-950">
               {advancedTitle}
             </summary>
@@ -113,14 +113,14 @@ export function QuickStartAiModule({
             </ul>
           </details>
 
-          <div className="rounded-[1.5rem] border border-black/10 bg-white p-4 sm:p-5">
+          <div className="border-t border-black/10 pt-5">
             <p className="text-xs uppercase tracking-[0.18em] text-stone-500">{resourcesLabel}</p>
             <div className="mt-4 flex flex-wrap gap-2">
               {docsLinks.map(link => (
                 <a
                   key={link.href}
                   href={withBasePath(link.href)}
-                  className="inline-flex items-center rounded-full border border-black/10 bg-stone-50 px-3 py-1.5 text-xs font-medium text-stone-700 transition-colors hover:bg-stone-950 hover:text-stone-50"
+                  className="inline-flex items-center border border-black/10 px-3 py-1.5 text-xs font-medium text-stone-700 transition-colors hover:border-black/20 hover:text-stone-950"
                 >
                   {link.label}
                 </a>

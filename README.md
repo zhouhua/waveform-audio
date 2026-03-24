@@ -15,7 +15,6 @@ This repository now treats the library, docs, examples, and website as one produ
 - `docs/superpowers/specs`: restart design docs
 - `docs/superpowers/plans`: restart implementation plans
 - `docs/ai`: AI-friendly repository guidance
-- `docs/migration`: migration notes for the current API direction
 
 ## Recommended API Layers
 
@@ -103,7 +102,7 @@ pnpm --filter websites dev
 - Package-level README: [libs/player-react/README.md](/Users/zhouhua/Documents/GitHub/waveform-audio/libs/player-react/README.md)
 - Chinese package README: [libs/player-react/README.zh.md](/Users/zhouhua/Documents/GitHub/waveform-audio/libs/player-react/README.zh.md)
 - AI guidance: [docs/ai/overview.md](/Users/zhouhua/Documents/GitHub/waveform-audio/docs/ai/overview.md)
-- Migration notes: [docs/migration/v2.md](/Users/zhouhua/Documents/GitHub/waveform-audio/docs/migration/v2.md)
+- AI quick resources: [llms.txt](/Users/zhouhua/Documents/GitHub/waveform-audio/llms.txt) and [llms-full.txt](/Users/zhouhua/Documents/GitHub/waveform-audio/llms-full.txt)
 
 ## Current Dependency Status
 
@@ -119,4 +118,4 @@ Remaining outdated packages are mostly major-version migrations such as React 19
 - For file-level ASR, rely on `onRecordingComplete({ file, blob, blobUrl })`.
 - For streaming ASR, rely on `onSessionStart`, `onChunk`, and `onSessionEnd`.
 - Use `level` and `waveformData` for recorder waveform UI instead of inventing a second analysis layer.
-- Treat deprecated aliases as migration support, not the default public API.
+- Treat compatibility aliases as temporary helpers, not the default public API.

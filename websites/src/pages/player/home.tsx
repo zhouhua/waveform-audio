@@ -309,13 +309,13 @@ export default function PlayerHomePage() {
           <h1 className="font-display text-5xl leading-[0.98] text-stone-950 sm:text-6xl">{site.player.title}</h1>
           <p className="max-w-2xl text-lg leading-8 text-stone-650">{site.player.description}</p>
           <div className="flex flex-wrap gap-3">
-            <Link to="/docs/player" className="inline-flex items-center gap-2 rounded-full bg-stone-950 px-5 py-3 text-sm font-medium text-stone-50">
+            <Link to="/docs" className="inline-flex items-center gap-2 rounded-full bg-stone-950 px-5 py-3 text-sm font-medium text-stone-50">
               {site.player.docsCta}
               <ArrowRight className="size-4" />
             </Link>
-            <Link to="/docs/ai" className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-5 py-3 text-sm font-medium text-stone-700">
+            <a href="#examples" className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-5 py-3 text-sm font-medium text-stone-700">
               {site.player.examplesCta}
-            </Link>
+            </a>
           </div>
           <div className="inline-flex items-center gap-3 rounded-full border border-black/10 bg-white px-4 py-3 text-sm text-stone-700">
             <Terminal className="size-4" />
@@ -367,7 +367,7 @@ export default function PlayerHomePage() {
         title={quickStartAi.title}
       />
 
-      <section className="mt-20">
+      <section id="examples" className="mt-20">
         <div className="max-w-3xl space-y-4">
           <p className="text-sm uppercase tracking-[0.18em] text-stone-500">{examples.eyebrow}</p>
           <h2 className="font-display text-4xl leading-tight text-stone-950 sm:text-5xl">{examples.title}</h2>

@@ -65,7 +65,8 @@ Use these in order:
 2. [docs/ai/overview.md](/Users/zhouhua/Documents/GitHub/waveform-audio/docs/ai/overview.md)
 3. [docs/ai/player.md](/Users/zhouhua/Documents/GitHub/waveform-audio/docs/ai/player.md)
 4. [docs/ai/recorder.md](/Users/zhouhua/Documents/GitHub/waveform-audio/docs/ai/recorder.md)
-5. [docs/migration/v2.md](/Users/zhouhua/Documents/GitHub/waveform-audio/docs/migration/v2.md)
+5. [llms.txt](/Users/zhouhua/Documents/GitHub/waveform-audio/llms.txt)
+6. [llms-full.txt](/Users/zhouhua/Documents/GitHub/waveform-audio/llms-full.txt)
 
 ## Website Notes
 

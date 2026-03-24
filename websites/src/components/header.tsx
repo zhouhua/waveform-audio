@@ -25,14 +25,7 @@ export default function Header() {
   const { pathname } = useLocation();
   const site = useSiteContent();
   const isHome = pathname === '/';
-  const isDocs = pathname.startsWith('/docs') || pathname.startsWith('/player/docs') || pathname.startsWith('/recorder/docs');
   const [mobileOpen, setMobileOpen] = useState(false);
-
-  const docsHref = pathname.startsWith('/recorder')
-    ? '/docs/recorder'
-    : pathname.startsWith('/player')
-      ? '/docs/player'
-      : '/docs';
 
   return (
     <header className="sticky top-0 z-50 border-b border-black/5 bg-[rgba(249,247,242,0.82)] backdrop-blur-xl">
@@ -76,10 +69,10 @@ export default function Header() {
         <div className="flex items-center gap-2">
           {!isHome && (
             <Link
-              to={docsHref}
-              className="hidden rounded-full border border-black/10 bg-white px-3 py-2 text-sm text-stone-700 transition-colors hover:border-black/20 hover:text-stone-950 sm:inline-flex"
+              to="/docs"
+              className="hidden text-sm text-stone-700 transition-colors hover:text-stone-950 sm:inline-flex"
             >
-              {isDocs ? site.nav.docs : pathname.startsWith('/recorder') ? site.recorder.docsCta : site.player.docsCta}
+              {site.nav.docs}
             </Link>
           )}
           <a
@@ -117,11 +110,11 @@ export default function Header() {
             ))}
             {!isHome && (
               <Link
-                to={docsHref}
+                to="/docs"
                 onClick={() => setMobileOpen(false)}
-                className="rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm text-stone-800"
+                className="px-1 py-3 text-sm text-stone-800"
               >
-                {isDocs ? site.nav.docs : pathname.startsWith('/recorder') ? site.recorder.docsCta : site.player.docsCta}
+                {site.nav.docs}
               </Link>
             )}
           </nav>

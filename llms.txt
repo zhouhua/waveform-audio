@@ -41,4 +41,6 @@ Never do this
 
 Read next
 - `./llms-full.txt`
-- `./docs`
+- `./docs/ai/overview.md`
+- `./docs/ai/player.md`
+- `./docs/ai/recorder.md`

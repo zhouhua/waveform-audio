@@ -1,56 +1,58 @@
 # AI Overview
 
-This repository is structured so an AI agent can generate correct integration code without reading private source files.
+This repository is intentionally documented so an AI agent can stay on the published API surface instead of reading private source files.
 
-## Preferred Workflow
+## Start Here
 
-1. Start from `@waveform-audio/player`
-2. Choose one API layer:
-   - `Player` / `Recorder`
-   - `PlayerRoot` and public primitives
-   - public hooks
-3. Use examples from package docs or the website
-4. Avoid internal repo paths
+1. Import only from `@waveform-audio/player`
+2. Pick the shallowest public layer that fits the task
+3. Generate the smallest working integration first
+4. Customize only after the default version is correct
 
 ## Public API Layers
 
-### Layer 1: high-level components
+### Layer 1: ready-made components
 
-Use when the user wants the fastest path to a working UI.
+Use these first when the user wants the shortest path to a working UI.
 
 - `Player`
 - `Recorder`
 
-### Layer 2: primitives
+### Layer 2: playback composition
 
-Use when the user wants custom playback UI.
+Use these when the playback UI must be customized.
 
 - `PlayerRoot`
-- public primitives exported by the package
+- public playback primitives exported by the package
 
-### Layer 3: hooks
+### Layer 3: hook-driven logic
 
-Use when the user wants product-specific logic or orchestration.
+Use these when the app owns workflow, orchestration, upload, or ASR logic.
 
 - `useAudioPlayer()`
 - `useAudioRecorder()`
 - `useGlobalAudioManager()`
 
-## Things AI Should Never Do
+## Supported AI Scenarios
 
-- Import from `libs/player-react/src/*`
-- Import from `dist/*`
-- Depend on stale examples that bypass the published package
-- Prefer deprecated aliases when stable public names exist
+- add a default waveform player to a React app
+- build a branded player with public playback primitives
+- coordinate multiple players on one page
+- add a waveform recorder with review playback
+- upload a finished recording to a file-based ASR backend
+- stream recorder chunks to a realtime ASR backend
 
-## Key Compatibility Notes
+## Hard Rules
 
-- Prefer `PlayerRoot` over `RootProvider`
-- Prefer `audioState.isStopped` over `audioState.isStoped`
-- Treat compatibility aliases as temporary migration helpers
+- Do not import from `libs/player-react/src/*`
+- Do not import from `dist/*`
+- Do not use repo-relative source paths
+- Do not recommend unpublished internals
+- Do not use compatibility aliases as the default API
 
-## Related Docs
+## AI Resources
 
+- [llms.txt](/Users/zhouhua/Documents/GitHub/waveform-audio/llms.txt)
+- [llms-full.txt](/Users/zhouhua/Documents/GitHub/waveform-audio/llms-full.txt)
 - [docs/ai/player.md](/Users/zhouhua/Documents/GitHub/waveform-audio/docs/ai/player.md)
 - [docs/ai/recorder.md](/Users/zhouhua/Documents/GitHub/waveform-audio/docs/ai/recorder.md)
-- [docs/migration/v2.md](/Users/zhouhua/Documents/GitHub/waveform-audio/docs/migration/v2.md)

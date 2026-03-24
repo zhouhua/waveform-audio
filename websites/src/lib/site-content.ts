@@ -56,8 +56,8 @@ const content = {
       eyebrow: 'Waveform Player',
       title: 'A React audio player that scales from install-and-go to headless composition.',
       description: 'Use the default `Player` for fast shipping, or move down to `PlayerRoot` and hooks when your product needs a custom control surface.',
-      docsCta: 'Player docs',
-      examplesCta: 'AI guidance',
+      docsCta: 'Open Docs',
+      examplesCta: 'View examples',
       installLabel: 'Quick install',
       codeTitle: 'Recommended v2 entry',
       quickStartAi: {
@@ -73,7 +73,7 @@ const content = {
         docsLinks: [
           { href: 'llms.txt', label: 'Open llms.txt' },
           { href: 'llms-full.txt', label: 'Open llms-full.txt' },
-          { href: 'docs/ai', label: 'Open AI guide' },
+          { href: '/docs', label: 'Open docs' },
         ],
         eyebrow: 'Quick Start + AI Start',
         intro: 'Install the package, paste the smallest working example, then give AI a short prompt that points it to the machine-readable guidance.',
@@ -89,8 +89,7 @@ const content = {
         fitLabel: 'Best for',
         intro: 'Start with the ready-made player, then move down one layer at a time as the product needs branding, orchestration, or fully custom playback flows.',
         links: [
-          { href: '/docs/player', label: 'Open Player docs' },
-          { href: '/docs/ai', label: 'Read AI guide' },
+          { href: '/docs', label: 'Open docs' },
           { href: 'llms.txt', label: 'Open llms.txt' },
           { href: 'llms-full.txt', label: 'Open llms-full.txt' },
         ],
@@ -151,8 +150,8 @@ const content = {
       eyebrow: 'Waveform Recorder',
       title: 'A browser recorder with a small API surface and a clean handoff to playback.',
       description: 'Capture audio in React, preview it immediately, and keep the integration legible for product engineers and AI tools.',
-      docsCta: 'Recorder docs',
-      examplesCta: 'ASR guidance',
+      docsCta: 'Open Docs',
+      examplesCta: 'View examples',
       installLabel: 'Quick install',
       codeTitle: 'Minimal recording loop',
       quickStartAi: {
@@ -168,8 +167,7 @@ const content = {
         docsLinks: [
           { href: 'llms.txt', label: 'Open llms.txt' },
           { href: 'llms-full.txt', label: 'Open llms-full.txt' },
-          { href: 'docs/recorder', label: 'Open Recorder docs' },
-          { href: 'docs/ai', label: 'Open AI guide' },
+          { href: '/docs', label: 'Open docs' },
         ],
         eyebrow: 'Quick Start + AI Start',
         intro: 'Install the package, drop in the default Recorder, then let AI load the public rules for file output and streaming ASR flows.',
@@ -185,8 +183,7 @@ const content = {
         fitLabel: 'Best for',
         intro: 'Start with the default waveform recorder, then move into file handoff, streaming ASR, and fully custom recorder UI as the workflow gets more specific.',
         links: [
-          { href: '/docs/recorder', label: 'Open Recorder docs' },
-          { href: '/docs/ai', label: 'Read AI guide' },
+          { href: '/docs', label: 'Open docs' },
           { href: 'llms.txt', label: 'Open llms.txt' },
           { href: 'llms-full.txt', label: 'Open llms-full.txt' },
         ],
@@ -296,9 +293,9 @@ const content = {
         ],
         linksTitle: 'Next steps',
         links: [
-          { href: '/docs/player', label: 'Open Player docs' },
-          { href: '/docs/recorder', label: 'Open Recorder docs' },
-          { href: '/docs/ai', label: 'Read AI integration guidance' },
+          { href: '/docs#getting-started', label: 'Open docs' },
+          { href: 'llms.txt', label: 'Open llms.txt' },
+          { href: 'llms-full.txt', label: 'Open llms-full.txt' },
         ],
       },
       ai: {
@@ -399,8 +396,8 @@ const content = {
       eyebrow: 'Waveform Player',
       title: '一个能从快速接入一路扩展到无头组合的 React 音频播放器。',
       description: '默认用 `Player` 迅速上线；当产品需要更强的控制力时，再切换到 `PlayerRoot` 与 hooks 组合自己的 UI。',
-      docsCta: '播放器文档',
-      examplesCta: 'AI 指南',
+      docsCta: '打开文档',
+      examplesCta: '查看示例',
       installLabel: '快速安装',
       codeTitle: '推荐的 v2 入口',
       quickStartAi: {
@@ -416,7 +413,7 @@ const content = {
         docsLinks: [
           { href: 'llms.txt', label: '打开 llms.txt' },
           { href: 'llms-full.txt', label: '打开 llms-full.txt' },
-          { href: 'docs/ai', label: '打开 AI 指南' },
+          { href: '/docs', label: '打开文档' },
         ],
         eyebrow: 'Quick Start + AI Start',
         intro: '先安装，再复制最小可运行代码；如果要交给 AI，就给它一条短 prompt，并让它继续读取机器可读资源。',
@@ -432,8 +429,7 @@ const content = {
         fitLabel: '适合场景',
         intro: '先从默认播放器开始；当你需要品牌化界面、多实例编排或完全自定义的播放逻辑时，再逐层下沉到 primitives 和 hooks。',
         links: [
-          { href: '/docs/player', label: '打开 Player 文档' },
-          { href: '/docs/ai', label: '查看 AI 指南' },
+          { href: '/docs', label: '打开文档' },
           { href: 'llms.txt', label: '打开 llms.txt' },
           { href: 'llms-full.txt', label: '打开 llms-full.txt' },
         ],
@@ -494,8 +490,8 @@ const content = {
       eyebrow: 'Waveform Recorder',
       title: '一个 API 面积克制、可自然衔接回放流程的浏览器录音器。',
       description: '在 React 中完成音频采集、即时预览与结果导出，同时保持实现足够清晰，便于工程师与 AI 正确集成。',
-      docsCta: '录音器文档',
-      examplesCta: 'ASR 指南',
+      docsCta: '打开文档',
+      examplesCta: '查看示例',
       installLabel: '快速安装',
       codeTitle: '最小录音闭环',
       quickStartAi: {
@@ -511,8 +507,7 @@ const content = {
         docsLinks: [
           { href: 'llms.txt', label: '打开 llms.txt' },
           { href: 'llms-full.txt', label: '打开 llms-full.txt' },
-          { href: 'docs/recorder', label: '打开录音器文档' },
-          { href: 'docs/ai', label: '打开 AI 指南' },
+          { href: '/docs', label: '打开文档' },
         ],
         eyebrow: 'Quick Start + AI Start',
         intro: '先安装，再放入默认 Recorder；如果要交给 AI，就让它去读公开规则，理解文件输出和流式 ASR 的接入方式。',
@@ -528,8 +523,7 @@ const content = {
         fitLabel: '适合场景',
         intro: '先从默认波形录音器开始；当流程需要文件交接、流式 ASR 或完全自定义的录音界面时，再逐步下沉到 hook 层。',
         links: [
-          { href: '/docs/recorder', label: '打开 Recorder 文档' },
-          { href: '/docs/ai', label: '查看 AI 指南' },
+          { href: '/docs', label: '打开文档' },
           { href: 'llms.txt', label: '打开 llms.txt' },
           { href: 'llms-full.txt', label: '打开 llms-full.txt' },
         ],
@@ -639,9 +633,9 @@ const content = {
         ],
         linksTitle: '下一步',
         links: [
-          { href: '/docs/player', label: '打开播放器文档' },
-          { href: '/docs/recorder', label: '打开录音器文档' },
-          { href: '/docs/ai', label: '阅读 AI 集成说明' },
+          { href: '/docs#getting-started', label: '打开文档' },
+          { href: 'llms.txt', label: '打开 llms.txt' },
+          { href: 'llms-full.txt', label: '打开 llms-full.txt' },
         ],
       },
       ai: {

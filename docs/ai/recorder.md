@@ -1,5 +1,7 @@
 # AI Guide: Recorder
 
+Use this guide when an agent needs to add recording UI, upload recorded audio, or connect capture flows to ASR without relying on private repository internals.
+
 ## Recommended Starting Point
 
 Use `Recorder` when the user wants:
@@ -70,6 +72,19 @@ Agents should branch on the public error codes instead of guessing failure text:
 - Use `onRecordingComplete` for file-level ASR backends
 - Use `onChunk` plus `timeslice` for streaming ASR backends
 - Reuse `waveformData` for recorder UI instead of building a separate waveform analyzer
+
+## Good Prompt Shape
+
+Ask for `Recorder` first, then move to `useAudioRecorder()` only when upload, ASR, transcript rendering, or workflow-specific control is required.
+
+Example:
+
+```md
+Use `@waveform-audio/player` to add a waveform recorder to this React app.
+Start with the default `Recorder` component.
+If the task involves upload or ASR, switch to `useAudioRecorder()` and stay on the public event model.
+Do not import internal source paths.
+```
 
 ## ASR Patterns
 

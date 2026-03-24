@@ -41,6 +41,13 @@ Player guidance
 - Move to `useAudioPlayer()` when the app needs direct control over play, pause, seek, and state.
 - Use `useGlobalAudioManager()` for multiple players on one page.
 
+Player scenarios
+- article or podcast playback
+- media library with several players
+- premium branded playback surface
+- upload review or approval flow
+- AI-generated UI that still must stay on public APIs
+
 Recorder guidance
 - Start with `Recorder` unless the app owns layout or ASR lifecycle.
 - `Recorder` already provides session status, waveform display, control buttons, and review playback.
@@ -99,3 +106,28 @@ Rules AI must follow
 - Never import from `dist/*`.
 - Never use unpublished repo internals.
 - Prefer the smallest working integration first, then customize.
+
+Prompting guidance
+- For default playback tasks:
+  - ask for `Player`
+- For branded playback UI:
+  - ask for `PlayerRoot` and public primitives
+- For multi-player orchestration:
+  - ask for `useGlobalAudioManager()`
+- For default recording:
+  - ask for `Recorder`
+- For upload or ASR:
+  - ask for `useAudioRecorder()`
+
+Suggested prompt for Player
+Use `@waveform-audio/player` to add a waveform audio player to this React app. Start with the default `Player` component. If the task requires custom layout, move to `PlayerRoot` and public primitives only. Do not import from internal source paths.
+
+Suggested prompt for Recorder
+Use `@waveform-audio/player` to add a waveform recorder to this React app. Start with the default `Recorder` component. If the task involves upload or ASR, switch to `useAudioRecorder()` and stay on the public event model. Do not import internal source paths.
+
+Source documents
+- `./README.md`
+- `./AGENTS.md`
+- `./docs/ai/overview.md`
+- `./docs/ai/player.md`
+- `./docs/ai/recorder.md`
