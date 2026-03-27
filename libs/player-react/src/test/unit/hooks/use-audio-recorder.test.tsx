@@ -309,6 +309,34 @@ describe('useAudioRecorder()', () => {
     expect(result.current.toFile().type).toBe('audio/webm');
   });
 
+  it('默认 Recorder 组件会把 callbacks 透传给 useAudioRecorder()', async () => {
+    const onRecordingComplete = vi.fn();
+
+    render(
+      <Recorder
+        callbacks={{
+          onRecordingComplete,
+        }}
+      />,
+    );
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Start recording' }));
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Stop' }));
+      await vi.runAllTimersAsync();
+    });
+
+    expect(onRecordingComplete).toHaveBeenCalledTimes(1);
+    expect(onRecordingComplete).toHaveBeenCalledWith(expect.objectContaining({
+      blob: expect.any(Blob),
+      file: expect.any(File),
+      sessionId: expect.any(String),
+    }));
+  });
+
   it('录音时会暴露 live level 与 waveformData，并在停止后保留最终波形用于预览', async () => {
     const { result } = renderHook(() => useAudioRecorder());
 

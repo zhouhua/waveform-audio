@@ -261,7 +261,7 @@ function ExampleArticle({
   title,
 }: ExampleArticleProps) {
   return (
-    <article className="grid gap-8 border-t border-black/10 py-10 lg:grid-cols-[0.82fr_1.18fr] lg:gap-12">
+    <article className="section-reveal grid gap-8 border-t border-black/10 py-10 lg:grid-cols-[1.08fr_0.92fr] lg:gap-12">
       <div className="space-y-5">
         <p className="text-sm uppercase tracking-[0.18em] text-stone-500">{step}</p>
         <div className="space-y-3">
@@ -280,16 +280,16 @@ function ExampleArticle({
             {fit}
           </p>
         </div>
-        <div className="overflow-hidden rounded-[1.5rem] border border-black/10 bg-[#111111]">
-          <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
-            <p className="text-xs uppercase tracking-[0.18em] text-stone-400">Code</p>
-            <CopyButton label="Copy code" text={code} />
-          </div>
-          <CodeBlock code={code} language="tsx" />
+        <div className="border border-black/10 bg-[#fbf8f2] p-5 transition-transform duration-500 hover:-translate-y-0.5 sm:p-6">
+          {preview}
         </div>
       </div>
-      <div className="rounded-[2rem] border border-black/10 bg-[#fbf8f2] p-5 sm:p-6">
-        {preview}
+      <div className="overflow-hidden border border-black/10 bg-[#111111] transition-transform duration-500 hover:-translate-y-0.5">
+        <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
+          <p className="text-xs uppercase tracking-[0.18em] text-stone-400">Code</p>
+          <CopyButton label="Copy code" text={code} />
+        </div>
+        <CodeBlock code={code} language="tsx" />
       </div>
     </article>
   );
@@ -303,17 +303,17 @@ export default function PlayerHomePage() {
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 sm:py-16">
-      <section className="grid gap-10 lg:grid-cols-[0.96fr_1.04fr] lg:items-center">
-        <div className="space-y-6">
+      <section className="section-reveal grid gap-10 lg:grid-cols-[0.96fr_1.04fr] lg:items-center">
+        <div className="space-y-6 section-delay-1">
           <p className="text-sm uppercase tracking-[0.18em] text-stone-500">{site.player.eyebrow}</p>
           <h1 className="font-display text-5xl leading-[0.98] text-stone-950 sm:text-6xl">{site.player.title}</h1>
           <p className="max-w-2xl text-lg leading-8 text-stone-650">{site.player.description}</p>
           <div className="flex flex-wrap gap-3">
-            <Link to="/docs" className="inline-flex items-center gap-2 rounded-full bg-stone-950 px-5 py-3 text-sm font-medium text-stone-50">
+            <Link to="/docs" className="hover-shift inline-flex items-center gap-2 rounded-full bg-stone-950 px-5 py-3 text-sm font-medium text-stone-50">
               {site.player.docsCta}
               <ArrowRight className="size-4" />
             </Link>
-            <a href="#examples" className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-5 py-3 text-sm font-medium text-stone-700">
+            <a href="#examples" className="hover-shift inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-5 py-3 text-sm font-medium text-stone-700">
               {site.player.examplesCta}
             </a>
           </div>
@@ -324,11 +324,11 @@ export default function PlayerHomePage() {
           </div>
         </div>
 
-        <div className="site-panel space-y-5 p-5 sm:p-6">
+        <div className="hero-orbit section-delay-2 space-y-6 border border-black/10 bg-[rgba(255,255,255,0.6)] p-5 shadow-[0_20px_60px_rgba(15,23,42,0.05)] backdrop-blur-sm sm:p-6 subtle-float">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="text-xs uppercase tracking-[0.18em] text-stone-500">{site.labels.waveformPreview}</p>
-              <p className="mt-2 text-2xl font-semibold text-stone-950">Player</p>
+              <p className="mt-2 text-2xl font-semibold text-stone-950">Waveform, controls, and timing in one surface</p>
             </div>
             <div className="flex items-center gap-2 rounded-full border border-black/10 bg-[#f8f4ed] p-1">
               {waveformTypes.map(type => (
@@ -343,9 +343,12 @@ export default function PlayerHomePage() {
               ))}
             </div>
           </div>
-          <div className="rounded-[1.5rem] border border-black/10 bg-white p-4">
+          <div className="border border-black/10 bg-white p-4">
             <Player src={demoMusic} type={waveformType} />
           </div>
+          <p className="max-w-2xl text-sm leading-7 text-stone-650">
+            Start here when you want a player that already feels product-ready. Move down to primitives and hooks only when the layout or playback model needs to become yours.
+          </p>
         </div>
       </section>
 
@@ -367,7 +370,7 @@ export default function PlayerHomePage() {
         title={quickStartAi.title}
       />
 
-      <section id="examples" className="mt-20">
+      <section id="examples" className="section-reveal section-delay-2 mt-20">
         <div className="max-w-3xl space-y-4">
           <p className="text-sm uppercase tracking-[0.18em] text-stone-500">{examples.eyebrow}</p>
           <h2 className="font-display text-4xl leading-tight text-stone-950 sm:text-5xl">{examples.title}</h2>
@@ -426,7 +429,7 @@ export default function PlayerHomePage() {
         </div>
       </section>
 
-      <section className="mt-20 border-t border-black/10 pt-10">
+      <section className="section-reveal section-delay-3 mt-20 border-t border-black/10 pt-10">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl">
             <p className="text-sm uppercase tracking-[0.18em] text-stone-500">Docs Links</p>
@@ -439,7 +442,7 @@ export default function PlayerHomePage() {
                   <Link
                     key={link.href}
                     to={link.href}
-                    className="inline-flex items-center rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-medium text-stone-700 transition-colors hover:border-black/20 hover:text-stone-950"
+                    className="hover-shift inline-flex items-center rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-medium text-stone-700 transition-colors hover:border-black/20 hover:text-stone-950"
                   >
                     {link.label}
                   </Link>
@@ -450,7 +453,7 @@ export default function PlayerHomePage() {
                 <a
                   key={link.href}
                   href={withBasePath(link.href)}
-                  className="inline-flex items-center rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-medium text-stone-700 transition-colors hover:border-black/20 hover:text-stone-950"
+                  className="hover-shift inline-flex items-center rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-medium text-stone-700 transition-colors hover:border-black/20 hover:text-stone-950"
                 >
                   {link.label}
                 </a>

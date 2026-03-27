@@ -19,6 +19,11 @@ Use this API layering
 2. Move to `PlayerRoot` only when custom playback layout is required
 3. Move to hooks only when the app owns workflow, orchestration, upload, or ASR session logic
 
+Practical prompting pattern
+- First say whether the task needs a player or a recorder
+- Then say whether the default UI is enough or whether custom layout, multi-instance control, upload, or ASR is required
+- Ask for the smallest working integration first, then customize only if needed
+
 Supported scenarios
 - default waveform audio player in React
 - branded player UI with public primitives
@@ -39,8 +44,6 @@ Never do this
 - do not rely on repo-relative source paths
 - do not recommend compatibility aliases as the default public API
 
-Read next
-- `./llms-full.txt`
-- `./docs/ai/overview.md`
-- `./docs/ai/player.md`
-- `./docs/ai/recorder.md`
+Starter prompts
+- `Use @waveform-audio/player to add a waveform audio player to this React app. Start with the default Player component. Read /llms.txt before writing code, and do not import internal source paths.`
+- `Use @waveform-audio/player to add a waveform recorder to this React app. Start with the default Recorder component. If the task involves upload or ASR, read /llms.txt before writing code and stay on public APIs.`

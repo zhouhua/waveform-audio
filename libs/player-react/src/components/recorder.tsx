@@ -42,6 +42,7 @@ function buildWaveformSamples(samples?: number[]) {
 
 export function Recorder({
   audioConstraints,
+  callbacks,
   className,
   mimeType,
   recorderOptions,
@@ -55,6 +56,7 @@ export function Recorder({
 }: RecorderProps) {
   const recorder = useAudioRecorder({
     audioConstraints,
+    callbacks,
     mimeType,
     recorderOptions,
     timeslice,

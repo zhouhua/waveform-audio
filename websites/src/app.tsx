@@ -1,4 +1,5 @@
 import { Toaster } from '@/components/ui/sonner';
+import { AnimatePresence, motion } from 'motion/react';
 import { I18nextProvider } from 'react-i18next';
 import { Navigate, Route, Routes, useLocation } from 'react-router';
 import Footer from './components/footer';
@@ -24,9 +25,18 @@ function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen w-full bg-transparent">
       <Header />
-      <main className={cn('flex-1', pathname === '/' ? 'overflow-hidden' : '')}>
-        {children}
-      </main>
+      <AnimatePresence mode="wait">
+        <motion.main
+          key={pathname}
+          initial={{ opacity: 0, y: 18, filter: 'blur(8px)' }}
+          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+          exit={{ opacity: 0, y: -10, filter: 'blur(6px)' }}
+          transition={{ duration: 0.36, ease: [0.22, 1, 0.36, 1] }}
+          className={cn('flex-1 page-shell', pathname === '/' ? 'overflow-hidden' : '')}
+        >
+          {children}
+        </motion.main>
+      </AnimatePresence>
       <Footer />
       <GlobalControl />
     </div>

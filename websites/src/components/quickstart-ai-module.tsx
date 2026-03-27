@@ -43,7 +43,7 @@ export function QuickStartAiModule({
   title,
 }: QuickStartAiModuleProps) {
   return (
-    <section id="quick-start-ai" className="mt-16 border-t border-black/10 pt-10">
+    <section id="quick-start-ai" className="section-reveal mt-16 border-t border-black/10 pt-10">
       <div>
         <p className="text-sm uppercase tracking-[0.18em] text-stone-500">{eyebrow}</p>
         <div className="mt-3 grid gap-3 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
@@ -54,8 +54,8 @@ export function QuickStartAiModule({
         </div>
       </div>
 
-      <div className="mt-8 grid gap-10 lg:grid-cols-[1.1fr_0.9fr]">
-        <div className="space-y-8">
+      <div className="mt-8 grid gap-10 lg:grid-cols-[1.08fr_0.92fr]">
+        <div className="space-y-8 section-delay-1">
           <div className="border-t border-black/10 pt-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
@@ -64,7 +64,7 @@ export function QuickStartAiModule({
               </div>
               <CopyButton label={installLabel} text={installCommand} />
             </div>
-            <code className="mt-4 block bg-stone-950 px-4 py-3 font-mono text-[13px] leading-7 text-stone-100">
+            <code className="mt-4 block border border-black/10 bg-stone-950 px-4 py-3 font-mono text-[13px] leading-7 text-stone-100 transition-transform duration-500 hover:-translate-y-0.5">
               {installCommand}
             </code>
           </div>
@@ -77,13 +77,13 @@ export function QuickStartAiModule({
               </div>
               <CopyButton label={codeLabel} text={code} />
             </div>
-            <div className="mt-4 bg-[#111111]">
+            <div className="mt-4 overflow-hidden border border-black/10 bg-[#111111] transition-transform duration-500 hover:-translate-y-0.5">
               <CodeBlock code={code} language="tsx" />
             </div>
           </div>
         </div>
 
-        <div className="space-y-8">
+        <div className="space-y-8 section-delay-2">
           <div className="border-t border-black/10 pt-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
@@ -92,7 +92,7 @@ export function QuickStartAiModule({
               </div>
               <CopyButton label={promptLabel} text={prompt} />
             </div>
-            <p className="mt-4 whitespace-pre-wrap bg-[#f8f4ed] px-4 py-3 font-mono text-[13px] leading-7 text-stone-800">
+            <p className="mt-4 whitespace-pre-wrap border border-black/10 bg-[#f8f4ed] px-4 py-3 font-mono text-[13px] leading-7 text-stone-800 transition-transform duration-500 hover:-translate-y-0.5">
               {prompt}
             </p>
             <p className="mt-3 text-sm leading-7 text-stone-650">{promptNote}</p>
@@ -120,7 +120,7 @@ export function QuickStartAiModule({
                 <a
                   key={link.href}
                   href={withBasePath(link.href)}
-                  className="inline-flex items-center border border-black/10 px-3 py-1.5 text-xs font-medium text-stone-700 transition-colors hover:border-black/20 hover:text-stone-950"
+                  className="hover-shift inline-flex items-center border border-black/10 px-3 py-1.5 text-xs font-medium text-stone-700 transition-colors hover:border-black/20 hover:text-stone-950"
                 >
                   {link.label}
                 </a>

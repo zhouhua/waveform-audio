@@ -47,6 +47,12 @@
     background-attachment: fixed;
   }
 
+  @media (prefers-reduced-motion: no-preference) {
+    body {
+      view-transition-name: site-body;
+    }
+  }
+
   ::selection {
     background: rgba(230, 155, 99, 0.28);
   }
@@ -59,7 +65,13 @@
   }
 
   .site-panel {
-    @apply rounded-[2rem] border border-black/10 bg-[rgba(255,255,255,0.88)] shadow-[0_25px_70px_rgba(15,23,42,0.08)] backdrop-blur;
+    @apply border border-black/10 bg-[rgba(255,255,255,0.76)] shadow-[0_18px_52px_rgba(15,23,42,0.06)] backdrop-blur transition-[transform,box-shadow,border-color] duration-500;
+  }
+
+  .site-panel:hover {
+    @apply border-black/15;
+    transform: translateY(-2px);
+    box-shadow: 0 24px 64px rgba(15, 23, 42, 0.08);
   }
 
   .hero-grid {
@@ -68,5 +80,94 @@
       linear-gradient(90deg, rgba(28, 25, 23, 0.05) 1px, transparent 1px);
     background-size: 48px 48px;
     mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.55), transparent 88%);
+  }
+
+  .page-shell {
+    will-change: transform, opacity, filter;
+  }
+
+  .section-reveal {
+    animation: section-reveal 0.78s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .section-delay-1 {
+    animation-delay: 0.06s;
+  }
+
+  .section-delay-2 {
+    animation-delay: 0.12s;
+  }
+
+  .section-delay-3 {
+    animation-delay: 0.18s;
+  }
+
+  .subtle-float {
+    animation: subtle-float 6s ease-in-out infinite;
+  }
+
+  .hero-orbit {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-orbit::after {
+    content: "";
+    position: absolute;
+    inset: -35% auto auto 58%;
+    width: 17rem;
+    height: 17rem;
+    border-radius: 9999px;
+    background: radial-gradient(circle, rgba(245, 158, 11, 0.14), rgba(56, 189, 248, 0.08) 48%, transparent 70%);
+    animation: orbit-drift 10s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  .hover-shift {
+    transition:
+      transform 400ms cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 250ms ease,
+      background-color 250ms ease,
+      color 250ms ease;
+  }
+
+  .hover-shift:hover {
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes section-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+    filter: blur(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes subtle-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes orbit-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate3d(-18px, 14px, 0) scale(1.05);
   }
 }
