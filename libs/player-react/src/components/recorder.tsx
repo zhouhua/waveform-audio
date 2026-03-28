@@ -1,11 +1,15 @@
-import type { ComponentPropsWithoutRef } from 'react';
+import type { CSSProperties, ComponentPropsWithoutRef } from 'react';
+import type { WaveformType } from './primitives/waveform-renderers';
+import { useEffect, useMemo, useRef } from 'react';
 import type { AudioRecorderStatus, UseAudioRecorderOptions } from '../types';
 import { useAudioRecorder } from '../hooks/use-audio-recorder';
 import { cn } from '../utils/cn';
+import { createRecorderWindowedFrame, renderers } from './primitives/waveform-renderers';
 
 const DEFAULT_STATUS_LABELS: Record<AudioRecorderStatus, string> = {
   error: 'error',
   idle: 'idle',
+  paused: 'paused',
   recording: 'recording',
   'requesting-permission': 'requesting-permission',
   stopped: 'stopped',
@@ -14,10 +18,28 @@ const DEFAULT_STATUS_LABELS: Record<AudioRecorderStatus, string> = {
 };
 
 export interface RecorderProps extends ComponentPropsWithoutRef<'div'>, UseAudioRecorderOptions {
+  pauseLabel?: string;
+  resumeLabel?: string;
   startLabel?: string;
   stopLabel?: string;
   resetLabel?: string;
   statusLabels?: Partial<Record<AudioRecorderStatus, string>>;
+  waveformType?: WaveformType;
+  waveformBarWidth?: number;
+  waveformBarGap?: number;
+  waveformBarRadius?: number;
+  waveformSamplePoints?: number;
+  waveformColor?: string;
+  waveformProgressColor?: string;
+  waveformGradient?: {
+    from: string;
+    to: string;
+  };
+  waveformProgressGradient?: {
+    from: string;
+    to: string;
+  };
+  waveformAnchorRatio?: number;
 }
 
 function formatDurationLabel(durationMs: number) {
@@ -29,15 +51,109 @@ function formatDurationLabel(durationMs: number) {
   return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${tenths}`;
 }
 
-function buildWaveformSamples(samples?: number[]) {
-  if (samples?.length) {
+function buildWaveformSamples(sampleCount: number, samples?: number[]) {
+  if (sampleCount <= 0) {
+    return [];
+  }
+
+  if (!samples?.length) {
+    return Array.from({ length: sampleCount }, () => 0);
+  }
+
+  if (samples.length === sampleCount) {
     return samples;
   }
 
-  return Array.from({ length: 40 }, (_value, index) => {
-    const distanceToCenter = Math.abs(index - 19.5) / 19.5;
-    return Number((0.18 + ((1 - distanceToCenter) * 0.28)).toFixed(4));
+  return Array.from({ length: sampleCount }, (_value, index) => {
+    const start = Math.floor((index / sampleCount) * samples.length);
+    const end = Math.floor(((index + 1) / sampleCount) * samples.length);
+    const bucket = samples.slice(start, Math.max(start + 1, end));
+    return Number(Math.max(...bucket, 0).toFixed(4));
   });
+}
+
+interface RecorderWaveformCanvasProps {
+  anchorRatio: number;
+  barGap: number;
+  barRadius: number;
+  barWidth: number;
+  color: string;
+  gradient?: {
+    from: string;
+    to: string;
+  };
+  progressColor: string;
+  progressGradient?: {
+    from: string;
+    to: string;
+  };
+  samples: number[];
+  type: WaveformType;
+}
+
+function RecorderWaveformCanvas({
+  anchorRatio,
+  barGap,
+  barRadius,
+  barWidth,
+  color,
+  gradient,
+  progressColor,
+  progressGradient,
+  samples,
+  type,
+}: RecorderWaveformCanvasProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) {
+      return;
+    }
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      return;
+    }
+
+    const dpr = window.devicePixelRatio || 1;
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, width, height);
+
+    const frame = createRecorderWindowedFrame({
+      cursorRatio: anchorRatio,
+      samples,
+    });
+
+    const renderer = renderers[type];
+    renderer?.({
+      barGap,
+      barRadius,
+      barWidth,
+      color,
+      ctx,
+      frame,
+      gradient,
+      height,
+      peaks: samples,
+      progress: anchorRatio,
+      progressColor,
+      progressGradient,
+      width,
+    });
+  }, [anchorRatio, barGap, barRadius, barWidth, color, gradient, progressColor, progressGradient, samples, type]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="wa-h-full wa-w-full"
+      data-testid="wa-recorder-waveform-canvas"
+    />
+  );
 }
 
 export function Recorder({
@@ -45,13 +161,28 @@ export function Recorder({
   callbacks,
   className,
   mimeType,
+  pauseLabel = 'Pause',
   recorderOptions,
   resetLabel = 'Reset',
+  resumeLabel = 'Resume',
   startLabel = 'Start recording',
   statusLabels,
   stopLabel = 'Stop',
   style,
   timeslice,
+  waveformAnchorRatio,
+  waveformBarGap = 1,
+  waveformBarRadius = 2,
+  waveformBarWidth = 2,
+  waveformColor = 'rgba(255,255,255,0.38)',
+  waveformGradient,
+  waveformProgressColor = '#67e8f9',
+  waveformProgressGradient = {
+    from: '#22d3ee',
+    to: '#3b82f6',
+  },
+  waveformSamplePoints = 48,
+  waveformType = 'bars',
   ...props
 }: RecorderProps) {
   const recorder = useAudioRecorder({
@@ -68,13 +199,25 @@ export function Recorder({
   };
 
   const isBusy = recorder.status === 'requesting-permission' || recorder.status === 'stopping';
-  const waveformSamples = buildWaveformSamples(recorder.waveformData?.samples);
-  const isReviewReady = Boolean(recorder.blobUrl);
+  const waveformSamples = useMemo(
+    () => buildWaveformSamples(waveformSamplePoints, recorder.waveformData?.samples),
+    [recorder.waveformData?.samples, waveformSamplePoints],
+  );
+  const anchorRatio = waveformAnchorRatio ?? recorder.waveformData?.anchorRatio ?? 0.72;
   const statusTone = recorder.status === 'error'
     ? 'wa-bg-red-100 wa-text-red-700'
     : recorder.isRecording
       ? 'wa-bg-blue-100 wa-text-blue-700'
+      : recorder.isPaused
+        ? 'wa-bg-amber-100 wa-text-amber-700'
       : 'wa-bg-stone-200 wa-text-stone-700';
+  const waveformStatusText = recorder.isRecording
+    ? 'Live capture'
+    : recorder.isPaused
+      ? 'Capture paused'
+      : recorder.status === 'stopped'
+        ? 'Capture complete'
+        : 'Press start to capture a waveform';
 
   return (
     <div
@@ -116,47 +259,45 @@ export function Recorder({
 
       <div
         className="wa-relative wa-overflow-hidden wa-rounded-[24px] wa-border wa-border-stone-200 wa-bg-gradient-to-br wa-from-stone-950 wa-via-slate-900 wa-to-slate-800 wa-p-4"
-        data-live={recorder.waveformData?.isLive ? 'true' : 'false'}
+        data-live={recorder.isRecording ? 'true' : 'false'}
+        data-paused={recorder.isPaused ? 'true' : 'false'}
         data-testid="wa-recorder-waveform"
       >
-        <div className="wa-flex wa-h-[160px] wa-items-end wa-gap-1">
-          {waveformSamples.map((sample, index) => (
-            <span
-              key={`${index}-${sample}`}
-              aria-hidden="true"
-              className={cn(
-                'wa-block wa-flex-1 wa-rounded-full wa-transition-[height,opacity,transform] wa-duration-150',
-                recorder.waveformData?.isLive
-                  ? 'wa-bg-gradient-to-t wa-from-cyan-400 wa-to-blue-500 wa-opacity-100'
-                  : 'wa-bg-white/70 wa-opacity-80',
-              )}
-              data-testid="wa-recorder-waveform-bar"
-              style={{
-                height: `${Math.max(10, Math.round(sample * 100))}%`,
-                transform: recorder.waveformData?.isLive ? 'translateY(0)' : 'scaleY(0.96)',
-              }}
-            />
-          ))}
+        <div className="wa-relative wa-h-[160px]">
+          <RecorderWaveformCanvas
+            anchorRatio={anchorRatio}
+            barGap={waveformBarGap}
+            barRadius={waveformBarRadius}
+            barWidth={waveformBarWidth}
+            color={waveformColor}
+            gradient={waveformGradient}
+            progressColor={waveformProgressColor}
+            progressGradient={waveformProgressGradient}
+            samples={waveformSamples}
+            type={waveformType}
+          />
+          <span
+            aria-hidden="true"
+            className={cn(
+              'wa-pointer-events-none wa-absolute wa-bottom-0 wa-top-0 wa-w-px -wa-translate-x-1/2 wa-rounded-full wa-transition-opacity',
+              recorder.isPaused ? 'wa-bg-amber-300/90 wa-opacity-90' : 'wa-bg-cyan-300 wa-opacity-100',
+            )}
+            style={{ left: `${anchorRatio * 100}%` } as CSSProperties}
+          />
         </div>
 
         <div className="wa-mt-4 wa-flex wa-flex-wrap wa-items-center wa-justify-between wa-gap-3 wa-text-xs wa-text-white/72">
           <span data-testid="wa-recorder-level">
             Level {Math.round(recorder.level * 100)}%
           </span>
-          <span>
-            {recorder.waveformData?.isLive
-              ? 'Live capture'
-              : isReviewReady
-                ? 'Waveform ready for review'
-                : 'Press start to capture a waveform'}
-          </span>
+          <span>{waveformStatusText}</span>
         </div>
       </div>
 
       <div className="wa-flex wa-flex-wrap wa-gap-2">
         <button
           className="wa-rounded-full wa-bg-stone-950 wa-px-4 wa-py-2.5 wa-text-sm wa-font-medium wa-text-white disabled:wa-cursor-not-allowed disabled:wa-bg-stone-300"
-          disabled={isBusy || recorder.isRecording || recorder.status === 'unsupported'}
+          disabled={isBusy || recorder.isRecording || recorder.isPaused || recorder.status === 'unsupported'}
           type="button"
           onClick={() => {
             void recorder.start();
@@ -164,9 +305,32 @@ export function Recorder({
         >
           {startLabel}
         </button>
+        {recorder.isPaused
+          ? (
+              <button
+                className="wa-rounded-full wa-border wa-border-cyan-300 wa-bg-cyan-50 wa-px-4 wa-py-2.5 wa-text-sm wa-font-medium wa-text-cyan-700 disabled:wa-cursor-not-allowed disabled:wa-border-stone-200 disabled:wa-text-stone-300"
+                disabled={isBusy}
+                type="button"
+                onClick={() => {
+                  void recorder.resume();
+                }}
+              >
+                {resumeLabel}
+              </button>
+            )
+          : (
+              <button
+                className="wa-rounded-full wa-border wa-border-stone-300 wa-bg-white wa-px-4 wa-py-2.5 wa-text-sm wa-font-medium wa-text-stone-700 disabled:wa-cursor-not-allowed disabled:wa-border-stone-200 disabled:wa-text-stone-300"
+                disabled={!recorder.isRecording}
+                type="button"
+                onClick={recorder.pause}
+              >
+                {pauseLabel}
+              </button>
+            )}
         <button
           className="wa-rounded-full wa-border wa-border-stone-300 wa-bg-white wa-px-4 wa-py-2.5 wa-text-sm wa-font-medium wa-text-stone-700 disabled:wa-cursor-not-allowed disabled:wa-border-stone-200 disabled:wa-text-stone-300"
-          disabled={!recorder.isRecording}
+          disabled={!recorder.isRecording && !recorder.isPaused}
           type="button"
           onClick={recorder.stop}
         >
@@ -186,24 +350,6 @@ export function Recorder({
         <p className="wa-rounded-2xl wa-border wa-border-red-200 wa-bg-red-50 wa-px-4 wa-py-3 wa-text-sm wa-text-red-600" data-testid="wa-recorder-error">
           {recorder.error.message}
         </p>
-      )}
-
-      {recorder.blobUrl && recorder.file && (
-        <div
-          className="wa-flex wa-flex-col wa-gap-3 wa-rounded-[24px] wa-border wa-border-stone-200 wa-bg-stone-50 wa-p-4"
-          data-testid="wa-recorder-review"
-        >
-          <div className="wa-flex wa-flex-wrap wa-items-center wa-justify-between wa-gap-2">
-            <div>
-              <p className="wa-text-sm wa-font-medium wa-text-stone-950">Review recording</p>
-              <p className="wa-text-xs wa-text-stone-500">{recorder.file.name}</p>
-            </div>
-            <span className="wa-text-xs wa-text-stone-500">
-              {Math.round(recorder.file.size / 1024)} KB
-            </span>
-          </div>
-          <audio controls data-testid="wa-recorder-audio" src={recorder.blobUrl} />
-        </div>
       )}
     </div>
   );

@@ -1,8 +1,10 @@
 import type { WaveformRenderConfig, WaveformRenderer } from './types';
+import { getFrameSampleState } from './windowed-frame';
 
 export const WaveRenderer: WaveformRenderer = ({
   color,
   ctx,
+  frame,
   gradient,
   height,
   peaks,
@@ -11,10 +13,15 @@ export const WaveRenderer: WaveformRenderer = ({
   progressGradient,
   width,
 }) => {
-  const points = peaks.map((peak, i) => ({
-    x: (i / (peaks.length - 1)) * width,
-    y: height / 2 - (peak * height * 0.4),
-  }));
+  const baselineY = height / 2;
+  const points = peaks.map((peak, i) => {
+    const sampleState = frame ? getFrameSampleState(frame, i) : 'inactive';
+    return {
+      state: sampleState,
+      x: (i / (peaks.length - 1)) * width,
+      y: sampleState === 'empty' ? baselineY : height / 2 - (peak * height * 0.4),
+    };
+  });
 
   const progressX = width * progress;
 
@@ -46,7 +53,7 @@ export const WaveRenderer: WaveformRenderer = ({
     ctx.beginPath();
     ctx.moveTo(points[0].x, points[0].y);
     points.forEach((point, i) => {
-      if (point.x <= progressX) {
+      if ((frame ? point.state === 'active' : point.x <= progressX)) {
         ctx.lineTo(point.x, i % 2 === 0 ? point.y : height - point.y);
       }
     });

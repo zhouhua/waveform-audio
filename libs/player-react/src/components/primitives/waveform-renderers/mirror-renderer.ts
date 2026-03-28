@@ -1,4 +1,5 @@
 import type { WaveformRenderConfig, WaveformRenderer } from './types';
+import { getFramePositionState } from './windowed-frame';
 
 export const mirrorRenderer: WaveformRenderer = ({
   barGap = 1,
@@ -6,6 +7,7 @@ export const mirrorRenderer: WaveformRenderer = ({
   barWidth = 2,
   color,
   ctx,
+  frame,
   gradient,
   height,
   peaks,
@@ -33,12 +35,19 @@ export const mirrorRenderer: WaveformRenderer = ({
 
   peaks.forEach((peak, i) => {
     const x = i * (calculatedBarWidth + calculatedBarGap);
-    const barHeight = peak * height * 0.4;
+    const position = width <= calculatedBarWidth ? 0 : x / Math.max(1, width - calculatedBarWidth);
+    const sampleState = frame
+      ? getFramePositionState(frame, position)
+      : x < progressX
+        ? 'active'
+        : 'inactive';
+    const barHeight = sampleState === 'empty'
+      ? 1
+      : peak * height * 0.4;
 
-    // 使用进度调整透明度
-    ctx.globalAlpha = x < progressX ? 1 : 0.7;
+    ctx.globalAlpha = sampleState === 'active' ? 1 : 0.7;
 
-    ctx.fillStyle = x < progressX
+    ctx.fillStyle = sampleState === 'active'
       ? (progressGradient ? createGradient(progressGradient) : progressColor)
       : (gradient ? createGradient(gradient) : color);
 

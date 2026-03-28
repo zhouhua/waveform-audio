@@ -1,4 +1,5 @@
 import type { WaveformRenderConfig, WaveformRenderer } from './types';
+import { getFramePositionState } from './windowed-frame';
 
 export const barsRenderer: WaveformRenderer = ({
   barGap = 1,
@@ -6,6 +7,7 @@ export const barsRenderer: WaveformRenderer = ({
   barWidth = 2,
   color,
   ctx,
+  frame,
   gradient,
   height,
   peaks,
@@ -47,11 +49,19 @@ export const barsRenderer: WaveformRenderer = ({
 
   peaks.forEach((peak, i) => {
     const x = i * (calculatedBarWidth + calculatedBarGap);
-    const barHeight = peak * height * 0.95;
+    const position = width <= calculatedBarWidth ? 0 : x / Math.max(1, width - calculatedBarWidth);
+    const sampleState = frame
+      ? getFramePositionState(frame, position)
+      : x < progressX
+        ? 'active'
+        : 'inactive';
+    const barHeight = sampleState === 'empty'
+      ? 2
+      : peak * height * 0.95;
 
-    ctx.globalAlpha = x < progressX ? 1 : 0.7;
+    ctx.globalAlpha = sampleState === 'active' ? 1 : 0.7;
 
-    ctx.fillStyle = x < progressX ? progressGrad : normalGradient;
+    ctx.fillStyle = sampleState === 'active' ? progressGrad : normalGradient;
     ctx.beginPath();
     ctx.roundRect(
       x,
@@ -63,8 +73,8 @@ export const barsRenderer: WaveformRenderer = ({
     ctx.fill();
 
     const glowHeight = Math.min(4, barHeight * 0.1);
-    if (barHeight > 0) {
-      ctx.fillStyle = x < progressX
+    if (barHeight > 0 && sampleState !== 'empty') {
+      ctx.fillStyle = sampleState === 'active'
         ? progressGradient?.to || progressColor
         : gradient?.to || color;
       ctx.beginPath();

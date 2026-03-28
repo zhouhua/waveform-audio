@@ -1,8 +1,10 @@
 import type { WaveformRenderConfig, WaveformRenderer } from './types';
+import { getFrameSampleState } from './windowed-frame';
 
 export const envelopeRenderer: WaveformRenderer = ({
   color,
   ctx,
+  frame,
   gradient,
   height,
   peaks,
@@ -11,10 +13,15 @@ export const envelopeRenderer: WaveformRenderer = ({
   progressGradient,
   width,
 }) => {
-  const points = peaks.map((peak, i) => ({
-    x: (i / (peaks.length - 1)) * width,
-    y: height / 2 - (peak * height * 0.4),
-  }));
+  const baselineY = height / 2;
+  const points = peaks.map((peak, i) => {
+    const sampleState = frame ? getFrameSampleState(frame, i) : 'inactive';
+    return {
+      state: sampleState,
+      x: (i / (peaks.length - 1)) * width,
+      y: sampleState === 'empty' ? baselineY : height / 2 - (peak * height * 0.4),
+    };
+  });
 
   const progressX = width * progress;
 
@@ -48,14 +55,14 @@ export const envelopeRenderer: WaveformRenderer = ({
     ctx.beginPath();
     ctx.moveTo(points[0].x, height / 2);
     points.forEach((point) => {
-      if (point.x <= progressX) {
+      if ((frame ? point.state === 'active' : point.x <= progressX)) {
         ctx.lineTo(point.x, point.y);
       }
     });
     ctx.lineTo(progressX, height / 2);
     for (let i = points.length - 1; i >= 0; i--) {
       const point = points[i];
-      if (point.x <= progressX) {
+      if ((frame ? point.state === 'active' : point.x <= progressX)) {
         ctx.lineTo(point.x, height - point.y);
       }
     }
@@ -67,7 +74,7 @@ export const envelopeRenderer: WaveformRenderer = ({
   }
 
   // 添加发光效果
-  const glowIntensity = Math.min(progress, 0.3);
+  const glowIntensity = Math.min(frame ? frame.cursorRatio : progress, 0.3);
   if (glowIntensity > 0) {
     ctx.shadowColor = progressGradient?.to || progressColor;
     ctx.shadowBlur = 10;

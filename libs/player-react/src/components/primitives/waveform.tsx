@@ -3,7 +3,7 @@ import type { WaveformType } from './waveform-renderers';
 import { useEffect, useRef } from 'react';
 import { usePlayerContext } from '../../hooks/use-player-context';
 import { cn } from '../../utils/cn';
-import { renderers } from './waveform-renderers';
+import { createPlayerWindowedFrame, renderers } from './waveform-renderers';
 
 export interface WaveformProps {
   height?: number;
@@ -76,6 +76,10 @@ export function Waveform({
     ctx.clearRect(0, 0, width, height);
 
     const progress = duration > 0 ? currentTime / duration : 0;
+    const frame = createPlayerWindowedFrame({
+      cursorRatio: progress,
+      samples: peaks,
+    });
 
     const computedStyle = getComputedStyle(canvas);
     const waveformColor = color || computedStyle.getPropertyValue('--waveform-color').trim() || 'currentColor';
@@ -101,6 +105,7 @@ export function Waveform({
         barWidth,
         color: waveformColor,
         ctx,
+        frame,
         gradient: waveformGradient,
         height,
         peaks,

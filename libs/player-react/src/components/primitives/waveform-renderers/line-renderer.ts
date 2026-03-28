@@ -1,8 +1,10 @@
 import type { WaveformRenderConfig, WaveformRenderer } from './types';
+import { getFrameSampleState } from './windowed-frame';
 
 export const lineRenderer: WaveformRenderer = ({
   color,
   ctx,
+  frame,
   gradient,
   height,
   peaks,
@@ -11,10 +13,15 @@ export const lineRenderer: WaveformRenderer = ({
   progressGradient,
   width,
 }) => {
-  const points = peaks.map((peak, i) => ({
-    x: (i / (peaks.length - 1)) * width,
-    y: height - (peak * height * 0.8),
-  }));
+  const baselineY = height / 2;
+  const points = peaks.map((peak, i) => {
+    const sampleState = frame ? getFrameSampleState(frame, i) : 'inactive';
+    return {
+      state: sampleState,
+      x: (i / (peaks.length - 1)) * width,
+      y: sampleState === 'empty' ? baselineY : height - (peak * height * 0.8),
+    };
+  });
 
   const progressX = width * progress;
 
@@ -46,7 +53,7 @@ export const lineRenderer: WaveformRenderer = ({
     ctx.beginPath();
     ctx.moveTo(points[0].x, points[0].y);
     points.forEach((point) => {
-      if (point.x <= progressX) {
+      if ((frame ? point.state === 'active' : point.x <= progressX)) {
         ctx.lineTo(point.x, point.y);
       }
     });
@@ -56,7 +63,7 @@ export const lineRenderer: WaveformRenderer = ({
       : progressColor;
 
     // 根据进度调整线条透明度
-    ctx.globalAlpha = progress;
+    ctx.globalAlpha = frame ? 1 : progress;
     ctx.strokeStyle = progressLineColor;
     ctx.stroke();
     ctx.globalAlpha = 1;

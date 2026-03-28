@@ -14,5 +14,6 @@ export const renderers: Record<string, WaveformRenderer> = {
 };
 
 export * from './types';
+export * from './windowed-frame';
 
 export type WaveformType = keyof typeof renderers;

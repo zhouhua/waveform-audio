@@ -1,8 +1,11 @@
+import type { WindowedWaveformFrame } from './windowed-frame';
+
 export interface WaveformRenderOptions {
   ctx: CanvasRenderingContext2D;
   width: number;
   height: number;
   peaks: number[];
+  frame?: WindowedWaveformFrame;
   progress: number;
   color: string;
   progressColor: string;

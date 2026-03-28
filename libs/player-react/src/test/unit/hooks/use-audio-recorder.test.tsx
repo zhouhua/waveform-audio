@@ -25,9 +25,19 @@ class MockMediaRecorder extends EventTarget implements Partial<MediaRecorder> {
     MockMediaRecorder.lastInstance = this;
   }
 
-  pause = vi.fn();
+  pause = vi.fn(() => {
+    this.state = 'paused';
+    const pauseEvent = new Event('pause');
+    this.onpause?.(pauseEvent);
+    this.dispatchEvent(pauseEvent);
+  });
   requestData = vi.fn();
-  resume = vi.fn();
+  resume = vi.fn(() => {
+    this.state = 'recording';
+    const resumeEvent = new Event('resume');
+    this.onresume?.(resumeEvent);
+    this.dispatchEvent(resumeEvent);
+  });
   stopShouldThrow = false;
 
   start = vi.fn((_timeslice?: number) => {
@@ -737,11 +747,11 @@ describe('Recorder', () => {
     });
   });
 
-  it('提供最小默认 UI 来开始、停止并预览录音结果', async () => {
+  it('提供录音中的时间窗口 UI，并在暂停与停止时保留 capture surface', async () => {
     render(<Recorder />);
 
     expect(screen.getByTestId('wa-recorder-waveform')).toHaveAttribute('data-live', 'false');
-    expect(screen.getAllByTestId('wa-recorder-waveform-bar').length).toBeGreaterThan(0);
+    expect(screen.getByTestId('wa-recorder-waveform-canvas')).toBeInTheDocument();
 
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: /start recording/i }));
@@ -750,9 +760,33 @@ describe('Recorder', () => {
 
     expect(screen.getByTestId('wa-recorder-status')).toHaveTextContent('recording');
     expect(screen.getByTestId('wa-recorder-waveform')).toHaveAttribute('data-live', 'true');
+    expect(screen.getByRole('button', { name: /pause/i })).toBeInTheDocument();
 
     act(() => {
-      vi.advanceTimersByTime(500);
+      vi.advanceTimersByTime(300);
+    });
+
+    act(() => {
+      fireEvent.click(screen.getByRole('button', { name: /pause/i }));
+    });
+
+    expect(screen.getByTestId('wa-recorder-status')).toHaveTextContent('paused');
+    expect(screen.getByTestId('wa-recorder-waveform')).toHaveAttribute('data-paused', 'true');
+    expect(screen.getByRole('button', { name: /resume/i })).toBeInTheDocument();
+
+    act(() => {
+      vi.advanceTimersByTime(400);
+    });
+
+    expect(screen.getByTestId('wa-recorder-duration')).toHaveTextContent('00:00.3');
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /resume/i }));
+      await Promise.resolve();
+    });
+
+    act(() => {
+      vi.advanceTimersByTime(200);
     });
 
     await act(async () => {
@@ -761,8 +795,8 @@ describe('Recorder', () => {
     });
 
     expect(screen.getByTestId('wa-recorder-waveform')).toHaveAttribute('data-live', 'false');
-    expect(screen.getByTestId('wa-recorder-review')).toBeInTheDocument();
-    expect(screen.getByTestId('wa-recorder-audio')).toBeInTheDocument();
     expect(screen.getByTestId('wa-recorder-duration')).toHaveTextContent('00:00.5');
+    expect(screen.queryByTestId('wa-recorder-review')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('wa-recorder-audio')).not.toBeInTheDocument();
   });
 });
