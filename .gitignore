@@ -38,4 +38,7 @@ yarn-error.log*
 
 # Cache
 .cache
-.parcel-cache 
+.parcel-cache
+
+# Local agent and brainstorming artifacts
+.superpowers/
