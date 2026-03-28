@@ -38,10 +38,13 @@ describe('public v2 api', () => {
     expectTypeOf<AudioRecorderController>().toMatchTypeOf<PublicRecorderController>();
 
     expectTypeOf<PublicRecorderController['start']>().toBeFunction();
+    expectTypeOf<PublicRecorderController['pause']>().toBeFunction();
+    expectTypeOf<PublicRecorderController['resume']>().toBeFunction();
     expectTypeOf<PublicRecorderController['stop']>().toBeFunction();
     expectTypeOf<PublicRecorderController['reset']>().toBeFunction();
     expectTypeOf<PublicRecorderController['status']>().toEqualTypeOf<AudioRecorderStatus>();
     expectTypeOf<PublicRecorderController['isRecording']>().toEqualTypeOf<boolean>();
+    expectTypeOf<PublicRecorderController['isPaused']>().toEqualTypeOf<boolean>();
     expectTypeOf<PublicRecorderController['durationMs']>().toEqualTypeOf<number>();
     expectTypeOf<PublicRecorderController['sessionId']>().toEqualTypeOf<string | null>();
     expectTypeOf<PublicRecorderController['startedAt']>().toEqualTypeOf<Date | null>();
@@ -96,8 +99,12 @@ describe('public v2 api', () => {
       currentLevel: number;
       durationMs: number;
       isLive: boolean;
+      isPaused: boolean;
       sampleCount: number;
       samples: number[];
+      windowDurationMs: number;
+      sampleIntervalMs: number;
+      anchorRatio: number;
     }>();
   });
 
@@ -154,6 +161,7 @@ describe('public v2 api', () => {
       | 'idle'
       | 'requesting-permission'
       | 'recording'
+      | 'paused'
       | 'stopping'
       | 'stopped'
       | 'error'

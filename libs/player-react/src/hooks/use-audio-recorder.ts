@@ -15,6 +15,8 @@ import type {
 const ANALYSIS_INTERVAL_MS = 100;
 const DURATION_INTERVAL_MS = 100;
 const LIVE_WAVEFORM_SAMPLE_COUNT = 48;
+const LIVE_WAVEFORM_WINDOW_DURATION_MS = 6000;
+const LIVE_WAVEFORM_ANCHOR_RATIO = 0.72;
 
 function isRecorderSupported() {
   return typeof navigator !== 'undefined'
@@ -132,6 +134,16 @@ function normalizeWaveformSamples(input: Uint8Array, sampleCount = LIVE_WAVEFORM
   };
 }
 
+function getWaveformMetadata(sampleCount: number) {
+  return {
+    anchorRatio: LIVE_WAVEFORM_ANCHOR_RATIO,
+    sampleIntervalMs: sampleCount > 0
+      ? Math.round(LIVE_WAVEFORM_WINDOW_DURATION_MS / sampleCount)
+      : LIVE_WAVEFORM_WINDOW_DURATION_MS,
+    windowDurationMs: LIVE_WAVEFORM_WINDOW_DURATION_MS,
+  };
+}
+
 export function useAudioRecorder({
   audioConstraints,
   callbacks,
@@ -160,6 +172,7 @@ export function useAudioRecorder({
   const chunksRef = useRef<Blob[]>([]);
   const chunkSequenceRef = useRef(0);
   const startTimeRef = useRef<number | null>(null);
+  const accumulatedDurationRef = useRef(0);
   const sessionStartAtRef = useRef<Date | null>(null);
   const sessionMimeTypeRef = useRef<string>(mimeType || 'audio/webm');
   const sessionIdLabelRef = useRef('');
@@ -216,6 +229,7 @@ export function useAudioRecorder({
   const clearResult = useCallback(() => {
     chunksRef.current = [];
     chunkSequenceRef.current = 0;
+    accumulatedDurationRef.current = 0;
     updateDuration(0);
     blobRef.current = null;
     fileRef.current = null;
@@ -246,6 +260,14 @@ export function useAudioRecorder({
     }
   }, [clearAnalysisTimer]);
 
+  const getCurrentDurationMs = useCallback(() => {
+    if (startTimeRef.current === null) {
+      return accumulatedDurationRef.current;
+    }
+
+    return accumulatedDurationRef.current + (Date.now() - startTimeRef.current);
+  }, []);
+
   const captureWaveformFrame = useCallback((isLive: boolean, nextDurationMs: number) => {
     const analyser = analyserRef.current;
     if (!analyser) {
@@ -255,12 +277,17 @@ export function useAudioRecorder({
     const timeDomainData = new Uint8Array(analyser.frequencyBinCount);
     analyser.getByteTimeDomainData(timeDomainData);
     const { currentLevel, samples } = normalizeWaveformSamples(timeDomainData);
+    const metadata = getWaveformMetadata(samples.length);
     const nextWaveformData: AudioRecorderWaveformPayload = {
+      anchorRatio: metadata.anchorRatio,
       currentLevel,
       durationMs: nextDurationMs,
       isLive,
+      isPaused: statusRef.current === 'paused',
       sampleCount: samples.length,
+      sampleIntervalMs: metadata.sampleIntervalMs,
       samples,
+      windowDurationMs: metadata.windowDurationMs,
     };
 
     setLevel(currentLevel);
@@ -292,14 +319,12 @@ export function useAudioRecorder({
     sourceNodeRef.current = sourceNode;
     analyserRef.current = analyserNode;
 
-    captureWaveformFrame(true, 0);
+    captureWaveformFrame(true, getCurrentDurationMs());
     analysisTimerRef.current = window.setInterval(() => {
-      const liveDuration = startTimeRef.current === null
-        ? durationRef.current
-        : Date.now() - startTimeRef.current;
+      const liveDuration = getCurrentDurationMs();
       captureWaveformFrame(true, liveDuration);
     }, ANALYSIS_INTERVAL_MS);
-  }, [captureWaveformFrame, resetWaveformState, stopLiveAnalysis]);
+  }, [captureWaveformFrame, getCurrentDurationMs, resetWaveformState, stopLiveAnalysis]);
 
   const toFile = useCallback((options?: AudioRecorderFileOptions) => {
     const sourceBlob = blobRef.current ?? fileRef.current ?? new Blob([], { type: sessionMimeTypeRef.current || mimeType || 'audio/webm' });
@@ -320,9 +345,9 @@ export function useAudioRecorder({
         return;
       }
 
-      updateDuration(Date.now() - startTimeRef.current);
+      updateDuration(getCurrentDurationMs());
     }, DURATION_INTERVAL_MS);
-  }, [clearTimer, updateDuration]);
+  }, [clearTimer, getCurrentDurationMs, updateDuration]);
 
   const finalizeRecording = useCallback((sessionId: number, nextStatus: AudioRecorderStatus = 'stopped') => {
     if (
@@ -337,9 +362,7 @@ export function useAudioRecorder({
     streamRef.current = null;
     mediaRecorderRef.current = null;
 
-    const finalDuration = startTimeRef.current === null
-      ? durationRef.current
-      : Date.now() - startTimeRef.current;
+    const finalDuration = getCurrentDurationMs();
     const endedAt = new Date();
     const startedAt = sessionStartAtRef.current ?? new Date(endedAt);
     const sessionMimeType = sessionMimeTypeRef.current || mimeType || chunksRef.current[0]?.type || 'audio/webm';
@@ -356,6 +379,7 @@ export function useAudioRecorder({
           currentLevel: 0,
           durationMs: finalDuration,
           isLive: false,
+          isPaused: false,
         }
       : previousWaveformData
         ? {
@@ -363,9 +387,11 @@ export function useAudioRecorder({
             currentLevel: 0,
             durationMs: finalDuration,
             isLive: false,
+            isPaused: false,
           }
         : null);
     stopLiveAnalysis();
+    accumulatedDurationRef.current = finalDuration;
 
     const nextBlob = new Blob(chunksRef.current, {
       type: chunksRef.current[0]?.type || sessionMimeType,
@@ -417,7 +443,7 @@ export function useAudioRecorder({
 
     callbacks?.onSessionEnd?.(sessionSummaryPayload);
     callbacks?.onRecordingComplete?.(completionPayload);
-  }, [callbacks, captureWaveformFrame, clearTimer, mimeType, revokeBlobUrl, setRecorderStatus, stopLiveAnalysis, updateDuration]);
+  }, [callbacks, captureWaveformFrame, clearTimer, getCurrentDurationMs, mimeType, revokeBlobUrl, setRecorderStatus, stopLiveAnalysis, updateDuration]);
 
   const reset = useCallback(() => {
     sessionIdRef.current += 1;
@@ -427,6 +453,7 @@ export function useAudioRecorder({
     clearTimer();
     clearAnalysisTimer();
     startTimeRef.current = null;
+    accumulatedDurationRef.current = 0;
     sessionStartAtRef.current = null;
     sessionMimeTypeRef.current = mimeType || 'audio/webm';
     sessionIdLabelRef.current = '';
@@ -464,6 +491,7 @@ export function useAudioRecorder({
       startLockRef.current
       || statusRef.current === 'requesting-permission'
       || statusRef.current === 'recording'
+      || statusRef.current === 'paused'
       || statusRef.current === 'stopping'
     ) {
       return;
@@ -523,9 +551,7 @@ export function useAudioRecorder({
         if (event.data.size > 0) {
           chunksRef.current.push(event.data);
 
-          const duration = startTimeRef.current === null
-            ? durationRef.current
-            : Date.now() - startTimeRef.current;
+          const duration = getCurrentDurationMs();
           const sequence = chunkSequenceRef.current + 1;
           const chunkPayload: AudioRecorderChunkPayload = {
             chunk: event.data,
@@ -567,6 +593,7 @@ export function useAudioRecorder({
       clearResult();
       stopMediaStream(previousStream);
       startTimeRef.current = Date.now();
+      accumulatedDurationRef.current = 0;
       updateDuration(0);
       setSessionId(sessionIdLabel);
       setStartedAt(startedAt);
@@ -587,6 +614,7 @@ export function useAudioRecorder({
 
       clearTimer();
       startTimeRef.current = null;
+      accumulatedDurationRef.current = 0;
 
       if (nextStream && nextStream !== streamRef.current) {
         stopMediaStream(nextStream);
@@ -613,6 +641,7 @@ export function useAudioRecorder({
     clearResult,
     clearTimer,
     finalizeRecording,
+    getCurrentDurationMs,
     mimeType,
     recorderOptions,
     resetWaveformState,
@@ -624,6 +653,92 @@ export function useAudioRecorder({
     timeslice,
     updateDuration,
   ]);
+
+  const pause = useCallback(() => {
+    const recorder = mediaRecorderRef.current;
+    if (!recorder || statusRef.current !== 'recording' || typeof recorder.pause !== 'function') {
+      return;
+    }
+
+    const pausedDuration = getCurrentDurationMs();
+
+    clearTimer();
+    clearAnalysisTimer();
+
+    try {
+      recorder.pause();
+      accumulatedDurationRef.current = pausedDuration;
+      startTimeRef.current = null;
+      stopLiveAnalysis();
+      updateDuration(pausedDuration);
+      setLevel(0);
+      setWaveformData(previousWaveformData => previousWaveformData
+        ? {
+            ...previousWaveformData,
+            currentLevel: 0,
+            durationMs: pausedDuration,
+            isLive: true,
+            isPaused: true,
+          }
+        : {
+            ...getWaveformMetadata(0),
+            currentLevel: 0,
+            durationMs: pausedDuration,
+            isLive: true,
+            isPaused: true,
+            sampleCount: 0,
+            samples: [],
+          });
+      setRecorderStatus('paused');
+    }
+    catch (pauseError) {
+      blockedFinalizeSessionRef.current = sessionIdRef.current;
+      stopMediaStream(streamRef.current);
+      streamRef.current = null;
+      mediaRecorderRef.current = null;
+      startTimeRef.current = null;
+      accumulatedDurationRef.current = 0;
+      stopLiveAnalysis();
+      setLevel(0);
+      setRecorderStatus('error');
+      setRecorderError(createRecorderError('recording-failed', 'Failed to pause audio recording.', pauseError));
+    }
+  }, [clearAnalysisTimer, clearTimer, getCurrentDurationMs, setRecorderError, setRecorderStatus, stopLiveAnalysis, updateDuration]);
+
+  const resume = useCallback(async () => {
+    const recorder = mediaRecorderRef.current;
+    const currentStream = streamRef.current;
+    if (!recorder || !currentStream || statusRef.current !== 'paused' || typeof recorder.resume !== 'function') {
+      return;
+    }
+
+    try {
+      recorder.resume();
+      startTimeRef.current = Date.now();
+      setRecorderStatus('recording');
+      setWaveformData(previousWaveformData => previousWaveformData
+        ? {
+            ...previousWaveformData,
+            isLive: true,
+            isPaused: false,
+          }
+        : previousWaveformData);
+      await startLiveAnalysis(currentStream);
+      startDurationTimer();
+    }
+    catch (resumeError) {
+      blockedFinalizeSessionRef.current = sessionIdRef.current;
+      stopMediaStream(streamRef.current);
+      streamRef.current = null;
+      mediaRecorderRef.current = null;
+      startTimeRef.current = null;
+      accumulatedDurationRef.current = 0;
+      stopLiveAnalysis();
+      setLevel(0);
+      setRecorderStatus('error');
+      setRecorderError(createRecorderError('recording-failed', 'Failed to resume audio recording.', resumeError));
+    }
+  }, [setRecorderError, setRecorderStatus, startDurationTimer, startLiveAnalysis, stopLiveAnalysis]);
 
   const stop = useCallback(() => {
     const recorder = mediaRecorderRef.current;
@@ -644,6 +759,7 @@ export function useAudioRecorder({
       streamRef.current = null;
       mediaRecorderRef.current = null;
       startTimeRef.current = null;
+      accumulatedDurationRef.current = 0;
       stopLiveAnalysis();
       setLevel(0);
       setRecorderStatus('error');
@@ -663,6 +779,7 @@ export function useAudioRecorder({
       streamRef.current = null;
       mediaRecorderRef.current = null;
       startTimeRef.current = null;
+      accumulatedDurationRef.current = 0;
 
       if (blobUrlRef.current) {
         URL.revokeObjectURL(blobUrlRef.current);
@@ -677,10 +794,13 @@ export function useAudioRecorder({
     durationMs,
     error,
     file,
+    isPaused: status === 'paused',
     isRecording: status === 'recording',
     level,
     mimeType: resolvedMimeType,
+    pause,
     reset,
+    resume,
     sessionId,
     startedAt,
     start,

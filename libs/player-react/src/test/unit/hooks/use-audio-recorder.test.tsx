@@ -362,8 +362,12 @@ describe('useAudioRecorder()', () => {
       currentLevel: expect.any(Number),
       durationMs: 200,
       isLive: true,
+      isPaused: false,
       sampleCount: expect.any(Number),
       samples: expect.any(Array),
+      windowDurationMs: expect.any(Number),
+      sampleIntervalMs: expect.any(Number),
+      anchorRatio: expect.any(Number),
     });
     expect(result.current.waveformData?.sampleCount).toBeGreaterThan(0);
     expect(result.current.waveformData?.samples[0]).toBeGreaterThan(0);
@@ -378,10 +382,69 @@ describe('useAudioRecorder()', () => {
       currentLevel: 0,
       durationMs: 200,
       isLive: false,
+      isPaused: false,
       sampleCount: expect.any(Number),
       samples: expect.any(Array),
+      windowDurationMs: expect.any(Number),
+      sampleIntervalMs: expect.any(Number),
+      anchorRatio: expect.any(Number),
     });
     expect(result.current.waveformData?.samples[0]).toBeGreaterThan(0);
+  });
+
+  it('pause() 会进入 paused 状态并冻结 durationMs 与 waveformData，resume() 后继续同一会话', async () => {
+    const { result } = renderHook(() => useAudioRecorder());
+
+    await act(async () => {
+      await result.current.start();
+    });
+
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
+
+    const durationBeforePause = result.current.durationMs;
+    act(() => {
+      result.current.pause();
+    });
+
+    expect(result.current.status).toBe('paused');
+    expect(result.current.isRecording).toBe(false);
+    expect(result.current.isPaused).toBe(true);
+    expect(MockMediaRecorder.lastInstance?.pause).toHaveBeenCalledOnce();
+    expect(result.current.waveformData).toMatchObject({
+      durationMs: durationBeforePause,
+      isLive: true,
+      isPaused: true,
+    });
+    const waveformWhilePaused = result.current.waveformData;
+
+    act(() => {
+      vi.advanceTimersByTime(500);
+    });
+
+    expect(result.current.durationMs).toBe(durationBeforePause);
+    expect(result.current.waveformData).toEqual(waveformWhilePaused);
+
+    await act(async () => {
+      await result.current.resume();
+    });
+
+    expect(result.current.status).toBe('recording');
+    expect(result.current.isPaused).toBe(false);
+    expect(MockMediaRecorder.lastInstance?.resume).toHaveBeenCalledOnce();
+
+    act(() => {
+      vi.advanceTimersByTime(200);
+    });
+
+    expect(result.current.sessionId).toEqual(expect.any(String));
+    expect(result.current.durationMs).toBe(durationBeforePause + 200);
+    expect(result.current.waveformData).toMatchObject({
+      isLive: true,
+      isPaused: false,
+      durationMs: durationBeforePause + 200,
+    });
   });
 
   it('reset() 会清空录音会话元数据与 live waveform 状态', async () => {

@@ -70,6 +70,7 @@ export type AudioRecorderStatus =
   | 'idle'
   | 'requesting-permission'
   | 'recording'
+  | 'paused'
   | 'stopping'
   | 'stopped'
   | 'error'
@@ -103,8 +104,12 @@ export interface AudioRecorderWaveformPayload {
   currentLevel: number;
   durationMs: number;
   isLive: boolean;
+  isPaused: boolean;
   sampleCount: number;
   samples: number[];
+  windowDurationMs: number;
+  sampleIntervalMs: number;
+  anchorRatio: number;
 }
 
 export interface AudioRecorderSessionStartPayload {
@@ -153,6 +158,7 @@ export interface AudioRecorderEventCallbacks {
 export interface AudioRecorderController {
   status: AudioRecorderStatus;
   isRecording: boolean;
+  isPaused: boolean;
   durationMs: number;
   sessionId: string | null;
   startedAt: Date | null;
@@ -164,6 +170,8 @@ export interface AudioRecorderController {
   file: File | null;
   error: AudioRecorderError | null;
   start: () => Promise<void>;
+  pause: () => void;
+  resume: () => Promise<void>;
   stop: () => void;
   reset: () => void;
   toFile: (options?: AudioRecorderFileOptions) => File;
