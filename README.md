@@ -55,7 +55,7 @@ export function Demo() {
 }
 ```
 
-For recording and ASR-oriented flows:
+For recording, pause/resume, and ASR-oriented flows:
 
 ```tsx
 import { useAudioRecorder } from '@waveform-audio/player';
@@ -74,9 +74,17 @@ export function RecorderDemo() {
   });
 
   return (
-    <button type="button" onClick={() => void recorder.start()}>
-      Start streaming capture
-    </button>
+    <div>
+      <button type="button" onClick={() => void recorder.start()}>
+        Start streaming capture
+      </button>
+      <button type="button" onClick={recorder.pause} disabled={!recorder.isRecording}>
+        Pause
+      </button>
+      <button type="button" onClick={() => void recorder.resume()} disabled={!recorder.isPaused}>
+        Resume
+      </button>
+    </div>
   );
 }
 ```
@@ -115,7 +123,10 @@ Remaining outdated packages are mostly major-version migrations such as React 19
 - Import from `@waveform-audio/player` only.
 - Do not depend on repository source paths such as `libs/player-react/src/*`.
 - Prefer `Player` / `Recorder` first, then move down to primitives and hooks only when needed.
+- Treat the default `Recorder` as a capture surface. Post-recording playback or review UI is application-defined.
 - For file-level ASR, rely on `onRecordingComplete({ file, blob, blobUrl })`.
 - For streaming ASR, rely on `onSessionStart`, `onChunk`, and `onSessionEnd`.
 - Use `level` and `waveformData` for recorder waveform UI instead of inventing a second analysis layer.
+- `useAudioRecorder()` supports `pause()`, `resume()`, and `status === 'paused'`.
+- Recorder waveform configuration is aligned with player waveform types and bar-style options.
 - Treat compatibility aliases as temporary helpers, not the default public API.

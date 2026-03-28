@@ -28,14 +28,18 @@ Supported scenarios
 - default waveform audio player in React
 - branded player UI with public primitives
 - multiple coordinated players on one page
-- waveform recorder with review playback
+- capture-first waveform recorder
 - file-level ASR handoff
 - streaming ASR with chunk events
 
 Recorder integration rules
+- The default `Recorder` is a capture surface; post-recording playback or review UI is app-defined
+- `useAudioRecorder()` supports `pause()`, `resume()`, `isPaused`, and `status === 'paused'`
 - Use `onRecordingComplete()` for file-level upload or offline ASR
 - Use `timeslice` + `onSessionStart` + `onChunk` + `onSessionEnd` for streaming ASR
 - Use `waveformData` and `level` for recorder UI instead of building a second analyzer
+- Treat `waveformData` as a time-window payload with `isPaused`, `windowDurationMs`, `sampleIntervalMs`, and `anchorRatio`
+- Recorder waveform configuration should align with player waveform types and bar-style options
 - Use `blobUrl` for local preview, `file` / `blob` for persistence or upload
 
 Never do this

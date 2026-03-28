@@ -7,8 +7,8 @@ Use this guide when an agent needs to add recording UI, upload recorded audio, o
 Use `Recorder` when the user wants:
 
 - a simple browser recording surface
-- start/stop/reset behavior with minimal setup
-- immediate playback preview after recording
+- start/pause/resume/stop/reset behavior with minimal setup
+- a default live capture UI without building a custom recorder surface first
 
 ```tsx
 import { Recorder } from '@waveform-audio/player';
@@ -24,16 +24,19 @@ export function Demo() {
 Use `useAudioRecorder()` when:
 
 - the app owns the layout
-- the recording flow connects to upload, moderation, or review UI
+- the recording flow connects to upload, moderation, or custom review UI
 - the user needs explicit error/status handling
 
 The current public surface focuses on:
 
 - `start()`
+- `pause()`
+- `resume()`
 - `stop()`
 - `reset()`
 - `status`
 - `isRecording`
+- `isPaused`
 - `durationMs`
 - `sessionId`
 - `startedAt`
@@ -67,22 +70,25 @@ Agents should branch on the public error codes instead of guessing failure text:
 ## Integration Guidance
 
 - Keep the first generated version minimal
+- Treat the default `Recorder` as a capture surface, not a full post-recording review flow
 - Show upload or replay flow only after recording succeeds
 - Prefer `blobUrl` for local preview and `file` / `blob` for persistence or upload
 - Use `onRecordingComplete` for file-level ASR backends
 - Use `onChunk` plus `timeslice` for streaming ASR backends
 - Reuse `waveformData` for recorder UI instead of building a separate waveform analyzer
+- `waveformData` is a live time-window payload and includes `isPaused`, `windowDurationMs`, `sampleIntervalMs`, and `anchorRatio`
+- Recorder waveform configuration should align with the player waveform types and bar-style options when building custom UI
 
 ## Good Prompt Shape
 
-Ask for `Recorder` first, then move to `useAudioRecorder()` only when upload, ASR, transcript rendering, or workflow-specific control is required.
+Ask for `Recorder` first, then move to `useAudioRecorder()` only when upload, ASR, transcript rendering, custom review, or workflow-specific control is required.
 
 Example:
 
 ```md
 Use `@waveform-audio/player` to add a waveform recorder to this React app.
 Start with the default `Recorder` component.
-If the task involves upload or ASR, switch to `useAudioRecorder()` and stay on the public event model.
+If the task involves upload, ASR, or custom post-recording UI, switch to `useAudioRecorder()` and stay on the public event model.
 Do not import internal source paths.
 ```
 

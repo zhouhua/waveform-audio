@@ -1,6 +1,6 @@
 # Waveform Audio React
 
-React audio toolkit for building waveform-based playback experiences.
+React audio toolkit for building waveform-based playback and recording experiences.
 
 [中文文档](./README.zh.md)
 
@@ -91,6 +91,12 @@ function CustomRecorder() {
       <button type="button" onClick={() => void recorder.start()}>
         Start
       </button>
+      <button type="button" onClick={recorder.pause} disabled={!recorder.isRecording}>
+        Pause
+      </button>
+      <button type="button" onClick={() => void recorder.resume()} disabled={!recorder.isPaused}>
+        Resume
+      </button>
       <button type="button" onClick={recorder.stop} disabled={!recorder.isRecording}>
         Stop
       </button>
@@ -101,7 +107,6 @@ function CustomRecorder() {
       <p>Duration: {recorder.durationMs}ms</p>
       <p>Session: {recorder.sessionId}</p>
       <p>Level: {Math.round(recorder.level * 100)}%</p>
-      {recorder.blobUrl && <audio controls src={recorder.blobUrl} />}
     </div>
   );
 }
@@ -109,11 +114,24 @@ function CustomRecorder() {
 
 `useAudioRecorder()` exposes:
 
-- controls: `start()`, `stop()`, `reset()`
-- session state: `status`, `isRecording`, `durationMs`, `sessionId`, `startedAt`, `mimeType`
+- controls: `start()`, `pause()`, `resume()`, `stop()`, `reset()`
+- session state: `status`, `isRecording`, `isPaused`, `durationMs`, `sessionId`, `startedAt`, `mimeType`
 - waveform state: `level`, `waveformData`
 - output state: `blob`, `blobUrl`, `file`, `toFile()`
 - explicit error states for unsupported environments, denied microphone permission, recording failures, and stop failures
+
+The default `Recorder` component is now capture-first:
+
+- it renders a live windowed waveform surface while recording
+- it stays on that capture surface while paused
+- it does not render a built-in review player after stop
+- applications decide how to present `blobUrl`, `file`, or playback after recording completes
+
+`waveformData` is a time-window payload for live recorder UI and includes:
+
+- `samples`, `sampleCount`, `currentLevel`
+- `isLive`, `isPaused`
+- `windowDurationMs`, `sampleIntervalMs`, `anchorRatio`
 
 The recorder event model is designed for ASR handoff:
 
