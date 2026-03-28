@@ -147,14 +147,14 @@ const content = {
     recorder: {
       eyebrow: 'Waveform Recorder',
       title: 'A recorder that feels like part of the product, not a browser utility bolted onto it.',
-      description: 'Capture audio, preview it immediately, and move cleanly into upload, playback, or realtime ASR without leaving the public API surface.',
+      description: 'Capture audio in a polished windowed waveform UI, then hand the result cleanly into upload, playback, or realtime ASR without leaving the public API surface.',
       docsCta: 'Open Docs',
       examplesCta: 'View examples',
       installLabel: 'Quick install',
       codeTitle: 'Minimal recording loop',
       quickStartAi: {
         advancedBullets: [
-          'Start with `Recorder` when you want the default waveform shell.',
+          'Start with `Recorder` when you want the default capture shell.',
           'Use `useAudioRecorder()` when the app owns upload, session control, or ASR integration.',
           'Prefer `onRecordingComplete()` for file uploads and `onChunk()` for streaming ASR.',
           'Read `llms.txt` first so agents stay on the public recorder surface and output model.',
@@ -188,15 +188,15 @@ const content = {
         items: [
           {
             api: '`Recorder`',
-            description: 'Start with the default waveform recorder when you want a polished capture experience with session status, waveform display, and review built in.',
+            description: 'Start with the default waveform recorder when you want a polished capture experience with session status, pause/resume controls, and a live time-window waveform.',
             fit: 'Voice notes, support tools, product forms, and any workflow that needs a ready-made recorder shell.',
             step: 'Example 1',
             title: 'Start with a recorder that already feels finished.',
           },
           {
             api: '`Recorder` + `onRecordingComplete()`',
-            description: 'Keep the default recorder UI and attach a file handoff callback when the app needs to review or upload the completed recording.',
-            fit: 'Review-before-submit flows, file uploads, and asynchronous ASR backends that expect one file per session.',
+            description: 'Keep the default recorder UI and attach a file handoff callback when the app needs to upload or route the completed recording into a custom review surface.',
+            fit: 'File uploads, submit-after-capture flows, and asynchronous ASR backends that expect one file per session.',
             step: 'Example 2',
             title: 'Record once, then hand off a clean file.',
           },
@@ -217,7 +217,7 @@ const content = {
         ],
       },
       highlights: [
-        'Stable `useAudioRecorder()` hook for capture, stop, reset, and preview flows.',
+        'Stable `useAudioRecorder()` hook for capture, pause, resume, stop, and reset flows.',
         'Default `Recorder` component for teams that want a ready-made shell.',
         'Explicit error states for unsupported environments, permissions, capture, and stop failures.',
       ],
@@ -228,7 +228,7 @@ const content = {
         },
         {
           title: 'Keep output portable',
-          description: 'Every successful session gives you a `Blob` and `blobUrl`, ready for upload, review, or handoff into `Player`.',
+          description: 'Every successful session gives you a `Blob` and `blobUrl`, ready for upload, custom review, or handoff into `Player`.',
         },
         {
           title: 'Stay AI-readable',
@@ -481,8 +481,8 @@ const content = {
     },
     recorder: {
       eyebrow: 'Waveform Recorder',
-      title: '一个 API 面积克制、可自然衔接回放流程的浏览器录音器。',
-      description: '在 React 中完成音频采集、即时预览与结果导出，同时保持实现足够清晰，便于工程师与 AI 正确集成。',
+      title: '一个 API 面积克制、以时间窗口波形为核心的浏览器录音器。',
+      description: '在 React 中完成音频采集、暂停继续、结果导出与后续交接，同时保持实现足够清晰，便于工程师与 AI 正确集成。',
       docsCta: '打开文档',
       examplesCta: '查看示例',
       installLabel: '快速安装',
@@ -523,17 +523,17 @@ const content = {
         items: [
           {
             api: '`Recorder`',
-            description: '当你想要一个完成度很高的波形录音器时，先直接使用默认 `Recorder`，状态、波形和回听都已经准备好。',
+            description: '当你想要一个完成度很高的波形录音器时，先直接使用默认 `Recorder`，状态、暂停继续和时间窗口波形都已经准备好。',
             fit: '语音备注、客服工具、表单录音，以及任何想尽快接入录音能力的产品流程。',
             step: '示例 1',
             title: '先直接放入默认录音器。',
           },
           {
             api: '`Recorder` + `onRecordingComplete()`',
-            description: '保留默认录音界面，同时在录音完成时接出文件回调，让业务流程可以立刻进入回听、上传或异步识别。',
-            fit: '提交前试听、文件上传，以及每次录音只对应一个文件的离线 ASR 后端。',
+            description: '保留默认录音界面，同时在录音完成时接出文件回调，让业务流程可以立刻进入上传、异步识别或自定义回听。',
+            fit: '文件上传、自定义试听界面，以及每次录音只对应一个文件的离线 ASR 后端。',
             step: '示例 2',
-            title: '回听录音结果，再交出最终文件。',
+            title: '录音完成后，把最终文件交给业务流程。',
           },
           {
             api: '`useAudioRecorder()` + `onChunk()`',
@@ -552,7 +552,7 @@ const content = {
         ],
       },
       highlights: [
-        '稳定的 `useAudioRecorder()` hook，覆盖开始、停止、重置与预览流程。',
+        '稳定的 `useAudioRecorder()` hook，覆盖开始、暂停、继续、停止与重置流程。',
         '提供默认 `Recorder` 组件，适合直接接入的团队。',
         '对浏览器不支持、权限拒绝、录音失败、停止失败都暴露明确错误状态。',
       ],
@@ -563,7 +563,7 @@ const content = {
         },
         {
           title: '让结果容易接续',
-          description: '每次成功录音都会拿到 `Blob` 与 `blobUrl`，方便上传、审核或交给 `Player` 回放。',
+          description: '每次成功录音都会拿到 `Blob` 与 `blobUrl`，方便上传、自定义回听或交给 `Player` 回放。',
         },
         {
           title: '让 AI 不会走偏',

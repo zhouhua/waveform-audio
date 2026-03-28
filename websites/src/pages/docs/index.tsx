@@ -101,7 +101,9 @@ function CustomRecorder() {
   return (
     <div>
       <button onClick={() => void recorder.start()}>Start</button>
-      <button onClick={recorder.stop}>Stop</button>
+      <button onClick={recorder.pause} disabled={!recorder.isRecording}>Pause</button>
+      <button onClick={() => void recorder.resume()} disabled={!recorder.isPaused}>Resume</button>
+      <button onClick={recorder.stop} disabled={!recorder.isRecording && !recorder.isPaused}>Stop</button>
       <div>{recorder.status}</div>
       <div>{Math.round(recorder.level * 100)}%</div>
       <div>{recorder.waveformData?.samples.length ?? 0} samples</div>
@@ -393,13 +395,23 @@ function RecorderHookPreview() {
           onClick={() => {
             void recorder.start();
           }}
+          disabled={recorder.isRecording || recorder.isPaused}
         >
           Start
         </button>
         <button
           type="button"
           className="rounded-full border border-black/10 bg-white px-3 py-2 text-sm text-stone-700"
+          onClick={recorder.isPaused ? () => void recorder.resume() : recorder.pause}
+          disabled={!recorder.isRecording && !recorder.isPaused}
+        >
+          {recorder.isPaused ? 'Resume' : 'Pause'}
+        </button>
+        <button
+          type="button"
+          className="rounded-full border border-black/10 bg-white px-3 py-2 text-sm text-stone-700"
           onClick={recorder.stop}
+          disabled={!recorder.isRecording && !recorder.isPaused}
         >
           Stop
         </button>
@@ -898,8 +910,8 @@ export default function DocsHomePage() {
               <DocSubSection id="recorder-default" title={isZh ? '默认 Recorder' : 'Default Recorder'}>
                 <p>
                   {isZh
-                    ? '`Recorder` 是默认入口。它内置了会话状态、实时波形、停止后回听以及基础错误反馈，适合语音备注、支持后台、表单录音和任何只想快速接入录音体验的地方。'
-                    : '`Recorder` is the default entry point. It already includes session status, a live waveform, post-stop review, and baseline error handling for voice notes, support tools, forms, and any product that needs a complete recorder surface quickly.'}
+                    ? '`Recorder` 是默认入口。它内置了会话状态、实时时间窗口波形、暂停继续控制以及基础错误反馈，适合语音备注、支持后台、表单录音和任何只想快速接入录音体验的地方。录音完成后的回听或上传界面由应用自行决定。'
+                    : '`Recorder` is the default entry point. It already includes session status, a live windowed waveform, pause and resume controls, and baseline error handling for voice notes, support tools, forms, and any product that needs a polished capture surface quickly. Post-recording review or upload UI is application-defined.'}
                 </p>
                 <DocShowcase
                   code={recorderQuickstartCode}
@@ -910,7 +922,7 @@ export default function DocsHomePage() {
                   items={[
                     {
                       label: 'default shell',
-                      value: isZh ? '默认录音器包含实时波形、录音时长、开始/停止/重置和停止后的回听。' : 'The default recorder ships with live waveform feedback, duration, start/stop/reset controls, and post-stop review.',
+                      value: isZh ? '默认录音器包含实时时间窗口波形、录音时长、开始/暂停/继续/停止/重置等控制，但不会在停止后自动渲染回听 UI。' : 'The default recorder ships with a live windowed waveform, duration, and start/pause/resume/stop/reset controls, but it does not automatically render post-stop review UI.',
                     },
                     {
                       label: 'callbacks',
@@ -921,8 +933,8 @@ export default function DocsHomePage() {
                       value: isZh ? '这些参数直接透传给录音 hook，用来控制麦克风约束、录音格式、MediaRecorder 选项和 chunk 频率。' : 'These options flow directly into the recorder hook and control microphone constraints, recording format, MediaRecorder options, and chunk frequency.',
                     },
                     {
-                      label: 'startLabel / stopLabel / resetLabel / statusLabels',
-                      value: isZh ? '默认录音器还允许调整按钮文案和状态文案，适合快速接入时做产品语言适配。' : 'The default recorder also lets you customize button labels and status labels for product-language adaptation without rewriting the UI.',
+                      label: 'startLabel / pauseLabel / resumeLabel / stopLabel / resetLabel / statusLabels',
+                      value: isZh ? '默认录音器允许调整控制按钮文案和状态文案，适合快速接入时做产品语言适配。' : 'The default recorder lets you customize control labels and status labels so product language can adapt without rebuilding the UI.',
                     },
                   ]}
                 />
@@ -953,12 +965,16 @@ export default function DocsHomePage() {
                       value: isZh ? '录音生命周期回调集合，包括 `onSessionStart`、`onChunk`、`onSessionEnd`、`onRecordingComplete` 和 `onError`。' : 'The recording lifecycle callback group, including `onSessionStart`, `onChunk`, `onSessionEnd`, `onRecordingComplete`, and `onError`.',
                     },
                     {
-                      label: 'startLabel / stopLabel / resetLabel',
-                      value: isZh ? '快速替换默认文案，不需要自己重做控制按钮。' : 'Lets you replace the default button labels without rebuilding the control row.',
+                      label: 'startLabel / pauseLabel / resumeLabel / stopLabel / resetLabel',
+                      value: isZh ? '快速替换默认控制文案，不需要自己重做控制按钮。' : 'Lets you replace the default control labels without rebuilding the control row.',
                     },
                     {
                       label: 'statusLabels',
                       value: isZh ? '覆盖默认状态文案，适合把 `recording`、`stopping` 等状态换成产品语言。' : 'Overrides the built-in status labels so states like `recording` and `stopping` match product language.',
+                    },
+                    {
+                      label: 'waveformType / waveformBarWidth / waveformBarGap / waveformBarRadius / waveformAnchorRatio',
+                      value: isZh ? '用于调整默认录音器的时间窗口波形表达，并和播放器的波形类型与 bar 参数保持一致。' : 'Used to tune the default recorder waveform window while aligning with the player waveform types and bar-style options.',
                     },
                   ]}
                 />
@@ -967,8 +983,8 @@ export default function DocsHomePage() {
               <DocSubSection id="recorder-hook" title={isZh ? 'useAudioRecorder 与公开状态模型' : 'useAudioRecorder and the published state model'}>
                 <p>
                   {isZh
-                    ? '当录音流程属于更大的产品任务，例如上传、转写、审批、AI 协同或品牌化录音界面时，进入 `useAudioRecorder()`。这个 hook 的职责不是只给你一个 Blob，而是给你完整的会话信息。'
-                    : 'Move to `useAudioRecorder()` when recording is part of a broader product task such as upload, transcription, review, AI collaboration, or a custom branded recorder. The hook is designed to provide a session model, not just a final blob.'}
+                    ? '当录音流程属于更大的产品任务，例如上传、转写、审批、AI 协同或品牌化录音界面时，进入 `useAudioRecorder()`。这个 hook 的职责不是只给你一个 Blob，而是给你完整的会话信息、暂停继续控制和时间窗口波形数据。'
+                    : 'Move to `useAudioRecorder()` when recording is part of a broader product task such as upload, transcription, custom review, AI collaboration, or a branded recorder. The hook is designed to provide a session model, pause and resume control, and time-window waveform data rather than just a final blob.'}
                 </p>
                 <DocShowcase
                   code={recorderHookCode}
@@ -979,11 +995,11 @@ export default function DocsHomePage() {
                   items={[
                     {
                       label: 'status',
-                      value: isZh ? '录音生命周期状态。常见值包括 `idle`、`requesting-permission`、`recording`、`stopping`、`stopped`、`error`、`unsupported`。' : 'Lifecycle status for the recorder. Common values include `idle`, `requesting-permission`, `recording`, `stopping`, `stopped`, `error`, and `unsupported`.',
+                      value: isZh ? '录音生命周期状态。常见值包括 `idle`、`requesting-permission`、`recording`、`paused`、`stopping`、`stopped`、`error`、`unsupported`。' : 'Lifecycle status for the recorder. Common values include `idle`, `requesting-permission`, `recording`, `paused`, `stopping`, `stopped`, `error`, and `unsupported`.',
                     },
                     {
                       label: 'waveformData / level',
-                      value: isZh ? '用于驱动自己的录音界面，不需要额外再搭一套分析器。' : 'Use these to drive your own recording UI without building a second analyzer pipeline.',
+                      value: isZh ? '用于驱动自己的录音界面，不需要额外再搭一套分析器。`waveformData` 是时间窗口模型，包含 `isPaused`、`windowDurationMs`、`sampleIntervalMs` 和 `anchorRatio`。' : 'Use these to drive your own recording UI without building a second analyzer pipeline. `waveformData` is a time-window model that includes `isPaused`, `windowDurationMs`, `sampleIntervalMs`, and `anchorRatio`.',
                     },
                     {
                       label: 'blob / blobUrl / file / toFile()',
@@ -1006,12 +1022,12 @@ export default function DocsHomePage() {
                 <DefinitionList
                   items={[
                     {
-                      label: 'status / isRecording',
-                      value: isZh ? '状态判断的第一入口。UI 按钮是否可点、是否要显示错误或等待态，都应优先依赖它们。' : 'The first place to branch UI state. Button availability, loading states, and error surfaces should all start from these values.',
+                      label: 'status / isRecording / isPaused',
+                      value: isZh ? '状态判断的第一入口。UI 按钮是否可点、是否要显示错误、等待态或暂停态，都应优先依赖它们。' : 'The first place to branch UI state. Button availability, loading states, error surfaces, and paused presentation should all start from these values.',
                     },
                     {
-                      label: 'start() / stop() / reset()',
-                      value: isZh ? '录音控制器的三个核心动作。默认组件内部也是围绕这三件事工作的。' : 'The three core recorder actions. The default component is built around these methods too.',
+                      label: 'start() / pause() / resume() / stop() / reset()',
+                      value: isZh ? '录音控制器的核心动作集合。默认组件内部也是围绕这些方法工作的。' : 'The core recorder actions. The default component is built around these methods too.',
                     },
                     {
                       label: 'durationMs / startedAt / sessionId',
@@ -1019,7 +1035,7 @@ export default function DocsHomePage() {
                     },
                     {
                       label: 'waveformData / level',
-                      value: isZh ? '用于驱动自定义录音 UI。`waveformData.samples` 适合画波形，`level` 更适合做简单的实时音量反馈。' : 'Use these to drive custom recorder UI. `waveformData.samples` is better for waveform visuals, while `level` is useful for simpler live volume feedback.',
+                      value: isZh ? '用于驱动自定义录音 UI。`waveformData.samples` 适合画时间窗口波形，`level` 更适合做简单的实时音量反馈。' : 'Use these to drive custom recorder UI. `waveformData.samples` is better for a time-window waveform, while `level` is useful for simpler live volume feedback.',
                     },
                     {
                       label: 'blob / blobUrl / file / toFile()',
@@ -1034,8 +1050,8 @@ export default function DocsHomePage() {
                 <Note label={isZh ? '典型流程' : 'Typical flow'}>
                   <p>
                     {isZh
-                      ? '业务里常见的顺序是：调用 `start()`，在录音中读取 `status`、`durationMs`、`waveformData`，停止后读取 `blobUrl` 做本地预览，再把 `file` 或 `toFile()` 的结果交给上传或 ASR。'
-                      : 'A common product flow is: call `start()`, read `status`, `durationMs`, and `waveformData` while recording, then use `blobUrl` for local review after stop and hand `file` or the result of `toFile()` to upload or ASR.'}
+                      ? '业务里常见的顺序是：调用 `start()`，在录音中读取 `status`、`durationMs`、`waveformData`，必要时通过 `pause()` / `resume()` 控制会话，停止后把 `blobUrl`、`file` 或 `toFile()` 的结果交给自定义预览、上传或 ASR。'
+                      : 'A common product flow is: call `start()`, read `status`, `durationMs`, and `waveformData` while recording, use `pause()` / `resume()` when needed, then hand `blobUrl`, `file`, or the result of `toFile()` to custom review, upload, or ASR after stop.'}
                   </p>
                 </Note>
               </DocSubSection>

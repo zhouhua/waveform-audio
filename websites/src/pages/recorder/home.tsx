@@ -53,7 +53,14 @@ function StreamingAsr() {
     },
   });
 
-  return <Recorder {...recorder} />;
+  return (
+    <div>
+      <button onClick={() => void recorder.start()}>Start</button>
+      <button onClick={recorder.pause} disabled={!recorder.isRecording}>Pause</button>
+      <button onClick={() => void recorder.resume()} disabled={!recorder.isPaused}>Resume</button>
+      <button onClick={recorder.stop} disabled={!recorder.isRecording && !recorder.isPaused}>Stop</button>
+    </div>
+  );
 }`;
 
 const customUiCode = `import { useAudioRecorder } from '@waveform-audio/player';
@@ -64,7 +71,9 @@ function CustomRecorder() {
   return (
     <div>
       <button onClick={() => void recorder.start()}>Start</button>
-      <button onClick={recorder.stop}>Stop</button>
+      <button onClick={recorder.pause} disabled={!recorder.isRecording}>Pause</button>
+      <button onClick={() => void recorder.resume()} disabled={!recorder.isPaused}>Resume</button>
+      <button onClick={recorder.stop} disabled={!recorder.isRecording && !recorder.isPaused}>Stop</button>
       <button onClick={recorder.reset}>Reset</button>
       <div>{recorder.status}</div>
       <div>{Math.round(recorder.level * 100)}%</div>
@@ -74,10 +83,14 @@ function CustomRecorder() {
 }`;
 
 function WaveformStrip({
-  isLive = false,
+  anchorRatio = 0.72,
+  isPaused = false,
+  isRecording = false,
   samples,
 }: {
-  isLive?: boolean;
+  anchorRatio?: number;
+  isPaused?: boolean;
+  isRecording?: boolean;
   samples?: number[];
 }) {
   const normalizedSamples = useMemo(() => {
@@ -91,18 +104,37 @@ function WaveformStrip({
     });
   }, [samples]);
 
+  const activeCount = Math.max(1, Math.round(normalizedSamples.length * anchorRatio));
+  const activeSamples = normalizedSamples.slice(0, activeCount);
+  const emptyCount = Math.max(0, normalizedSamples.length - activeCount);
+
   return (
-    <div className="flex h-24 items-end gap-1 rounded-[1.5rem] border border-black/10 bg-[#f8f4ed] p-4">
-      {normalizedSamples.map((sample, index) => (
-        <span
-          key={`${index}-${sample}`}
-          aria-hidden="true"
-          className={`block flex-1 rounded-full transition-[height,opacity] duration-150 ${isLive ? 'bg-gradient-to-t from-sky-500 to-cyan-300 opacity-100' : 'bg-stone-300 opacity-80'}`}
-          style={{
-            height: `${Math.max(10, Math.round(sample * 100))}%`,
-          }}
-        />
-      ))}
+    <div className="relative h-24 overflow-hidden rounded-[1.5rem] border border-black/10 bg-[#f8f4ed] p-4">
+      <div className="flex h-full items-end gap-1">
+        {activeSamples.map((sample, index) => (
+          <span
+            key={`${index}-${sample}`}
+            aria-hidden="true"
+            className={`block flex-1 rounded-full transition-[height,opacity] duration-150 ${isRecording ? 'bg-gradient-to-t from-sky-500 to-cyan-300 opacity-100' : isPaused ? 'bg-amber-300 opacity-90' : 'bg-stone-300 opacity-80'}`}
+            style={{
+              height: `${Math.max(10, Math.round(sample * 100))}%`,
+            }}
+          />
+        ))}
+        {Array.from({ length: emptyCount }, (_value, index) => (
+          <span
+            key={`empty-${index}`}
+            aria-hidden="true"
+            className="block flex-1 rounded-full bg-stone-300/45"
+            style={{ height: '2px' }}
+          />
+        ))}
+      </div>
+      <span
+        aria-hidden="true"
+        className={`absolute bottom-4 top-4 w-px -translate-x-1/2 rounded-full ${isPaused ? 'bg-amber-500/90' : 'bg-rose-500'}`}
+        style={{ left: `calc(${anchorRatio * 100}% - 1rem)` }}
+      />
     </div>
   );
 }
@@ -166,12 +198,28 @@ function StreamingAsrPreview() {
           {recorder.status}
         </span>
       </div>
-      <WaveformStrip isLive={recorder.waveformData?.isLive} samples={recorder.waveformData?.samples} />
+      <WaveformStrip
+        anchorRatio={recorder.waveformData?.anchorRatio}
+        isPaused={recorder.isPaused}
+        isRecording={recorder.isRecording}
+        samples={recorder.waveformData?.samples}
+      />
       <div className="flex flex-wrap gap-2">
-        <Button type="button" onClick={() => void recorder.start()} disabled={recorder.isRecording || recorder.status === 'requesting-permission' || recorder.status === 'stopping'}>
+        <Button type="button" onClick={() => void recorder.start()} disabled={recorder.isRecording || recorder.isPaused || recorder.status === 'requesting-permission' || recorder.status === 'stopping'}>
           Start
         </Button>
-        <Button type="button" variant="outline" onClick={recorder.stop} disabled={!recorder.isRecording}>
+        {recorder.isPaused
+          ? (
+              <Button type="button" variant="outline" onClick={() => void recorder.resume()} disabled={recorder.status === 'stopping'}>
+                Resume
+              </Button>
+            )
+          : (
+              <Button type="button" variant="outline" onClick={recorder.pause} disabled={!recorder.isRecording}>
+                Pause
+              </Button>
+            )}
+        <Button type="button" variant="outline" onClick={recorder.stop} disabled={!recorder.isRecording && !recorder.isPaused}>
           Stop
         </Button>
         <Button type="button" variant="ghost" onClick={recorder.reset}>
@@ -204,7 +252,12 @@ function CustomRecorderPreview() {
           {recorder.status}
         </span>
       </div>
-      <WaveformStrip isLive={recorder.waveformData?.isLive} samples={recorder.waveformData?.samples} />
+      <WaveformStrip
+        anchorRatio={recorder.waveformData?.anchorRatio}
+        isPaused={recorder.isPaused}
+        isRecording={recorder.isRecording}
+        samples={recorder.waveformData?.samples}
+      />
       <div className="flex items-center justify-between text-sm text-stone-300">
         <span>
           Level
@@ -218,13 +271,24 @@ function CustomRecorderPreview() {
         </span>
       </div>
       <div className="grid gap-2 sm:grid-cols-3">
-        <Button type="button" className="bg-white text-stone-950 hover:bg-stone-200" onClick={() => void recorder.start()} disabled={recorder.isRecording || recorder.status === 'requesting-permission' || recorder.status === 'stopping'}>
+        <Button type="button" className="bg-white text-stone-950 hover:bg-stone-200" onClick={() => void recorder.start()} disabled={recorder.isRecording || recorder.isPaused || recorder.status === 'requesting-permission' || recorder.status === 'stopping'}>
           Start
         </Button>
-        <Button type="button" variant="outline" className="border-white/20 bg-transparent text-white hover:bg-white/10 hover:text-white" onClick={recorder.stop} disabled={!recorder.isRecording}>
+        {recorder.isPaused
+          ? (
+              <Button type="button" variant="outline" className="border-white/20 bg-transparent text-white hover:bg-white/10 hover:text-white" onClick={() => void recorder.resume()} disabled={recorder.status === 'stopping'}>
+                Resume
+              </Button>
+            )
+          : (
+              <Button type="button" variant="outline" className="border-white/20 bg-transparent text-white hover:bg-white/10 hover:text-white" onClick={recorder.pause} disabled={!recorder.isRecording}>
+                Pause
+              </Button>
+            )}
+        <Button type="button" variant="outline" className="border-white/20 bg-transparent text-white hover:bg-white/10 hover:text-white" onClick={recorder.stop} disabled={!recorder.isRecording && !recorder.isPaused}>
           Stop
         </Button>
-        <Button type="button" variant="ghost" className="text-stone-200 hover:bg-white/10 hover:text-white" onClick={recorder.reset}>
+        <Button type="button" variant="ghost" className="text-stone-200 hover:bg-white/10 hover:text-white sm:col-span-3" onClick={recorder.reset}>
           Reset
         </Button>
       </div>
@@ -235,7 +299,6 @@ function CustomRecorderPreview() {
           {recorder.file.name}
         </div>
       )}
-      {recorder.blobUrl && <audio controls className="w-full" src={recorder.blobUrl} />}
     </div>
   );
 }
@@ -335,7 +398,7 @@ export default function RecorderHomePage() {
             <Recorder />
           </div>
           <p className="max-w-2xl text-sm leading-7 text-stone-650">
-            Use the default recorder when you want capture, review, and waveform feedback immediately. Drop lower only when the recording session also drives upload, transcripts, or realtime ASR.
+            Use the default recorder when you want a polished capture surface with pause, resume, and waveform feedback immediately. Drop lower only when the session also drives upload, transcripts, or realtime ASR.
           </p>
         </div>
       </section>
